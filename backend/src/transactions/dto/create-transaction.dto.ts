@@ -71,6 +71,11 @@ export class CreateTransactionDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsBoolean()
+  excludeFromBalance?: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsUUID()
   transferPairId?: string;
 }

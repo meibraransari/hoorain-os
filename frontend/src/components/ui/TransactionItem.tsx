@@ -68,6 +68,11 @@ export function TransactionItem({ transaction }: TransactionItemProps) {
             <span>{categoryName}</span>
             <span className="opacity-50">•</span>
             <span>{accountName}</span>
+            {transaction.excludeFromBalance && (
+              <span className="px-1.5 py-0.2 text-[10px] font-bold rounded bg-amber-500/15 text-amber-500 border border-amber-500/30">
+                Excluded from Balance
+              </span>
+            )}
             {secondaryNote && (
               <>
                 <span className="opacity-50">•</span>

@@ -46,6 +46,7 @@ export function AddTransactionModal({ isOpen, onClose, transactionToEdit }: AddT
   const [budgetId, setBudgetId] = useState('');
   const [dateTime, setDateTime] = useState(toLocalISOString(new Date()));
   const [notes, setNotes] = useState('');
+  const [excludeFromBalance, setExcludeFromBalance] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -106,11 +107,13 @@ export function AddTransactionModal({ isOpen, onClose, transactionToEdit }: AddT
       }
 
       setNotes(transactionToEdit.notes || '');
+      setExcludeFromBalance(!!transactionToEdit.excludeFromBalance);
     } else {
       setType('expense');
       setAmount('');
       setTitle('');
       setNotes('');
+      setExcludeFromBalance(false);
       setCategoryId('');
       setGoalId('');
       setBudgetId('');
@@ -149,6 +152,7 @@ export function AddTransactionModal({ isOpen, onClose, transactionToEdit }: AddT
           budgetId: budgetId || null,
           date: isoDate,
           notes,
+          excludeFromBalance,
         });
       } else {
         await createTransaction({
@@ -161,6 +165,7 @@ export function AddTransactionModal({ isOpen, onClose, transactionToEdit }: AddT
           budgetId: budgetId || null,
           date: isoDate,
           notes,
+          excludeFromBalance,
           targetAccountId: type === 'transfer' ? targetAccountId : undefined,
         });
       }
@@ -369,6 +374,29 @@ export function AddTransactionModal({ isOpen, onClose, transactionToEdit }: AddT
               onChange={(e) => setNotes(e.target.value)}
               className="w-full rounded-lg border border-border bg-bg-hover p-3 text-sm text-text-primary focus:border-accent focus:outline-none resize-y min-h-[90px]"
             />
+          </div>
+
+          {/* Exclude Amount Toggle Switch Button (below Notes / Description) */}
+          <div className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-bg-hover/60">
+            <div>
+              <span className="text-sm font-semibold text-text-primary block">Exclude Amount</span>
+              <span className="text-xs text-text-muted">
+                Creates a transaction entry without adding or subtracting from account balance.
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setExcludeFromBalance(!excludeFromBalance)}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                excludeFromBalance ? 'bg-accent' : 'bg-bg-card border-border'
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                  excludeFromBalance ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-border">

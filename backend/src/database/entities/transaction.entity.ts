@@ -80,6 +80,9 @@ export class Transaction {
   @Column({ name: 'is_transfer', default: false })
   isTransfer: boolean;
 
+  @Column({ name: 'exclude_from_balance', default: false, nullable: true })
+  excludeFromBalance: boolean;
+
   @Column({ name: 'transfer_pair_id', nullable: true })
   transferPairId: string;
 

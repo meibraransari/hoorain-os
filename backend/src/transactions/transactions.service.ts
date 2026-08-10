@@ -27,9 +27,51 @@ export class TransactionsService implements OnModuleInit {
       await this.transactionRepo.query(`
         ALTER TABLE transactions ADD COLUMN IF NOT EXISTS goal_id UUID;
         ALTER TABLE transactions ADD COLUMN IF NOT EXISTS budget_id UUID;
+        ALTER TABLE transactions ADD COLUMN IF NOT EXISTS exclude_from_balance BOOLEAN DEFAULT FALSE;
+
+        CREATE OR REPLACE FUNCTION sync_account_balance()
+        RETURNS TRIGGER AS $$
+        BEGIN
+          IF TG_OP = 'INSERT' THEN
+            IF NEW.exclude_from_balance IS TRUE THEN
+              RETURN COALESCE(NEW, OLD);
+            END IF;
+            IF NEW.type = 'income' THEN
+              UPDATE accounts SET current_balance = current_balance + NEW.amount WHERE id = NEW.account_id;
+            ELSIF NEW.type = 'expense' THEN
+              UPDATE accounts SET current_balance = current_balance - NEW.amount WHERE id = NEW.account_id;
+            END IF;
+          ELSIF TG_OP = 'DELETE' THEN
+            IF OLD.exclude_from_balance IS TRUE THEN
+              RETURN COALESCE(NEW, OLD);
+            END IF;
+            IF OLD.type = 'income' THEN
+              UPDATE accounts SET current_balance = current_balance - OLD.amount WHERE id = OLD.account_id;
+            ELSIF OLD.type = 'expense' THEN
+              UPDATE accounts SET current_balance = current_balance + OLD.amount WHERE id = OLD.account_id;
+            END IF;
+          ELSIF TG_OP = 'UPDATE' THEN
+            IF OLD.exclude_from_balance IS NOT TRUE THEN
+              IF OLD.type = 'income' THEN
+                UPDATE accounts SET current_balance = current_balance - OLD.amount WHERE id = OLD.account_id;
+              ELSIF OLD.type = 'expense' THEN
+                UPDATE accounts SET current_balance = current_balance + OLD.amount WHERE id = OLD.account_id;
+              END IF;
+            END IF;
+            IF NEW.exclude_from_balance IS NOT TRUE THEN
+              IF NEW.type = 'income' THEN
+                UPDATE accounts SET current_balance = current_balance + NEW.amount WHERE id = NEW.account_id;
+              ELSIF NEW.type = 'expense' THEN
+                UPDATE accounts SET current_balance = current_balance - NEW.amount WHERE id = NEW.account_id;
+              END IF;
+            END IF;
+          END IF;
+          RETURN COALESCE(NEW, OLD);
+        END;
+        $$ LANGUAGE plpgsql;
       `);
     } catch (err) {
-      console.error('TransactionsService init columns error:', err);
+      console.error('TransactionsService init columns & trigger error:', err);
     }
   }
 
