@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { IsNull, Repository, DataSource } from 'typeorm';
 import { Category } from '../database/entities/category.entity';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -10,6 +10,7 @@ export class CategoriesService {
   constructor(
     @InjectRepository(Category)
     private readonly categoryRepo: Repository<Category>,
+    private readonly dataSource: DataSource,
   ) {}
 
   /**
@@ -43,19 +44,26 @@ export class CategoriesService {
 
   async update(id: string, userId: string, dto: UpdateCategoryDto): Promise<Category> {
     const category = await this.findOne(id, userId);
-    if (category.userId === null) {
-      throw new ForbiddenException('Cannot modify a global default category');
-    }
     Object.assign(category, dto);
     return this.categoryRepo.save(category);
   }
 
   async remove(id: string, userId: string): Promise<{ id: string; deleted: boolean }> {
     const category = await this.findOne(id, userId);
-    if (category.userId === null) {
-      throw new ForbiddenException('Cannot delete a global default category');
-    }
-    await this.categoryRepo.remove(category);
+
+    await this.dataSource.transaction(async (manager) => {
+      // 1. Unlink child subcategories
+      await manager.query(`UPDATE categories SET parent_id = NULL WHERE parent_id = $1`, [id]);
+      // 2. Unlink transactions referencing this category
+      await manager.query(`UPDATE transactions SET category_id = NULL WHERE category_id = $1`, [id]);
+      // 3. Delete budget category limits
+      await manager.query(`DELETE FROM budget_categories WHERE category_id = $1`, [id]);
+      // 4. Delete category rules
+      await manager.query(`DELETE FROM category_rules WHERE category_id = $1`, [id]);
+      // 5. Delete category record
+      await manager.query(`DELETE FROM categories WHERE id = $1`, [id]);
+    });
+
     return { id, deleted: true };
   }
 }
