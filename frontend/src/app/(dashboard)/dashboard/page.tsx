@@ -28,6 +28,9 @@ import {
   CreditCard,
   PieChart as PieChartIcon,
   Activity,
+  ChevronRight,
+  Building2,
+  Banknote,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { usePrivacy } from '@/components/providers/PrivacyProvider';
@@ -376,26 +379,79 @@ export default function DashboardPage() {
 
       {/* Account Quick Summary Widget Bar (If visible accounts exist) */}
       {visibleAccounts.length > 0 && (
-        <div className="flex items-center gap-3 overflow-x-auto pb-1 pt-1 no-scrollbar">
-          <span className="text-[11px] uppercase font-extrabold tracking-wider text-text-muted shrink-0 flex items-center gap-1">
-            <CreditCard size={14} className="text-accent" />
-            Accounts:
-          </span>
-          {visibleAccounts.map((acc: any) => {
-            const bal = typeof acc.currentBalance === 'number' ? acc.currentBalance : parseFloat(acc.currentBalance || acc.balance) || 0;
-            return (
-              <Link
-                key={acc.id}
-                href={`/reports?account=${acc.id}`}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-border/80 bg-bg-card/90 hover:border-accent/40 transition-all text-xs shrink-0 shadow-sm group"
-              >
-                <span className="font-bold text-text-primary group-hover:text-accent transition-colors">{acc.name}</span>
-                <span className={`font-mono font-bold ${bal >= 0 ? 'text-income' : 'text-expense'}`}>
-                  {formatPrivateCurrency(bal)}
-                </span>
-              </Link>
-            );
-          })}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-extrabold uppercase tracking-wider text-text-muted flex items-center gap-2">
+              <CreditCard size={15} className="text-accent" />
+              Accounts ({visibleAccounts.length})
+            </span>
+            <Link
+              href="/accounts"
+              className="text-xs font-bold text-accent hover:text-accent-light transition-colors flex items-center gap-1 group"
+            >
+              <span>Manage Accounts</span>
+              <ArrowUpRight size={13} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            </Link>
+          </div>
+
+          <div className="flex items-center gap-4 overflow-x-auto pb-3 pt-1 no-scrollbar">
+            {visibleAccounts.map((acc: any) => {
+              const bal = typeof acc.currentBalance === 'number' ? acc.currentBalance : parseFloat(acc.currentBalance || acc.balance) || 0;
+              const rawType = (typeof acc.type === 'object' ? acc.type?.name : acc.type || 'Account').toLowerCase();
+              const typeLabel = typeof acc.type === 'object' ? acc.type?.name : acc.type || 'Account';
+              const color = acc.color || '#6c63ff';
+
+              // Select suitable account icon
+              let AccIcon = Building2;
+              if (rawType.includes('wallet')) AccIcon = Wallet;
+              else if (rawType.includes('cash')) AccIcon = Banknote;
+              else if (rawType.includes('credit') || rawType.includes('card')) AccIcon = CreditCard;
+
+              return (
+                <Link
+                  key={acc.id}
+                  href={`/reports?account=${acc.id}`}
+                  className="group relative flex flex-col justify-between w-64 min-w-[240px] p-4 rounded-2xl border border-border/80 bg-gradient-to-br from-bg-card/95 via-bg-secondary/70 to-bg-card/95 backdrop-blur-xl shadow-lg hover:shadow-2xl hover:border-accent/50 hover:-translate-y-1 transition-all duration-300 shrink-0 cursor-pointer overflow-hidden"
+                >
+                  {/* Top ambient glow blob matching account color */}
+                  <div
+                    className="absolute -top-10 -right-10 w-28 h-28 rounded-full blur-2xl opacity-15 transition-opacity group-hover:opacity-35"
+                    style={{ backgroundColor: color }}
+                  />
+
+                  {/* Header: Icon Badge & Account Type Tag */}
+                  <div className="flex items-center justify-between">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-md border border-white/20 transition-transform group-hover:scale-110"
+                      style={{ backgroundColor: color }}
+                    >
+                      <AccIcon size={18} />
+                    </div>
+
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-accent/10 text-accent border border-accent/20 group-hover:bg-accent group-hover:text-white transition-colors">
+                      {typeLabel}
+                    </span>
+                  </div>
+
+                  {/* Middle & Bottom: Account Name & Balance */}
+                  <div className="mt-4 space-y-1">
+                    <span className="text-xs font-bold text-text-primary tracking-tight block truncate group-hover:text-accent transition-colors">
+                      {acc.name}
+                    </span>
+
+                    <div className="flex items-baseline justify-between pt-0.5">
+                      <span className={`font-mono text-lg sm:text-xl font-extrabold tracking-tight ${
+                        bal >= 0 ? 'text-text-primary' : 'text-expense'
+                      }`}>
+                        {formatPrivateCurrency(bal)}
+                      </span>
+                      <ChevronRight size={16} className="text-text-muted opacity-40 group-hover:opacity-100 group-hover:translate-x-1 transition-all text-accent" />
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       )}
 
