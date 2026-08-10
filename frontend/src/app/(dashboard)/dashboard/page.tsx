@@ -12,14 +12,30 @@ import { AddTransactionModal } from '@/components/modals/AddTransactionModal';
 import { Wallet, TrendingUp, TrendingDown, Target, Plus, AlertCircle, ArrowUpRight, ArrowDownRight, Calendar } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { usePrivacy } from '@/components/providers/PrivacyProvider';
+import { useSettings } from '@/components/providers/SettingsProvider';
 import { PrivacyToggle } from '@/components/ui/PrivacyToggle';
 import Link from 'next/link';
 
 export default function DashboardPage() {
   const { isPrivate, formatPrivateCurrency, formatPrivateNumber } = usePrivacy();
+  const { settings } = useSettings();
+  const {
+    showNetWorth = true,
+    showCreditDebt = true,
+    showSpendingGraph = true,
+    showPieChart = true,
+    showObjectives = false,
+    removeZeroTransactionEntries = false,
+  } = settings || {};
+
   const { accounts, isLoading: accountsLoading } = useAccounts();
-  const { transactions, isLoading: txLoading } = useTransactions({ limit: 2000 });
+  const { transactions: rawTransactions, isLoading: txLoading } = useTransactions({ limit: 2000 });
   const { budgets, isLoading: budgetLoading } = useBudgets();
+
+  const transactions = useMemo(() => {
+    if (!removeZeroTransactionEntries) return rawTransactions;
+    return rawTransactions.filter((tx: any) => Math.abs(parseFloat(tx.amount || 0)) > 0);
+  }, [rawTransactions, removeZeroTransactionEntries]);
 
   const [isAddTxOpen, setIsAddTxOpen] = useState(false);
   const [chartTimeframe, setChartTimeframe] = useState<'thisMonth' | 'monthlyTrend'>('thisMonth');
@@ -225,41 +241,45 @@ export default function DashboardPage() {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {/* Net Worth Card */}
-        <CollapsibleCard
-          title={
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold uppercase text-text-muted">Net Worth</span>
+        {showNetWorth && (
+          <CollapsibleCard
+            title={
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold uppercase text-text-muted">Net Worth</span>
+              </div>
+            }
+            action={
+              <div className="p-2 bg-accent/10 text-accent rounded-xl">
+                <Wallet size={18} />
+              </div>
+            }
+          >
+            <div>
+              <div className={`text-2xl font-bold ${netWorth >= 0 ? 'text-text-primary' : 'text-expense'}`}>
+                {formatPrivateCurrency(netWorth)}
+              </div>
+              {showCreditDebt && (
+                <div className="flex items-center gap-3 text-xs mt-2 pt-2 border-t border-border">
+                  <span className="text-income font-medium flex items-center gap-0.5">
+                    <ArrowUpRight size={13} /> Assets: {formatPrivateCurrency(totalAssets)}
+                  </span>
+                  <span className="text-expense font-medium flex items-center gap-0.5">
+                    <ArrowDownRight size={13} /> Debt: {formatPrivateCurrency(totalLiabilities)}
+                  </span>
+                </div>
+              )}
             </div>
-          }
-          action={
-            <div className="p-2 bg-accent/10 text-accent rounded-xl">
-              <Wallet size={18} />
-            </div>
-          }
-        >
-          <div>
-            <div className={`text-2xl font-bold ${netWorth >= 0 ? 'text-text-primary' : 'text-expense'}`}>
-              {formatPrivateCurrency(netWorth)}
-            </div>
-            <div className="flex items-center gap-3 text-xs mt-2 pt-2 border-t border-border">
-              <span className="text-income font-medium flex items-center gap-0.5">
-                <ArrowUpRight size={13} /> Assets: {formatPrivateCurrency(totalAssets)}
-              </span>
-              <span className="text-expense font-medium flex items-center gap-0.5">
-                <ArrowDownRight size={13} /> Debt: {formatPrivateCurrency(totalLiabilities)}
-              </span>
-            </div>
-          </div>
-          {totalLiabilities > 0 && (
-            <Link
-              href="/accounts"
-              className="flex items-center gap-1 text-[11px] text-accent hover:underline pt-2 block"
-            >
-              <AlertCircle size={12} />
-              <span>Edit account initial balances to adjust Net Worth</span>
-            </Link>
-          )}
-        </CollapsibleCard>
+            {totalLiabilities > 0 && (
+              <Link
+                href="/accounts"
+                className="flex items-center gap-1 text-[11px] text-accent hover:underline pt-2 block"
+              >
+                <AlertCircle size={12} />
+                <span>Edit account initial balances to adjust Net Worth</span>
+              </Link>
+            )}
+          </CollapsibleCard>
+        )}
 
         <StatCard
           title={`Income (${currentMonthLabel})`}
@@ -291,35 +311,37 @@ export default function DashboardPage() {
         {/* Left Column (2 Spans): Cash Flow Analysis + Recent Transactions */}
         <div className="lg:col-span-2 space-y-6">
           {/* 1. Cash Flow Analysis Chart */}
-          <AreaChart 
-            data={chartData} 
-            title={chartTimeframe === 'thisMonth' ? `Daily Cash Flow (${currentMonthLabel})` : '12-Month Cash Flow Trend'} 
-            height={320}
-            action={
-              <div className="flex items-center gap-1 bg-bg-card p-1 rounded-lg border border-border">
-                <button
-                  onClick={() => setChartTimeframe('thisMonth')}
-                  className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${
-                    chartTimeframe === 'thisMonth'
-                      ? 'bg-accent text-white shadow'
-                      : 'text-text-secondary hover:text-text-primary'
-                  }`}
-                >
-                  This Month (Daily)
-                </button>
-                <button
-                  onClick={() => setChartTimeframe('monthlyTrend')}
-                  className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${
-                    chartTimeframe === 'monthlyTrend'
-                      ? 'bg-accent text-white shadow'
-                      : 'text-text-secondary hover:text-text-primary'
-                  }`}
-                >
-                  12-Month Trend
-                </button>
-              </div>
-            }
-          />
+          {showSpendingGraph && (
+            <AreaChart 
+              data={chartData} 
+              title={chartTimeframe === 'thisMonth' ? `Daily Cash Flow (${currentMonthLabel})` : '12-Month Cash Flow Trend'} 
+              height={320}
+              action={
+                <div className="flex items-center gap-1 bg-bg-card p-1 rounded-lg border border-border">
+                  <button
+                    onClick={() => setChartTimeframe('thisMonth')}
+                    className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${
+                      chartTimeframe === 'thisMonth'
+                        ? 'bg-accent text-white shadow'
+                        : 'text-text-secondary hover:text-text-primary'
+                    }`}
+                  >
+                    This Month (Daily)
+                  </button>
+                  <button
+                    onClick={() => setChartTimeframe('monthlyTrend')}
+                    className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${
+                      chartTimeframe === 'monthlyTrend'
+                        ? 'bg-accent text-white shadow'
+                        : 'text-text-secondary hover:text-text-primary'
+                    }`}
+                  >
+                    12-Month Trend
+                  </button>
+                </div>
+              }
+            />
+          )}
 
           {/* 2. Recent Transactions */}
           <CollapsibleCard
@@ -353,7 +375,9 @@ export default function DashboardPage() {
         {/* Right Column (1 Span): Top Expenses + Monthly Budgets */}
         <div className="space-y-6">
           {/* 1. Top Expenses Donut Widget */}
-          <PieChart data={categoryData} title={`Top Expenses (${currentMonthLabel})`} />
+          {showPieChart && (
+            <PieChart data={categoryData} title={`Top Expenses (${currentMonthLabel})`} />
+          )}
 
           {/* 2. Monthly Budgets Overview */}
           <CollapsibleCard
@@ -385,6 +409,25 @@ export default function DashboardPage() {
               </div>
             )}
           </CollapsibleCard>
+
+          {/* 3. Financial Objectives Widget */}
+          {showObjectives && (
+            <CollapsibleCard
+              title="Financial Goals & Objectives"
+              action={
+                <Link href="/goals" className="text-xs font-semibold text-accent hover:underline">
+                  Manage Goals
+                </Link>
+              }
+            >
+              <div className="p-4 text-center text-text-muted text-sm space-y-2">
+                <p>Financial Objectives widget is active.</p>
+                <Link href="/goals" className="text-xs font-semibold text-accent hover:underline inline-block">
+                  + View Financial Goals
+                </Link>
+              </div>
+            </CollapsibleCard>
+          )}
         </div>
       </div>
 

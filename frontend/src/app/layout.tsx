@@ -3,6 +3,7 @@ import './globals.css';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import { QueryProvider } from '@/components/providers/QueryProvider';
 import { AuthProvider } from '@/components/providers/AuthProvider';
+import { SettingsProvider } from '@/components/providers/SettingsProvider';
 import { PrivacyProvider } from '@/components/providers/PrivacyProvider';
 
 export const metadata: Metadata = {
@@ -23,9 +24,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider>
           <QueryProvider>
             <AuthProvider>
-              <PrivacyProvider>
-                {children}
-              </PrivacyProvider>
+              <SettingsProvider>
+                <PrivacyProvider>
+                  {children}
+                </PrivacyProvider>
+              </SettingsProvider>
             </AuthProvider>
           </QueryProvider>
         </ThemeProvider>

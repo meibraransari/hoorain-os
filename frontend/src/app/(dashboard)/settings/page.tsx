@@ -5,13 +5,16 @@ import { CashewImportModal } from '@/components/modals/CashewImportModal';
 import { DataCleanupModal } from '@/components/modals/DataCleanupModal';
 import { DbRestoreModal } from '@/components/modals/DbRestoreModal';
 import { useTheme } from '@/components/providers/ThemeProvider';
+import { useSettings } from '@/components/providers/SettingsProvider';
 import { api } from '@/lib/api';
 import { Upload, Download, Palette, DollarSign, Trash2, FileText, Database, Save, Check, Globe, Calendar, RefreshCw, LayoutDashboard, Activity } from 'lucide-react';
 
 export default function SettingsPage() {
+  const { settings, updateSettings, isLoading: settingsLoading } = useSettings();
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isCleanupModalOpen, setIsCleanupModalOpen] = useState(false);
   const [isDbRestoreModalOpen, setIsDbRestoreModalOpen] = useState(false);
+
   const [currency, setCurrency] = useState('INR');
   const [dateFormat, setDateFormat] = useState('DD/MM/YYYY');
   const [numberFormat, setNumberFormat] = useState('standard');
@@ -22,58 +25,45 @@ export default function SettingsPage() {
   const [downloadingJson, setDownloadingJson] = useState(false);
   const [showNetWorth, setShowNetWorth] = useState(true);
   const [showCreditDebt, setShowCreditDebt] = useState(true);
-  const [showSpendingGraph, setShowSpendingGraph] = useState(false);
+  const [showSpendingGraph, setShowSpendingGraph] = useState(true);
   const [showPieChart, setShowPieChart] = useState(true);
   const [showObjectives, setShowObjectives] = useState(false);
-  const [removeZeroTransactionEntries, setRemoveZeroTransactionEntries] = useState(true);
+  const [removeZeroTransactionEntries, setRemoveZeroTransactionEntries] = useState(false);
   const [automaticallyPayUpcoming, setAutomaticallyPayUpcoming] = useState(true);
   const [use24HourFormat, setUse24HourFormat] = useState('system');
   const { theme, setTheme } = useTheme();
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedCurrency = localStorage.getItem('defaultCurrency');
-      const savedDateFormat = localStorage.getItem('dateFormat');
-      const savedNumFormat = localStorage.getItem('numberFormat');
-
-      if (savedCurrency) setCurrency(savedCurrency);
-      if (savedDateFormat) setDateFormat(savedDateFormat);
-      if (savedNumFormat) setNumberFormat(savedNumFormat);
-      
-      api.get('/settings').then((res) => {
-        const data = res.data;
-        if (data.showNetWorth !== undefined) setShowNetWorth(data.showNetWorth);
-        if (data.showCreditDebt !== undefined) setShowCreditDebt(data.showCreditDebt);
-        if (data.showSpendingGraph !== undefined) setShowSpendingGraph(data.showSpendingGraph);
-        if (data.showPieChart !== undefined) setShowPieChart(data.showPieChart);
-        if (data.showObjectives !== undefined) setShowObjectives(data.showObjectives);
-        if (data.removeZeroTransactionEntries !== undefined) setRemoveZeroTransactionEntries(data.removeZeroTransactionEntries);
-        if (data.automaticallyPayUpcoming !== undefined) setAutomaticallyPayUpcoming(data.automaticallyPayUpcoming);
-        if (data.use24HourFormat !== undefined) setUse24HourFormat(data.use24HourFormat);
-      }).catch(err => console.error("Failed to fetch settings from API:", err));
+    if (settings) {
+      if (settings.defaultCurrency) setCurrency(settings.defaultCurrency);
+      if (settings.dateFormat) setDateFormat(settings.dateFormat);
+      if (settings.numberFormat) setNumberFormat(settings.numberFormat);
+      if (settings.showNetWorth !== undefined) setShowNetWorth(settings.showNetWorth);
+      if (settings.showCreditDebt !== undefined) setShowCreditDebt(settings.showCreditDebt);
+      if (settings.showSpendingGraph !== undefined) setShowSpendingGraph(settings.showSpendingGraph);
+      if (settings.showPieChart !== undefined) setShowPieChart(settings.showPieChart);
+      if (settings.showObjectives !== undefined) setShowObjectives(settings.showObjectives);
+      if (settings.removeZeroTransactionEntries !== undefined) setRemoveZeroTransactionEntries(settings.removeZeroTransactionEntries);
+      if (settings.automaticallyPayUpcoming !== undefined) setAutomaticallyPayUpcoming(settings.automaticallyPayUpcoming);
+      if (settings.use24HourFormat !== undefined) setUse24HourFormat(settings.use24HourFormat);
     }
-  }, []);
+  }, [settings]);
 
   const handleSaveSettings = async () => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('defaultCurrency', currency);
-      localStorage.setItem('dateFormat', dateFormat);
-      localStorage.setItem('numberFormat', numberFormat);
-
-      try {
-        await api.put('/settings', {
-          showNetWorth,
-          showCreditDebt,
-          showSpendingGraph,
-          showPieChart,
-          showObjectives,
-          removeZeroTransactionEntries,
-          automaticallyPayUpcoming,
-          use24HourFormat,
-        });
-      } catch (err) {
-        console.error("Failed to save settings to API:", err);
-      }
+    try {
+      await updateSettings({
+        defaultCurrency: currency,
+        dateFormat,
+        numberFormat,
+        showNetWorth,
+        showCreditDebt,
+        showSpendingGraph,
+        showPieChart,
+        showObjectives,
+        removeZeroTransactionEntries,
+        automaticallyPayUpcoming,
+        use24HourFormat,
+      });
 
       setHasUnsavedChanges(false);
       setSavedSuccess(true);
@@ -81,6 +71,8 @@ export default function SettingsPage() {
       setTimeout(() => {
         setSavedSuccess(false);
       }, 3000);
+    } catch (err) {
+      console.error("Failed to save settings:", err);
     }
   };
 

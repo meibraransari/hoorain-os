@@ -5,12 +5,14 @@ import { useSearchParams } from 'next/navigation';
 import { format, isToday, isYesterday } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
 import { useTransactions } from '@/lib/hooks/useFinance';
+import { useSettings } from '@/components/providers/SettingsProvider';
 import { TransactionItem } from '@/components/ui/TransactionItem';
 import { AddTransactionModal } from '@/components/modals/AddTransactionModal';
 import { api } from '@/lib/api';
 import { Plus, Search, Filter, Edit2, Trash2, ArrowUpDown, ChevronLeft, ChevronRight, Download, TrendingDown } from 'lucide-react';
 
 function TransactionsContent() {
+  const { settings } = useSettings();
   const searchParams = useSearchParams();
   const accountParam = searchParams.get('account') || searchParams.get('accountId') || '';
 
@@ -27,12 +29,17 @@ function TransactionsContent() {
     }
   }, [accountParam]);
 
-  const { transactions, total, isLoading, deleteTransaction } = useTransactions({
+  const { transactions: rawTransactions, total, isLoading, deleteTransaction } = useTransactions({
     page,
     limit,
     type: typeFilter || undefined,
     search: search || undefined,
   });
+
+  const transactions = useMemo(() => {
+    if (!settings?.removeZeroTransactionEntries) return rawTransactions;
+    return rawTransactions.filter((tx: any) => Math.abs(parseFloat(tx.amount || 0)) > 0);
+  }, [rawTransactions, settings?.removeZeroTransactionEntries]);
 
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
