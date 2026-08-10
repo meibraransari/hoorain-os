@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, ReactNode } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Triangle } from 'lucide-react';
 
 interface CollapsibleCardProps {
   title: ReactNode;
@@ -23,27 +23,30 @@ export function CollapsibleCard({
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
   return (
-    <div className={`card p-6 border border-border rounded-xl transition-all ${className}`}>
-      {/* Card Header with Triangle Minimize/Maximize Button */}
+    <div
+      className={`card relative overflow-hidden p-5 border border-border/80 rounded-2xl bg-bg-card/90 backdrop-blur-md hover:border-accent/40 shadow-xl transition-all duration-300 before:absolute before:top-0 before:left-0 before:w-full before:h-[2px] before:bg-gradient-to-r before:from-accent/70 before:via-accent-light/40 before:to-transparent ${className}`}
+    >
+      {/* Card Header with Triangle Minimize Button */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          {/* Triangle Chevron Toggle Button */}
+          {/* Triangular Minimize Button */}
           <button
+            type="button"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1.5 rounded-lg bg-bg-card hover:bg-bg-hover border border-border text-accent hover:text-accent-light transition-all shadow-sm group"
+            className="p-1.5 rounded-lg bg-bg-secondary hover:bg-bg-hover border border-border/80 text-accent hover:text-white transition-all shadow-sm group cursor-pointer"
             title={isCollapsed ? 'Maximize / Expand' : 'Minimize / Collapse'}
           >
             <ChevronDown
-              size={18}
+              size={17}
               className={`transition-transform duration-300 ${
-                isCollapsed ? '-rotate-90 text-text-muted group-hover:text-accent' : 'rotate-0'
+                isCollapsed ? '-rotate-90 text-text-muted group-hover:text-accent' : 'rotate-0 text-accent'
               }`}
             />
           </button>
 
           <div>
             {typeof title === 'string' ? (
-              <h3 className="font-bold text-lg text-text-primary">{title}</h3>
+              <h3 className="font-bold text-base text-text-primary">{title}</h3>
             ) : (
               title
             )}

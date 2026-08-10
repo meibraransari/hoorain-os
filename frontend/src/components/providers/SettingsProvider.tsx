@@ -12,6 +12,9 @@ export interface AppSettings {
   showSpendingGraph: boolean;
   showPieChart: boolean;
   showObjectives: boolean;
+  showQuickTransfer: boolean;
+  showCategoryAnalytics: boolean;
+  hiddenAccounts?: Record<string, boolean>;
   removeZeroTransactionEntries: boolean;
   automaticallyPayUpcoming: boolean;
   use24HourFormat: string;
@@ -26,6 +29,9 @@ const DEFAULT_SETTINGS: AppSettings = {
   showSpendingGraph: true,
   showPieChart: true,
   showObjectives: false,
+  showQuickTransfer: true,
+  showCategoryAnalytics: true,
+  hiddenAccounts: {},
   removeZeroTransactionEntries: false,
   automaticallyPayUpcoming: true,
   use24HourFormat: 'system',
@@ -52,7 +58,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
       // 2. Fetch from backend API
       const apiSettings: any = await api.get('/settings').catch(() => ({}));
-      
+
       const merged: AppSettings = {
         ...DEFAULT_SETTINGS,
         ...(localCurrency ? { defaultCurrency: localCurrency } : {}),

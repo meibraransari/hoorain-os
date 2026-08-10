@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useAccounts, useTransactions, useBudgets } from '@/lib/hooks/useFinance';
 import { StatCard } from '@/components/ui/StatCard';
 import { AreaChart } from '@/components/charts/AreaChart';
@@ -8,23 +8,45 @@ import { PieChart } from '@/components/charts/PieChart';
 import { TransactionItem } from '@/components/ui/TransactionItem';
 import { BudgetCard } from '@/components/ui/BudgetCard';
 import { CollapsibleCard } from '@/components/ui/CollapsibleCard';
+import { QuickTransferWidget } from '@/components/ui/QuickTransferWidget';
+import { CategoryAnalyticsWidget } from '@/components/ui/CategoryAnalyticsWidget';
 import { AddTransactionModal } from '@/components/modals/AddTransactionModal';
-import { Wallet, TrendingUp, TrendingDown, Target, Plus, AlertCircle, ArrowUpRight, ArrowDownRight, Calendar } from 'lucide-react';
+import {
+  Wallet,
+  TrendingUp,
+  TrendingDown,
+  Target,
+  Plus,
+  AlertCircle,
+  ArrowUpRight,
+  ArrowDownRight,
+  Calendar,
+  LayoutGrid,
+  Eye,
+  EyeOff,
+  Sparkles,
+  CreditCard,
+  PieChart as PieChartIcon,
+  Activity,
+} from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { usePrivacy } from '@/components/providers/PrivacyProvider';
-import { useSettings } from '@/components/providers/SettingsProvider';
+import { useSettings, AppSettings } from '@/components/providers/SettingsProvider';
 import { PrivacyToggle } from '@/components/ui/PrivacyToggle';
 import Link from 'next/link';
 
 export default function DashboardPage() {
   const { isPrivate, formatPrivateCurrency, formatPrivateNumber } = usePrivacy();
-  const { settings } = useSettings();
+  const { settings, updateSettings } = useSettings();
   const {
     showNetWorth = true,
     showCreditDebt = true,
     showSpendingGraph = true,
     showPieChart = true,
     showObjectives = false,
+    showQuickTransfer = true,
+    showCategoryAnalytics = true,
+    hiddenAccounts = {},
     removeZeroTransactionEntries = false,
   } = settings || {};
 
@@ -32,13 +54,27 @@ export default function DashboardPage() {
   const { transactions: rawTransactions, isLoading: txLoading } = useTransactions({ limit: 2000 });
   const { budgets, isLoading: budgetLoading } = useBudgets();
 
+  const [isAddTxOpen, setIsAddTxOpen] = useState(false);
+  const [isAddWidgetOpen, setIsAddWidgetOpen] = useState(false);
+  const [chartTimeframe, setChartTimeframe] = useState<'thisMonth' | 'monthlyTrend'>('thisMonth');
+
+  const popoverRef = useRef<HTMLDivElement>(null);
+
+  // Auto-close popover when clicking anywhere outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
+        setIsAddWidgetOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const transactions = useMemo(() => {
     if (!removeZeroTransactionEntries) return rawTransactions;
     return rawTransactions.filter((tx: any) => Math.abs(parseFloat(tx.amount || 0)) > 0);
   }, [rawTransactions, removeZeroTransactionEntries]);
-
-  const [isAddTxOpen, setIsAddTxOpen] = useState(false);
-  const [chartTimeframe, setChartTimeframe] = useState<'thisMonth' | 'monthlyTrend'>('thisMonth');
 
   // Compute Net Worth, Assets and Liabilities breakdown respecting Net Worth exclusions
   const { totalAssets, totalLiabilities, netWorth } = useMemo(() => {
@@ -68,7 +104,7 @@ export default function DashboardPage() {
       const now = new Date();
       return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     }
-    const dates = transactions.map((t: any) => t.date ? new Date(t.date).toISOString().substring(0, 7) : '').filter(Boolean);
+    const dates = transactions.map((t: any) => (t.date ? new Date(t.date).toISOString().substring(0, 7) : '')).filter(Boolean);
     return dates.length > 0 ? dates.sort().reverse()[0] : '2026-08';
   }, [transactions]);
 
@@ -103,7 +139,7 @@ export default function DashboardPage() {
     return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   }, [currentMonthKey]);
 
-  // Compute Cash Flow Chart Data (This Month Daily View vs 12-Month Trend)
+  // Compute Cash Flow Chart Data
   const chartData = useMemo(() => {
     if (chartTimeframe === 'thisMonth') {
       const [yearStr, monthStr] = currentMonthKey.split('-');
@@ -118,84 +154,70 @@ export default function DashboardPage() {
 
       transactions.forEach((tx: any) => {
         if (tx.isTransfer || !tx.date) return;
-        const d = new Date(tx.date);
-        if (isNaN(d.getTime())) return;
-        const txMonthKey = d.toISOString().substring(0, 7);
-        if (txMonthKey !== currentMonthKey) return;
-
-        const day = d.getDate();
-        const amt = Math.abs(parseFloat(tx.amount) || 0);
-
-        if (tx.type === 'income' || tx.income === 1) {
-          dailyMap[day].income += amt;
-        } else if (tx.type === 'expense' || tx.income === 0) {
-          dailyMap[day].expense += amt;
+        const txDateStr = new Date(tx.date).toISOString().substring(0, 7);
+        if (txDateStr === currentMonthKey) {
+          const day = new Date(tx.date).getDate();
+          const amt = Math.abs(parseFloat(tx.amount) || 0);
+          if (tx.type === 'income' || tx.income === 1) {
+            dailyMap[day].income += amt;
+          } else {
+            dailyMap[day].expense += amt;
+          }
         }
       });
 
-      const monthName = new Date(year, month - 1, 1).toLocaleDateString('en-US', { month: 'short' });
-
-      return Object.entries(dailyMap).map(([dayStr, data]) => ({
-        name: `${monthName} ${dayStr}`,
-        income: Math.round(data.income),
-        expense: Math.round(data.expense),
+      return Object.entries(dailyMap).map(([day, val]) => ({
+        date: `Day ${day}`,
+        Income: Math.round(val.income),
+        Expense: Math.round(val.expense),
       }));
     } else {
-      const monthlyMap: Record<string, { income: number; expense: number; sortKey: string }> = {};
-      const sortedTxs = [...transactions].sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      const monthlyMap: Record<string, { income: number; expense: number }> = {};
 
-      sortedTxs.forEach((tx: any) => {
+      transactions.forEach((tx: any) => {
         if (tx.isTransfer || !tx.date) return;
-        const d = new Date(tx.date);
-        if (isNaN(d.getTime())) return;
-
-        const monthKey = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-        const sortKey = d.toISOString().substring(0, 7);
-
-        if (!monthlyMap[monthKey]) {
-          monthlyMap[monthKey] = { income: 0, expense: 0, sortKey };
+        const monthStr = new Date(tx.date).toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+        if (!monthlyMap[monthStr]) {
+          monthlyMap[monthStr] = { income: 0, expense: 0 };
         }
-
         const amt = Math.abs(parseFloat(tx.amount) || 0);
         if (tx.type === 'income' || tx.income === 1) {
-          monthlyMap[monthKey].income += amt;
-        } else if (tx.type === 'expense' || tx.income === 0) {
-          monthlyMap[monthKey].expense += amt;
+          monthlyMap[monthStr].income += amt;
+        } else {
+          monthlyMap[monthStr].expense += amt;
         }
       });
 
-      const entries = Object.entries(monthlyMap).sort((a, b) => a[1].sortKey.localeCompare(b[1].sortKey));
-      const recent = entries.slice(-12);
-
-      return recent.map(([name, data]) => ({
-        name,
-        income: Math.round(data.income),
-        expense: Math.round(data.expense),
+      return Object.entries(monthlyMap).map(([monthStr, val]) => ({
+        date: monthStr,
+        Income: Math.round(val.income),
+        Expense: Math.round(val.expense),
       }));
     }
-  }, [transactions, chartTimeframe, currentMonthKey]);
+  }, [transactions, currentMonthKey, chartTimeframe]);
 
-  // Aggregate spending by category strictly for THIS MONTH with counts & percentages
+  // Compute Top Expenses Category Breakdown Data
   const categoryData = useMemo(() => {
-    const thisMonthTxs = transactions.filter((tx: any) => {
+    const currentMonthExpenses = transactions.filter((tx: any) => {
       if (tx.isTransfer || !tx.date) return false;
       const d = new Date(tx.date).toISOString().substring(0, 7);
       return d === currentMonthKey && (tx.type === 'expense' || tx.income === 0);
     });
 
-    const targetTxs = thisMonthTxs.length > 0 ? thisMonthTxs : transactions.filter((tx: any) => (tx.type === 'expense' || tx.income === 0) && !tx.isTransfer);
+    const totalExp = currentMonthExpenses.reduce((sum: number, tx: any) => sum + Math.abs(parseFloat(tx.amount) || 0), 0);
 
     const categoryStats: Record<string, { total: number; count: number }> = {};
-    targetTxs.forEach((tx: any) => {
-      const catName = typeof tx.category === 'string' ? tx.category : tx.category?.name || tx.title || 'General';
+
+    currentMonthExpenses.forEach((tx: any) => {
+      const catName = typeof tx.category === 'string' ? tx.category : tx.category?.name || 'General';
+      const amt = Math.abs(parseFloat(tx.amount) || 0);
+
       if (!categoryStats[catName]) {
         categoryStats[catName] = { total: 0, count: 0 };
       }
-      categoryStats[catName].total += Math.abs(parseFloat(tx.amount) || 0);
+      categoryStats[catName].total += amt;
       categoryStats[catName].count += 1;
     });
-
-    const totalExp = Object.values(categoryStats).reduce((s, c) => s + c.total, 0);
 
     const categoryColors = ['#6c63ff', '#ffb84d', '#10d88a', '#ff4d6d', '#00f2fe', '#f39c12', '#9b59b6'];
 
@@ -210,6 +232,23 @@ export default function DashboardPage() {
       }));
   }, [transactions, currentMonthKey]);
 
+  // Persistent Widget toggle helper that closes popover after selection
+  const handleToggleWidget = (settingKey: keyof AppSettings, currentVal: boolean) => {
+    updateSettings({ [settingKey]: !currentVal });
+    setIsAddWidgetOpen(false);
+  };
+
+  const handleToggleAccountVisibility = (accId: string) => {
+    const currentMap = hiddenAccounts || {};
+    const newMap = { ...currentMap, [accId]: !currentMap[accId] };
+    updateSettings({ hiddenAccounts: newMap });
+    setIsAddWidgetOpen(false);
+  };
+
+  const visibleAccounts = useMemo(() => {
+    return accounts.filter((acc: any) => !hiddenAccounts[acc.id]);
+  }, [accounts, hiddenAccounts]);
+
   return (
     <div className="space-y-6">
       {/* Top Banner / Actions */}
@@ -217,28 +256,150 @@ export default function DashboardPage() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-3xl font-display font-bold text-text-primary">Dashboard</h1>
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-accent/15 text-accent border border-accent/20">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-accent/15 text-accent border border-accent/20 shadow-sm">
               <Calendar size={12} />
               {currentMonthLabel}
             </span>
           </div>
           <div className="flex items-center gap-3 mt-1 flex-wrap">
-            <p className="text-text-secondary">Here is your financial performance for {currentMonthLabel}.</p>
+            <p className="text-text-secondary text-sm">Here is your financial performance for {currentMonthLabel}.</p>
             <PrivacyToggle />
           </div>
         </div>
-        <div className="flex items-center gap-3">
+
+        <div className="flex items-center gap-3 relative">
+          {/* "+ Add Widget" Button & Popover */}
+          <div className="relative" ref={popoverRef}>
+            <button
+              onClick={() => setIsAddWidgetOpen(!isAddWidgetOpen)}
+              className="flex items-center gap-2 rounded-xl border border-accent/40 bg-accent/10 px-4 py-2.5 text-xs font-bold text-accent hover:bg-accent hover:text-white transition-all shadow-md cursor-pointer group"
+            >
+              <LayoutGrid size={16} className="group-hover:rotate-90 transition-transform duration-300" />
+              <span>+ Add Widget</span>
+            </button>
+
+            {/* Popover Dropdown (Auto-closes when clicked anywhere outside or selecting) */}
+            {isAddWidgetOpen && (
+              <div className="absolute right-0 mt-2 w-80 rounded-2xl border border-border/80 bg-bg-card/95 backdrop-blur-xl p-4 shadow-2xl z-50 animate-fade-in space-y-4 max-h-[80vh] overflow-y-auto">
+                <div className="flex items-center justify-between border-b border-border/80 pb-2.5">
+                  <span className="text-xs font-bold uppercase tracking-wider text-text-primary flex items-center gap-1.5">
+                    <Sparkles size={14} className="text-accent" />
+                    Customize Dashboard
+                  </span>
+                  <span className="text-[10px] text-text-muted font-medium">Click to toggle & close</span>
+                </div>
+
+                {/* Dashboard Widgets List */}
+                <div className="space-y-1.5">
+                  <span className="text-[10px] uppercase font-bold text-accent tracking-wider block px-1">Widgets & Charts</span>
+
+                  {[
+                    { key: 'showNetWorth', label: 'Net Worth KPI Card', active: showNetWorth, icon: Wallet },
+                    { key: 'showCreditDebt', label: 'Assets & Debt Breakdown', active: showCreditDebt, icon: Activity },
+                    { key: 'showSpendingGraph', label: 'Cash Flow Analysis Chart', active: showSpendingGraph, icon: TrendingUp },
+                    { key: 'showPieChart', label: 'Top Expenses Donut Chart', active: showPieChart, icon: PieChartIcon },
+                    { key: 'showObjectives', label: 'Financial Objectives Widget', active: showObjectives, icon: Target },
+                    { key: 'showQuickTransfer', label: 'Quick Fund Transfer Tool', active: showQuickTransfer, icon: Sparkles },
+                    { key: 'showCategoryAnalytics', label: 'Category Expense Progress', active: showCategoryAnalytics, icon: PieChartIcon },
+                  ].map((item) => {
+                    const IconComp = item.icon;
+                    return (
+                      <button
+                        key={item.key}
+                        type="button"
+                        onClick={() => handleToggleWidget(item.key as keyof AppSettings, item.active)}
+                        className="w-full flex items-center justify-between p-2.5 rounded-xl border border-border/60 bg-bg-secondary hover:bg-bg-hover hover:border-accent/40 transition-all text-xs font-semibold text-text-primary cursor-pointer"
+                      >
+                        <div className="flex items-center gap-2">
+                          <IconComp size={15} className="text-accent" />
+                          <span>{item.label}</span>
+                        </div>
+                        {item.active ? (
+                          <span className="flex items-center gap-1 text-[10px] font-bold text-income bg-income/10 px-2 py-0.5 rounded-md border border-income/20">
+                            <Eye size={12} /> Visible
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1 text-[10px] font-bold text-text-muted bg-bg-card px-2 py-0.5 rounded-md border border-border">
+                            <EyeOff size={12} /> Hidden
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Available Accounts List */}
+                {accounts.length > 0 && (
+                  <div className="space-y-1.5 pt-2.5 border-t border-border/80">
+                    <span className="text-[10px] uppercase font-bold text-accent tracking-wider block px-1">Available Accounts Summary</span>
+                    {accounts.map((acc: any) => {
+                      const isHidden = hiddenAccounts[acc.id];
+                      const bal = typeof acc.currentBalance === 'number' ? acc.currentBalance : parseFloat(acc.currentBalance || acc.balance) || 0;
+                      return (
+                        <button
+                          key={acc.id}
+                          type="button"
+                          onClick={() => handleToggleAccountVisibility(acc.id)}
+                          className="w-full flex items-center justify-between p-2.5 rounded-xl border border-border/60 bg-bg-secondary hover:bg-bg-hover hover:border-accent/40 transition-all text-xs font-semibold text-text-primary cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2 truncate pr-2">
+                            <CreditCard size={14} className="text-accent shrink-0" />
+                            <span className="truncate">{acc.name}</span>
+                          </div>
+                          {!isHidden ? (
+                            <span className="flex items-center gap-1 text-[10px] font-bold text-income bg-income/10 px-2 py-0.5 rounded-md border border-income/20 shrink-0">
+                              <Eye size={12} /> {formatPrivateCurrency(bal)}
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1 text-[10px] font-bold text-text-muted bg-bg-card px-2 py-0.5 rounded-md border border-border shrink-0">
+                              <EyeOff size={12} /> Hidden
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           <button
             onClick={() => setIsAddTxOpen(true)}
-            className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white shadow-lg transition-all hover:bg-accent-light hover:scale-[1.02]"
+            className="flex items-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-xs font-bold text-white shadow-lg transition-all hover:bg-accent-light hover:scale-[1.02] cursor-pointer"
           >
-            <Plus size={18} />
+            <Plus size={16} />
             <span>Add Transaction</span>
           </button>
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* Account Quick Summary Widget Bar (If visible accounts exist) */}
+      {visibleAccounts.length > 0 && (
+        <div className="flex items-center gap-3 overflow-x-auto pb-1 pt-1 no-scrollbar">
+          <span className="text-[11px] uppercase font-extrabold tracking-wider text-text-muted shrink-0 flex items-center gap-1">
+            <CreditCard size={14} className="text-accent" />
+            Accounts:
+          </span>
+          {visibleAccounts.map((acc: any) => {
+            const bal = typeof acc.currentBalance === 'number' ? acc.currentBalance : parseFloat(acc.currentBalance || acc.balance) || 0;
+            return (
+              <Link
+                key={acc.id}
+                href={`/reports?account=${acc.id}`}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-border/80 bg-bg-card/90 hover:border-accent/40 transition-all text-xs shrink-0 shadow-sm group"
+              >
+                <span className="font-bold text-text-primary group-hover:text-accent transition-colors">{acc.name}</span>
+                <span className={`font-mono font-bold ${bal >= 0 ? 'text-income' : 'text-expense'}`}>
+                  {formatPrivateCurrency(bal)}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+
+      {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {/* Net Worth Card */}
         {showNetWorth && (
@@ -308,13 +469,13 @@ export default function DashboardPage() {
 
       {/* Integrated Masonry Dashboard Grid */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 items-start">
-        {/* Left Column (2 Spans): Cash Flow Analysis + Recent Transactions */}
+        {/* Left Column (2 Spans): Cash Flow Analysis + Quick Transfer + Recent Transactions */}
         <div className="lg:col-span-2 space-y-6">
           {/* 1. Cash Flow Analysis Chart */}
           {showSpendingGraph && (
-            <AreaChart 
-              data={chartData} 
-              title={chartTimeframe === 'thisMonth' ? `Daily Cash Flow (${currentMonthLabel})` : '12-Month Cash Flow Trend'} 
+            <AreaChart
+              data={chartData}
+              title={chartTimeframe === 'thisMonth' ? `Daily Cash Flow (${currentMonthLabel})` : '12-Month Cash Flow Trend'}
               height={320}
               action={
                 <div className="flex items-center gap-1 bg-bg-card p-1 rounded-lg border border-border">
@@ -343,7 +504,10 @@ export default function DashboardPage() {
             />
           )}
 
-          {/* 2. Recent Transactions */}
+          {/* 2. Quick Transfer Tool (Persistently toggled) */}
+          {showQuickTransfer && <QuickTransferWidget />}
+
+          {/* 3. Recent Transactions */}
           <CollapsibleCard
             title={`Recent Transactions (${currentMonthLabel})`}
             action={
@@ -359,7 +523,7 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : transactions.length === 0 ? (
-              <div className="p-8 text-center text-text-muted">
+              <div className="p-8 text-center text-text-muted text-sm">
                 No transactions recorded yet. Click "Add Transaction" or import your database backup.
               </div>
             ) : (
@@ -372,14 +536,15 @@ export default function DashboardPage() {
           </CollapsibleCard>
         </div>
 
-        {/* Right Column (1 Span): Top Expenses + Monthly Budgets */}
+        {/* Right Column (1 Span): Top Expenses + Category Analytics + Monthly Budgets */}
         <div className="space-y-6">
           {/* 1. Top Expenses Donut Widget */}
-          {showPieChart && (
-            <PieChart data={categoryData} title={`Top Expenses (${currentMonthLabel})`} />
-          )}
+          {showPieChart && <PieChart data={categoryData} title={`Top Expenses (${currentMonthLabel})`} />}
 
-          {/* 2. Monthly Budgets Overview */}
+          {/* 2. Category Expense Analytics Bar (Persistently toggled) */}
+          {showCategoryAnalytics && <CategoryAnalyticsWidget />}
+
+          {/* 3. Monthly Budgets Overview */}
           <CollapsibleCard
             title="Monthly Budgets"
             action={
@@ -410,7 +575,7 @@ export default function DashboardPage() {
             )}
           </CollapsibleCard>
 
-          {/* 3. Financial Objectives Widget */}
+          {/* 4. Financial Objectives Widget */}
           {showObjectives && (
             <CollapsibleCard
               title="Financial Goals & Objectives"
