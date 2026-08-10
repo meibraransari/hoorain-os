@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Wallet, ShieldCheck, PieChart, Activity, KeyRound, X, Info } from 'lucide-react';
+import { api } from '@/lib/api';
+import { Wallet, ShieldCheck, PieChart, Activity, KeyRound, X, CheckCircle, AlertCircle, Send, Lock } from 'lucide-react';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -12,6 +13,17 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
+
+  // Forgot / Reset Password States
+  const [resetStep, setResetStep] = useState<1 | 2>(1);
+  const [identity, setIdentity] = useState('');
+  const [resetCode, setResetCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState('');
+  const [resetError, setResetError] = useState('');
+
   const router = useRouter();
   const { login, isAuthenticated, isLoading } = useAuth();
 
@@ -35,6 +47,60 @@ export default function LoginPage() {
     }
   };
 
+  const handleSendResetCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetLoading(true);
+    setResetError('');
+    setResetSuccess('');
+
+    try {
+      const res: any = await api.post('/auth/forgot-password', { identity });
+      setResetSuccess(res.message || 'Reset code sent!');
+      if (res.devResetCode) {
+        setResetCode(res.devResetCode);
+      }
+      setResetStep(2);
+    } catch (err: any) {
+      setResetError(err.response?.data?.message || 'Failed to request password reset code.');
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const handleConfirmResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmNewPassword) {
+      setResetError('New passwords do not match.');
+      return;
+    }
+    if (newPassword.length < 6) {
+      setResetError('Password must be at least 6 characters long.');
+      return;
+    }
+
+    setResetLoading(true);
+    setResetError('');
+    setResetSuccess('');
+
+    try {
+      const res: any = await api.post('/auth/reset-password', {
+        identity,
+        code: resetCode,
+        newPassword,
+      });
+      setResetSuccess(res.message || 'Password reset successfully!');
+      setTimeout(() => {
+        setShowForgotModal(false);
+        setResetStep(1);
+        setUsername(identity);
+      }, 2500);
+    } catch (err: any) {
+      setResetError(err.response?.data?.message || 'Failed to reset password. Check code.');
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   return (
     <div className="flex h-screen w-full bg-bg-primary overflow-hidden">
       {/* Left Side: Animated Background */}
@@ -43,9 +109,9 @@ export default function LoginPage() {
           <div className="absolute -left-1/4 -top-1/4 h-[800px] w-[800px] rounded-full bg-accent/20 blur-[120px]" />
           <div className="absolute -bottom-1/4 -right-1/4 h-[600px] w-[600px] rounded-full bg-accent-light/20 blur-[100px]" />
         </div>
-        
+
         <div className="z-10 flex flex-col items-center text-center space-y-8">
-          <motion.div 
+          <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5 }}
@@ -56,8 +122,8 @@ export default function LoginPage() {
             </div>
             <h1 className="text-5xl font-display font-bold text-text-primary tracking-tight">Hoorain</h1>
           </motion.div>
-          
-          <motion.p 
+
+          <motion.p
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
@@ -65,7 +131,7 @@ export default function LoginPage() {
           >
             Your self-hosted hub for complete financial clarity and control.
           </motion.p>
-          
+
           <div className="grid grid-cols-2 gap-4 mt-12">
             {[
               { icon: ShieldCheck, title: "Self-Hosted", desc: "Your data stays with you" },
@@ -73,7 +139,7 @@ export default function LoginPage() {
               { icon: Activity, title: "Real-time", desc: "Always up to date" },
               { icon: Wallet, title: "All Accounts", desc: "In one single place" },
             ].map((feature, i) => (
-              <motion.div 
+              <motion.div
                 key={i}
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -91,14 +157,14 @@ export default function LoginPage() {
 
       {/* Right Side: Login Form */}
       <div className="flex w-full flex-col justify-center px-8 lg:w-1/2 lg:px-24 xl:px-32 relative z-10">
-        <motion.div 
+        <motion.div
           initial={{ x: 20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.4 }}
           className="glass card w-full max-w-md mx-auto relative overflow-hidden"
         >
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-accent to-accent-light" />
-          
+
           <div className="mb-8 mt-4 text-center">
             <h2 className="text-3xl font-display font-bold text-text-primary">Welcome back</h2>
             <p className="mt-2 text-text-secondary">Enter your credentials to access your dashboard</p>
@@ -117,7 +183,7 @@ export default function LoginPage() {
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium text-text-secondary" htmlFor="password">Password</label>
               <input
@@ -129,24 +195,20 @@ export default function LoginPage() {
                 placeholder="••••••••"
                 required
               />
-              {/* Forgot Password Button */}
               <button
                 type="button"
-                onClick={() => setShowForgotModal(true)}
-                className="group flex items-center gap-1.5 text-xs text-text-muted hover:text-accent transition-colors duration-200 mt-1"
+                onClick={() => {
+                  setIdentity(username);
+                  setResetStep(1);
+                  setResetSuccess('');
+                  setResetError('');
+                  setShowForgotModal(true);
+                }}
+                className="group flex items-center gap-1.5 text-xs text-text-muted hover:text-accent transition-colors duration-200 mt-1 cursor-pointer"
               >
                 <KeyRound size={12} className="group-hover:rotate-12 transition-transform duration-200" />
                 <span>Forgot your password?</span>
               </button>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <input 
-                type="checkbox" 
-                id="remember" 
-                className="h-4 w-4 rounded border-border bg-bg-secondary text-accent focus:ring-accent" 
-              />
-              <label htmlFor="remember" className="text-sm text-text-secondary">Remember me</label>
             </div>
 
             {error && (
@@ -158,7 +220,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="group relative flex w-full justify-center rounded-lg bg-accent px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-accent-light focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-bg-primary disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden"
+              className="group relative flex w-full justify-center rounded-lg bg-accent px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-accent-light focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-bg-primary disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden cursor-pointer"
             >
               {loading ? (
                 <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -172,7 +234,7 @@ export default function LoginPage() {
         </motion.div>
       </div>
 
-      {/* Forgot Password Modal */}
+      {/* Forgot / Reset Password Interactive Modal */}
       <AnimatePresence>
         {showForgotModal && (
           <motion.div
@@ -188,51 +250,132 @@ export default function LoginPage() {
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
               transition={{ type: 'spring', damping: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-sm rounded-2xl border border-border bg-bg-card p-6 shadow-2xl"
+              className="relative w-full max-w-md rounded-2xl border border-border bg-bg-card p-6 shadow-2xl space-y-4"
             >
-              {/* Top gradient bar */}
-              <div className="absolute top-0 left-0 w-full h-1 rounded-t-2xl bg-gradient-to-r from-accent to-accent-light" />
+              <div className="absolute top-0 left-0 w-full h-1 rounded-t-2xl bg-gradient-to-r from-accent via-accent-light to-transparent" />
 
-              {/* Close */}
               <button
                 onClick={() => setShowForgotModal(false)}
-                className="absolute top-4 right-4 p-1 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors"
+                className="absolute top-4 right-4 p-1 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
               >
-                <X size={16} />
+                <X size={18} />
               </button>
 
-              {/* Icon */}
-              <div className="flex flex-col items-center text-center space-y-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/15 text-accent">
-                  <KeyRound size={26} />
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/15 text-accent shrink-0">
+                  <KeyRound size={24} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-text-primary">Password Reset</h3>
-                  <p className="text-sm text-text-secondary mt-1">Hoorain is self-hosted</p>
-                </div>
-
-                {/* Info box */}
-                <div className="w-full rounded-xl bg-accent/10 border border-accent/20 p-4 text-left flex gap-3">
-                  <Info size={16} className="text-accent mt-0.5 shrink-0" />
-                  <p className="text-xs text-text-secondary leading-relaxed">
-                    Since this is a self-hosted application, password resets are managed by your administrator.
-                    Please contact your admin to reset your password via the server CLI or database.
+                  <h3 className="text-xl font-display font-bold text-text-primary">
+                    {resetStep === 1 ? 'Forgot Password' : 'Set New Password'}
+                  </h3>
+                  <p className="text-xs text-text-muted">
+                    {resetStep === 1 ? 'Step 1: Request reset verification code' : 'Step 2: Enter reset code & new password'}
                   </p>
                 </div>
-
-                {/* Admin hint */}
-                <div className="w-full rounded-xl bg-bg-secondary border border-border p-3 text-left">
-                  <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1">Admin reset command</p>
-                  <code className="text-xs text-accent font-mono">docker exec -it financeos-backend npm run reset-password</code>
-                </div>
-
-                <button
-                  onClick={() => setShowForgotModal(false)}
-                  className="w-full rounded-xl bg-accent py-2.5 text-sm font-semibold text-white hover:bg-accent-light transition-all shadow-lg shadow-accent/30"
-                >
-                  Got it
-                </button>
               </div>
+
+              {resetSuccess && (
+                <div className="p-3 rounded-xl bg-income/10 border border-income/20 text-income text-xs font-semibold flex items-center gap-2">
+                  <CheckCircle size={16} />
+                  <span>{resetSuccess}</span>
+                </div>
+              )}
+              {resetError && (
+                <div className="p-3 rounded-xl bg-expense/10 border border-expense/20 text-expense text-xs font-semibold flex items-center gap-2">
+                  <AlertCircle size={16} />
+                  <span>{resetError}</span>
+                </div>
+              )}
+
+              {resetStep === 1 ? (
+                <form onSubmit={handleSendResetCode} className="space-y-4">
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-text-muted block mb-1">
+                      Username or Email Address
+                    </label>
+                    <input
+                      type="text"
+                      value={identity}
+                      onChange={(e) => setIdentity(e.target.value)}
+                      placeholder="admin or admin@hoorain.app"
+                      className="w-full rounded-xl border border-border bg-bg-secondary px-3.5 py-2.5 text-xs font-semibold text-text-primary focus:border-accent focus:outline-none"
+                      required
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={resetLoading}
+                    className="w-full py-2.5 rounded-xl bg-accent hover:bg-accent-light text-white text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    <Send size={14} />
+                    <span>{resetLoading ? 'Sending Reset Code...' : 'Send Password Reset Code'}</span>
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handleConfirmResetPassword} className="space-y-4">
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-text-muted block mb-1">
+                      6-Digit Verification Code
+                    </label>
+                    <input
+                      type="text"
+                      value={resetCode}
+                      onChange={(e) => setResetCode(e.target.value)}
+                      placeholder="123456"
+                      className="w-full rounded-xl border border-border bg-bg-secondary px-3.5 py-2.5 font-mono text-center text-sm tracking-widest font-bold text-text-primary focus:border-accent focus:outline-none"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-text-muted block mb-1">
+                      New Password
+                    </label>
+                    <input
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full rounded-xl border border-border bg-bg-secondary px-3.5 py-2.5 text-xs font-semibold text-text-primary focus:border-accent focus:outline-none"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-text-muted block mb-1">
+                      Confirm New Password
+                    </label>
+                    <input
+                      type="password"
+                      value={confirmNewPassword}
+                      onChange={(e) => setConfirmNewPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full rounded-xl border border-border bg-bg-secondary px-3.5 py-2.5 text-xs font-semibold text-text-primary focus:border-accent focus:outline-none"
+                      required
+                    />
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setResetStep(1)}
+                      className="w-1/3 py-2.5 rounded-xl border border-border text-xs font-semibold text-text-secondary hover:bg-bg-hover transition-colors cursor-pointer"
+                    >
+                      Back
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={resetLoading}
+                      className="w-2/3 py-2.5 rounded-xl bg-accent hover:bg-accent-light text-white text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                    >
+                      <Lock size={14} />
+                      <span>{resetLoading ? 'Resetting Password...' : 'Confirm New Password'}</span>
+                    </button>
+                  </div>
+                </form>
+              )}
             </motion.div>
           </motion.div>
         )}

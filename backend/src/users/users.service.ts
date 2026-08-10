@@ -22,8 +22,21 @@ export class UsersService {
     return this.userRepository.findOne({ where: { username } });
   }
 
+  async findByEmailOrUsername(identity: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: [{ username: identity }, { email: identity }],
+    });
+  }
+
   async findById(id: string): Promise<User | null> {
     return this.userRepository.findOne({ where: { id } });
+  }
+
+  async updatePasswordHash(id: string, newPassword: string): Promise<void> {
+    const user = await this.getOrThrow(id);
+    user.passwordHash = await bcrypt.hash(newPassword, 10);
+    user.mustChangePassword = false;
+    await this.userRepository.save(user);
   }
 
   async create(dto: CreateUserDto): Promise<User> {

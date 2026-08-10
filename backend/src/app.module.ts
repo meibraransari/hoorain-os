@@ -7,6 +7,7 @@ import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import typeormConfig from './config/typeorm.config';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { MailModule } from './mail/mail.module';
 import { AccountsModule } from './accounts/accounts.module';
 import { AccountTypesModule } from './account-types/account-types.module';
 import { TransactionsModule } from './transactions/transactions.module';
@@ -22,6 +23,7 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { User } from './database/entities/user.entity';
 import { SettingsModule } from './settings/settings.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -36,6 +38,7 @@ import { SettingsModule } from './settings/settings.module';
     ScheduleModule.forRoot(),
     AuthModule,
     UsersModule,
+    MailModule,
     AccountsModule,
     AccountTypesModule,
     TransactionsModule,

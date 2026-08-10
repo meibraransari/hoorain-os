@@ -18,6 +18,12 @@ export interface AppSettings {
   removeZeroTransactionEntries: boolean;
   automaticallyPayUpcoming: boolean;
   use24HourFormat: string;
+  smtpHost?: string;
+  smtpPort?: string;
+  smtpUser?: string;
+  smtpPass?: string;
+  smtpFrom?: string;
+  smtpSecure?: boolean;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -35,6 +41,12 @@ const DEFAULT_SETTINGS: AppSettings = {
   removeZeroTransactionEntries: false,
   automaticallyPayUpcoming: true,
   use24HourFormat: 'system',
+  smtpHost: '',
+  smtpPort: '587',
+  smtpUser: '',
+  smtpPass: '',
+  smtpFrom: '',
+  smtpSecure: false,
 };
 
 interface SettingsContextType {

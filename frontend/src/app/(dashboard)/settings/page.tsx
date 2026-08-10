@@ -1,14 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { CashewImportModal } from '@/components/modals/CashewImportModal';
-import { DataCleanupModal } from '@/components/modals/DataCleanupModal';
-import { DbRestoreModal } from '@/components/modals/DbRestoreModal';
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { useSettings } from '@/components/providers/SettingsProvider';
 import { api } from '@/lib/api';
-import { Upload, Download, Palette, DollarSign, Trash2, FileText, Database, Save, Check, Globe, Calendar, RefreshCw, LayoutDashboard, Activity, User, ShieldCheck } from 'lucide-react';
+import {
+  Upload, Download, Palette, DollarSign, Trash2, FileText, Database,
+  Save, Check, Globe, Calendar, RefreshCw, LayoutDashboard, Activity,
+  User, ShieldCheck, Mail, Server, Lock, Send, AlertCircle, CheckCircle
+} from 'lucide-react';
 import Link from 'next/link';
+
+// Modals
+import { CashewImportModal } from '@/components/modals/CashewImportModal';
+import { DataCleanupModal } from '@/components/modals/DataCleanupModal';
+import { DbRestoreModal } from '@/components/modals/DbRestoreModal';
 
 export default function SettingsPage() {
   const { settings, updateSettings, isLoading: settingsLoading } = useSettings();
@@ -16,19 +22,38 @@ export default function SettingsPage() {
   const [isCleanupModalOpen, setIsCleanupModalOpen] = useState(false);
   const [isDbRestoreModalOpen, setIsDbRestoreModalOpen] = useState(false);
 
+  // General Regional Settings
   const [currency, setCurrency] = useState('INR');
   const [dateFormat, setDateFormat] = useState('DD/MM/YYYY');
   const [numberFormat, setNumberFormat] = useState('standard');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
+  // SMTP Settings
+  const [smtpHost, setSmtpHost] = useState('');
+  const [smtpPort, setSmtpPort] = useState('587');
+  const [smtpUser, setSmtpUser] = useState('');
+  const [smtpPass, setSmtpPass] = useState('');
+  const [smtpFrom, setSmtpFrom] = useState('');
+  const [smtpSecure, setSmtpSecure] = useState(false);
+  const [testingSmtp, setTestingSmtp] = useState(false);
+  const [smtpTestResult, setSmtpTestResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  // Export States
   const [downloadingCsv, setDownloadingCsv] = useState(false);
   const [downloadingJson, setDownloadingJson] = useState(false);
+  const [downloadingDbDump, setDownloadingDbDump] = useState(false);
+
+  // Dashboard Widget Visibility Toggles
   const [showNetWorth, setShowNetWorth] = useState(true);
   const [showCreditDebt, setShowCreditDebt] = useState(true);
   const [showSpendingGraph, setShowSpendingGraph] = useState(true);
   const [showPieChart, setShowPieChart] = useState(true);
   const [showObjectives, setShowObjectives] = useState(false);
+  const [showQuickTransfer, setShowQuickTransfer] = useState(true);
+  const [showCategoryAnalytics, setShowCategoryAnalytics] = useState(true);
+
+  // Behavior Settings
   const [removeZeroTransactionEntries, setRemoveZeroTransactionEntries] = useState(false);
   const [automaticallyPayUpcoming, setAutomaticallyPayUpcoming] = useState(true);
   const [use24HourFormat, setUse24HourFormat] = useState('system');
@@ -44,9 +69,17 @@ export default function SettingsPage() {
       if (settings.showSpendingGraph !== undefined) setShowSpendingGraph(settings.showSpendingGraph);
       if (settings.showPieChart !== undefined) setShowPieChart(settings.showPieChart);
       if (settings.showObjectives !== undefined) setShowObjectives(settings.showObjectives);
+      if (settings.showQuickTransfer !== undefined) setShowQuickTransfer(settings.showQuickTransfer);
+      if (settings.showCategoryAnalytics !== undefined) setShowCategoryAnalytics(settings.showCategoryAnalytics);
       if (settings.removeZeroTransactionEntries !== undefined) setRemoveZeroTransactionEntries(settings.removeZeroTransactionEntries);
       if (settings.automaticallyPayUpcoming !== undefined) setAutomaticallyPayUpcoming(settings.automaticallyPayUpcoming);
       if (settings.use24HourFormat !== undefined) setUse24HourFormat(settings.use24HourFormat);
+      if (settings.smtpHost) setSmtpHost(settings.smtpHost);
+      if (settings.smtpPort) setSmtpPort(settings.smtpPort);
+      if (settings.smtpUser) setSmtpUser(settings.smtpUser);
+      if (settings.smtpPass) setSmtpPass(settings.smtpPass);
+      if (settings.smtpFrom) setSmtpFrom(settings.smtpFrom);
+      if (settings.smtpSecure !== undefined) setSmtpSecure(settings.smtpSecure);
     }
   }, [settings]);
 
@@ -61,19 +94,53 @@ export default function SettingsPage() {
         showSpendingGraph,
         showPieChart,
         showObjectives,
+        showQuickTransfer,
+        showCategoryAnalytics,
         removeZeroTransactionEntries,
         automaticallyPayUpcoming,
         use24HourFormat,
+        smtpHost,
+        smtpPort,
+        smtpUser,
+        smtpPass,
+        smtpFrom,
+        smtpSecure,
       });
 
       setHasUnsavedChanges(false);
       setSavedSuccess(true);
-
-      setTimeout(() => {
-        setSavedSuccess(false);
-      }, 3000);
+      setTimeout(() => setSavedSuccess(false), 3000);
     } catch (err) {
-      console.error("Failed to save settings:", err);
+      console.error('Failed to save settings:', err);
+    }
+  };
+
+  const handleTestSmtp = async () => {
+    setTestingSmtp(true);
+    setSmtpTestResult(null);
+    try {
+      // First save current SMTP settings
+      await updateSettings({
+        smtpHost,
+        smtpPort,
+        smtpUser,
+        smtpPass,
+        smtpFrom,
+        smtpSecure,
+      });
+
+      const res: any = await api.post('/settings/test-smtp');
+      setSmtpTestResult({
+        success: res.success ?? true,
+        message: res.message || 'SMTP connection tested successfully.',
+      });
+    } catch (err: any) {
+      setSmtpTestResult({
+        success: false,
+        message: err.response?.data?.message || 'SMTP Connection Test Failed. Check credentials.',
+      });
+    } finally {
+      setTestingSmtp(false);
     }
   };
 
@@ -115,8 +182,6 @@ export default function SettingsPage() {
     }
   };
 
-  const [downloadingDbDump, setDownloadingDbDump] = useState(false);
-
   const handleExportDbDump = async () => {
     setDownloadingDbDump(true);
     try {
@@ -137,11 +202,12 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6 max-w-4xl pb-16">
+      {/* Top Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-display font-bold text-text-primary">Settings</h1>
-          <p className="text-text-secondary mt-1">Manage application preferences, theme styles, default currency, and data backups.</p>
+          <p className="text-text-secondary mt-1">Manage regional preferences, SMTP email server, dashboard widgets, and SQL database backups.</p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -153,392 +219,404 @@ export default function SettingsPage() {
           )}
           <button
             onClick={handleSaveSettings}
-            className={`flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold shadow-lg transition-all ${
+            className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-bold shadow-lg transition-all cursor-pointer ${
               hasUnsavedChanges
                 ? 'bg-accent text-white hover:bg-accent-light scale-105 animate-pulse'
                 : 'bg-accent text-white hover:bg-accent-light'
             }`}
           >
-            <Save size={18} />
+            <Save size={16} />
             <span>Save Settings</span>
           </button>
         </div>
       </div>
 
-      {/* User Profile & Account Management Card */}
+      {/* 1. User Profile & Account Security Card */}
       <div className="card border border-accent/40 bg-accent/5 p-6 rounded-2xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-xl">
         <div className="flex items-center gap-4">
           <div className="p-3.5 rounded-2xl bg-accent text-white shadow-lg">
-            <User size={26} />
+            <User size={24} />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-text-primary">User Profile & Account Security</h2>
-            <p className="text-xs text-text-muted mt-0.5">Manage display name, contact email, avatar, and security password.</p>
+            <h2 className="text-base font-bold text-text-primary">User Profile & Account Details</h2>
+            <p className="text-xs text-text-muted mt-0.5">Edit First Name, Last Name, Email, Avatar Photo, and Password</p>
           </div>
         </div>
         <Link
           href="/profile"
           className="px-5 py-2.5 rounded-xl bg-accent text-white font-bold text-xs shadow-md hover:bg-accent-light transition-all whitespace-nowrap text-center"
         >
-          Manage User Profile & Security →
+          Manage Profile & Password →
         </Link>
       </div>
 
-      {/* Preferences & Default Currency */}
-      <div className="card border border-border p-6 rounded-xl space-y-6">
-        <div className="flex items-center justify-between border-b border-border pb-4">
-          <div className="flex items-center gap-2 text-text-primary font-bold text-lg">
-            <Globe size={20} className="text-accent" />
+      {/* 2. Regional & Currency Preferences */}
+      <div className="card border border-border p-6 rounded-2xl bg-bg-card/90 backdrop-blur-md shadow-xl space-y-5">
+        <div className="flex items-center justify-between border-b border-border pb-3">
+          <div className="flex items-center gap-2 text-text-primary font-bold text-base">
+            <Globe size={18} className="text-accent" />
             <h2>Regional & Currency Preferences</h2>
           </div>
           {hasUnsavedChanges && (
-            <span className="text-xs text-warning font-semibold bg-warning/10 border border-warning/20 px-2.5 py-1 rounded-full">
+            <span className="text-[11px] text-warning font-bold bg-warning/10 border border-warning/20 px-2.5 py-0.5 rounded-full">
               Unsaved changes
             </span>
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className="block text-xs font-semibold uppercase text-text-muted mb-2">Default Currency</label>
+            <label className="text-xs font-bold uppercase tracking-wider text-text-muted block mb-1">Default Currency</label>
             <select
               value={currency}
               onChange={(e) => {
                 setCurrency(e.target.value);
                 setHasUnsavedChanges(true);
               }}
-              className="w-full rounded-lg border border-border bg-bg-card px-4 py-2.5 text-text-primary focus:border-accent focus:outline-none cursor-pointer"
+              className="w-full rounded-xl border border-border bg-bg-secondary p-2.5 text-xs font-bold text-text-primary focus:border-accent focus:outline-none cursor-pointer"
             >
-              <option value="INR" className="bg-bg-card text-text-primary">INR (₹) — Indian Rupee</option>
-              <option value="USD" className="bg-bg-card text-text-primary">USD ($) — US Dollar</option>
-              <option value="EUR" className="bg-bg-card text-text-primary">EUR (€) — Euro</option>
-              <option value="GBP" className="bg-bg-card text-text-primary">GBP (£) — British Pound</option>
-              <option value="CAD" className="bg-bg-card text-text-primary">CAD ($) — Canadian Dollar</option>
-              <option value="AUD" className="bg-bg-card text-text-primary">AUD ($) — Australian Dollar</option>
-              <option value="JPY" className="bg-bg-card text-text-primary">JPY (¥) — Japanese Yen</option>
-              <option value="AED" className="bg-bg-card text-text-primary">AED (د.إ) — UAE Dirham</option>
+              <option value="INR">INR (₹)</option>
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="GBP">GBP (£)</option>
             </select>
-            <p className="text-xs text-text-muted mt-1">Used for new accounts and total dashboard calculations.</p>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase text-text-muted mb-2">Date Display Format</label>
+            <label className="text-xs font-bold uppercase tracking-wider text-text-muted block mb-1">Date Format</label>
             <select
               value={dateFormat}
               onChange={(e) => {
                 setDateFormat(e.target.value);
                 setHasUnsavedChanges(true);
               }}
-              className="w-full rounded-lg border border-border bg-bg-card px-4 py-2.5 text-text-primary focus:border-accent focus:outline-none cursor-pointer"
+              className="w-full rounded-xl border border-border bg-bg-secondary p-2.5 text-xs font-bold text-text-primary focus:border-accent focus:outline-none cursor-pointer"
             >
-              <option value="DD/MM/YYYY" className="bg-bg-card text-text-primary">DD/MM/YYYY (e.g. 09/08/2026)</option>
-              <option value="MM/DD/YYYY" className="bg-bg-card text-text-primary">MM/DD/YYYY (e.g. 08/09/2026)</option>
-              <option value="YYYY-MM-DD" className="bg-bg-card text-text-primary">YYYY-MM-DD (e.g. 2026-08-09)</option>
+              <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+              <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+              <option value="YYYY-MM-DD">YYYY-MM-DD</option>
             </select>
-            <p className="text-xs text-text-muted mt-1">Format applied across transaction history views.</p>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase text-text-muted mb-2">Number Format</label>
+            <label className="text-xs font-bold uppercase tracking-wider text-text-muted block mb-1">Number Format</label>
             <select
               value={numberFormat}
               onChange={(e) => {
                 setNumberFormat(e.target.value);
                 setHasUnsavedChanges(true);
               }}
-              className="w-full rounded-lg border border-border bg-bg-card px-4 py-2.5 text-text-primary focus:border-accent focus:outline-none cursor-pointer"
+              className="w-full rounded-xl border border-border bg-bg-secondary p-2.5 text-xs font-bold text-text-primary focus:border-accent focus:outline-none cursor-pointer"
             >
-              <option value="standard" className="bg-bg-card text-text-primary">Standard (1,234.56)</option>
-              <option value="compact" className="bg-bg-card text-text-primary">Compact Abbreviation (1.2k)</option>
+              <option value="standard">Standard (1,234,567.89)</option>
+              <option value="indian">Indian (12,34,567.89)</option>
+              <option value="european">European (1.234.567,89)</option>
             </select>
-            <p className="text-xs text-text-muted mt-1">Control balance rounding and formatting.</p>
           </div>
+        </div>
+      </div>
+
+      {/* 3. SMTP Email Server Configuration */}
+      <div className="card border border-border p-6 rounded-2xl bg-bg-card/90 backdrop-blur-md shadow-xl space-y-5">
+        <div className="flex items-center justify-between border-b border-border pb-3">
+          <div className="flex items-center gap-2 text-text-primary font-bold text-base">
+            <Mail size={18} className="text-accent" />
+            <h2>SMTP & Email Server Configuration</h2>
+          </div>
+          <span className="text-[11px] text-accent font-mono font-semibold bg-accent/10 border border-accent/20 px-2.5 py-0.5 rounded-full">
+            Password Reset Enabled
+          </span>
+        </div>
+
+        {smtpTestResult && (
+          <div className={`p-3 rounded-xl text-xs font-semibold flex items-center gap-2 ${
+            smtpTestResult.success
+              ? 'bg-income/10 border border-income/20 text-income'
+              : 'bg-expense/10 border border-expense/20 text-expense'
+          }`}>
+            {smtpTestResult.success ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
+            <span>{smtpTestResult.message}</span>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
-            <label className="block text-xs font-semibold uppercase text-text-muted mb-2">Time Format</label>
-            <select
-              value={use24HourFormat}
+            <label className="text-xs font-bold uppercase tracking-wider text-text-muted block mb-1">SMTP Host</label>
+            <input
+              type="text"
+              value={smtpHost}
               onChange={(e) => {
-                setUse24HourFormat(e.target.value);
+                setSmtpHost(e.target.value);
                 setHasUnsavedChanges(true);
               }}
-              className="w-full rounded-lg border border-border bg-bg-card px-4 py-2.5 text-text-primary focus:border-accent focus:outline-none cursor-pointer"
+              placeholder="smtp.gmail.com"
+              className="w-full rounded-xl border border-border bg-bg-secondary px-3.5 py-2.5 text-xs font-semibold text-text-primary focus:border-accent focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-bold uppercase tracking-wider text-text-muted block mb-1">SMTP Port</label>
+            <input
+              type="text"
+              value={smtpPort}
+              onChange={(e) => {
+                setSmtpPort(e.target.value);
+                setHasUnsavedChanges(true);
+              }}
+              placeholder="587"
+              className="w-full rounded-xl border border-border bg-bg-secondary px-3.5 py-2.5 text-xs font-semibold text-text-primary focus:border-accent focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-bold uppercase tracking-wider text-text-muted block mb-1">Sender Email (From)</label>
+            <input
+              type="text"
+              value={smtpFrom}
+              onChange={(e) => {
+                setSmtpFrom(e.target.value);
+                setHasUnsavedChanges(true);
+              }}
+              placeholder="noreply@hoorain.app"
+              className="w-full rounded-xl border border-border bg-bg-secondary px-3.5 py-2.5 text-xs font-semibold text-text-primary focus:border-accent focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-bold uppercase tracking-wider text-text-muted block mb-1">SMTP Username</label>
+            <input
+              type="text"
+              value={smtpUser}
+              onChange={(e) => {
+                setSmtpUser(e.target.value);
+                setHasUnsavedChanges(true);
+              }}
+              placeholder="notifications@hoorain.app"
+              className="w-full rounded-xl border border-border bg-bg-secondary px-3.5 py-2.5 text-xs font-semibold text-text-primary focus:border-accent focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-bold uppercase tracking-wider text-text-muted block mb-1">SMTP Password</label>
+            <input
+              type="password"
+              value={smtpPass}
+              onChange={(e) => {
+                setSmtpPass(e.target.value);
+                setHasUnsavedChanges(true);
+              }}
+              placeholder="••••••••"
+              className="w-full rounded-xl border border-border bg-bg-secondary px-3.5 py-2.5 text-xs font-semibold text-text-primary focus:border-accent focus:outline-none"
+            />
+          </div>
+
+          <div className="flex items-center justify-between sm:pt-6">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={smtpSecure}
+                onChange={(e) => {
+                  setSmtpSecure(e.target.checked);
+                  setHasUnsavedChanges(true);
+                }}
+                className="h-4 w-4 rounded border-border bg-bg-secondary text-accent focus:ring-accent cursor-pointer"
+              />
+              <span className="text-xs font-bold text-text-primary">SSL/TLS Connection</span>
+            </label>
+
+            <button
+              type="button"
+              onClick={handleTestSmtp}
+              disabled={testingSmtp}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-accent/15 border border-accent/30 text-accent font-bold text-xs hover:bg-accent hover:text-white transition-all cursor-pointer disabled:opacity-50"
             >
-              <option value="system" className="bg-bg-card text-text-primary">System Default</option>
-              <option value="true" className="bg-bg-card text-text-primary">24-Hour (14:30)</option>
-              <option value="false" className="bg-bg-card text-text-primary">12-Hour (02:30 PM)</option>
-            </select>
-            <p className="text-xs text-text-muted mt-1">Control how time is displayed.</p>
+              <Send size={13} />
+              <span>{testingSmtp ? 'Testing...' : 'Test SMTP'}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* 4. Dashboard Widgets & Visibility Toggles */}
+      <div className="card border border-border p-6 rounded-2xl bg-bg-card/90 backdrop-blur-md shadow-xl space-y-5">
+        <div className="flex items-center justify-between border-b border-border pb-3">
+          <div className="flex items-center gap-2 text-text-primary font-bold text-base">
+            <LayoutDashboard size={18} className="text-accent" />
+            <h2>Dashboard Widgets & View Controls</h2>
           </div>
         </div>
 
-        <div className="flex justify-end pt-2">
-          <button
-            onClick={handleSaveSettings}
-            className="flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-accent-light transition-all"
-          >
-            <Save size={16} />
-            <span>Save Preferences</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Theme Selection */}
-      <div className="card border border-border p-6 rounded-xl space-y-4">
-        <div className="flex items-center gap-2 text-text-primary font-bold text-lg">
-          <Palette size={20} className="text-accent" />
-          <h2>Theme & Visual Style</h2>
-        </div>
-        <p className="text-sm text-text-muted">Select your preferred color theme and visual interface layout.</p>
-
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-5 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[
-            { id: 'dark', label: 'Dark Mode', color: '#0f172a' },
-            { id: 'light', label: 'Light Mode', color: '#f8fafc' },
-            { id: 'amoled', label: 'AMOLED Black', color: '#000000' },
-            { id: 'cyberpunk', label: 'Cyberpunk', color: '#130e28' },
-            { id: 'glassmorphism', label: 'Glassmorphism', color: '#0d1117' },
-          ].map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTheme(t.id as any)}
-              className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${
-                theme === t.id
-                  ? 'border-accent bg-accent/10 shadow-lg scale-105'
-                  : 'border-border bg-bg-hover hover:border-text-muted'
-              }`}
-            >
-              <div className="w-8 h-8 rounded-full border border-border shadow-inner" style={{ backgroundColor: t.color }} />
-              <span className="text-xs font-semibold text-text-primary">{t.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Dashboard Preferences */}
-      <div className="card border border-border p-6 rounded-xl space-y-4">
-        <div className="flex items-center gap-2 text-text-primary font-bold text-lg">
-          <LayoutDashboard size={20} className="text-accent" />
-          <h2>Dashboard Preferences</h2>
-        </div>
-        <p className="text-sm text-text-muted">Customize which widgets appear on your main dashboard.</p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-          {[
-            { id: 'netWorth', label: 'Net Worth Summary', state: showNetWorth, setter: setShowNetWorth },
-            { id: 'creditDebt', label: 'Credit & Debt', state: showCreditDebt, setter: setShowCreditDebt },
-            { id: 'spendingGraph', label: 'Spending Graph', state: showSpendingGraph, setter: setShowSpendingGraph },
-            { id: 'pieChart', label: 'Expenses Pie Chart', state: showPieChart, setter: setShowPieChart },
-            { id: 'objectives', label: 'Financial Objectives', state: showObjectives, setter: setShowObjectives },
-          ].map((widget) => (
-            <label key={widget.id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-bg-secondary cursor-pointer hover:border-accent transition-colors">
-              <span className="text-sm font-medium text-text-primary">{widget.label}</span>
-              <div className="relative inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  className="sr-only peer" 
-                  checked={widget.state} 
-                  onChange={(e) => {
-                    widget.setter(e.target.checked);
-                    setHasUnsavedChanges(true);
-                  }} 
-                />
-                <div className="w-11 h-6 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent"></div>
-              </div>
+            { label: 'Net Worth KPI Summary', value: showNetWorth, setter: setShowNetWorth },
+            { label: 'Assets & Debt Breakdown', value: showCreditDebt, setter: setShowCreditDebt },
+            { label: 'Cash Flow Analysis Chart', value: showSpendingGraph, setter: setShowSpendingGraph },
+            { label: 'Top Expenses Donut Chart', value: showPieChart, setter: setShowPieChart },
+            { label: 'Quick Fund Transfer Tool', value: showQuickTransfer, setter: setShowQuickTransfer },
+            { label: 'Category Expense Progress', value: showCategoryAnalytics, setter: setShowCategoryAnalytics },
+            { label: 'Financial Objectives', value: showObjectives, setter: setShowObjectives },
+          ].map((item, idx) => (
+            <label key={idx} className="flex items-center justify-between p-3 rounded-xl border border-border/80 bg-bg-secondary/50 hover:bg-bg-secondary transition-colors cursor-pointer">
+              <span className="text-xs font-semibold text-text-primary">{item.label}</span>
+              <input
+                type="checkbox"
+                checked={item.value}
+                onChange={(e) => {
+                  item.setter(e.target.checked);
+                  setHasUnsavedChanges(true);
+                }}
+                className="h-4 w-4 rounded border-border bg-bg-secondary text-accent focus:ring-accent cursor-pointer"
+              />
             </label>
           ))}
         </div>
       </div>
 
-      {/* Transaction Behaviors */}
-      <div className="card border border-border p-6 rounded-xl space-y-4">
-        <div className="flex items-center gap-2 text-text-primary font-bold text-lg">
-          <Activity size={20} className="text-accent" />
-          <h2>Transaction Behavior</h2>
+      {/* 5. Transaction Behavior & Automation */}
+      <div className="card border border-border p-6 rounded-2xl bg-bg-card/90 backdrop-blur-md shadow-xl space-y-5">
+        <div className="flex items-center justify-between border-b border-border pb-3">
+          <div className="flex items-center gap-2 text-text-primary font-bold text-base">
+            <Activity size={18} className="text-accent" />
+            <h2>Transaction Automation & Behavior</h2>
+          </div>
         </div>
-        <p className="text-sm text-text-muted">Adjust how transactions are handled automatically.</p>
 
-        <div className="grid grid-cols-1 gap-4 pt-2">
-          <label className="flex items-center justify-between p-4 rounded-xl border border-border bg-bg-secondary cursor-pointer hover:border-accent transition-colors">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <label className="flex items-center justify-between p-3.5 rounded-xl border border-border/80 bg-bg-secondary/50 hover:bg-bg-secondary transition-colors cursor-pointer">
             <div>
-              <span className="block text-sm font-medium text-text-primary">Hide Zero Value Entries</span>
-              <span className="block text-xs text-text-muted mt-0.5">Automatically hide transactions with a 0.00 amount from history.</span>
+              <span className="text-xs font-bold text-text-primary block">Hide Zero-Value Entries</span>
+              <span className="text-[11px] text-text-muted">Filter out transactions with amount equal to 0</span>
             </div>
-            <div className="relative inline-flex items-center cursor-pointer">
-              <input 
-                type="checkbox" 
-                className="sr-only peer" 
-                checked={removeZeroTransactionEntries} 
-                onChange={(e) => {
-                  setRemoveZeroTransactionEntries(e.target.checked);
-                  setHasUnsavedChanges(true);
-                }} 
-              />
-              <div className="w-11 h-6 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent"></div>
-            </div>
+            <input
+              type="checkbox"
+              checked={removeZeroTransactionEntries}
+              onChange={(e) => {
+                setRemoveZeroTransactionEntries(e.target.checked);
+                setHasUnsavedChanges(true);
+              }}
+              className="h-4 w-4 rounded border-border bg-bg-secondary text-accent focus:ring-accent cursor-pointer"
+            />
           </label>
-          <label className="flex items-center justify-between p-4 rounded-xl border border-border bg-bg-secondary cursor-pointer hover:border-accent transition-colors">
+
+          <label className="flex items-center justify-between p-3.5 rounded-xl border border-border/80 bg-bg-secondary/50 hover:bg-bg-secondary transition-colors cursor-pointer">
             <div>
-              <span className="block text-sm font-medium text-text-primary">Auto-Pay Upcoming</span>
-              <span className="block text-xs text-text-muted mt-0.5">Automatically mark scheduled/upcoming transactions as paid on their due date.</span>
+              <span className="text-xs font-bold text-text-primary block">Auto-Pay Scheduled Items</span>
+              <span className="text-[11px] text-text-muted">Automatically process upcoming recurring transactions</span>
             </div>
-            <div className="relative inline-flex items-center cursor-pointer">
-              <input 
-                type="checkbox" 
-                className="sr-only peer" 
-                checked={automaticallyPayUpcoming} 
-                onChange={(e) => {
-                  setAutomaticallyPayUpcoming(e.target.checked);
-                  setHasUnsavedChanges(true);
-                }} 
-              />
-              <div className="w-11 h-6 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent"></div>
-            </div>
+            <input
+              type="checkbox"
+              checked={automaticallyPayUpcoming}
+              onChange={(e) => {
+                setAutomaticallyPayUpcoming(e.target.checked);
+                setHasUnsavedChanges(true);
+              }}
+              className="h-4 w-4 rounded border-border bg-bg-secondary text-accent focus:ring-accent cursor-pointer"
+            />
           </label>
         </div>
       </div>
 
-      {/* Cashew Data Import Box */}
-      <div className="card border border-accent/30 bg-accent/5 p-6 rounded-xl space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-accent text-white rounded-xl shadow-lg">
-              <Upload size={24} />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-text-primary">Database Backup & SQL Importer</h2>
-              <p className="text-sm text-text-secondary">Import exported database (.sql / .sqlite / .json) directly into Hoorain.</p>
-            </div>
+      {/* 6. Database Backup & SQL Importer (CRITICAL COMPONENT) */}
+      <div className="card border border-accent/40 p-6 rounded-2xl bg-bg-card/90 backdrop-blur-md shadow-xl space-y-5">
+        <div className="flex items-center justify-between border-b border-border pb-3">
+          <div className="flex items-center gap-2 text-text-primary font-bold text-base">
+            <Database size={18} className="text-accent" />
+            <h2>Database Backup & SQL Importer</h2>
           </div>
+          <span className="text-[11px] text-income font-bold bg-income/10 border border-income/30 px-2.5 py-0.5 rounded-full">
+            Full PostgreSQL Dump Supported
+          </span>
+        </div>
+
+        <p className="text-xs text-text-secondary leading-relaxed">
+          Export your complete PostgreSQL database dump, restore a previous backup, or import financial data from Cashew database files.
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <button
+            type="button"
+            onClick={handleExportDbDump}
+            disabled={downloadingDbDump}
+            className="flex flex-col items-center justify-center p-4 rounded-xl border border-accent/40 bg-accent/5 hover:bg-accent/15 transition-all text-center group cursor-pointer disabled:opacity-50"
+          >
+            <Database size={22} className="text-accent group-hover:scale-110 transition-transform mb-1.5" />
+            <span className="text-xs font-bold text-text-primary">Export PostgreSQL Dump (.sql)</span>
+            <span className="text-[10px] text-text-muted mt-0.5">Native pg_dump database export</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsDbRestoreModalOpen(true)}
+            className="flex flex-col items-center justify-center p-4 rounded-xl border border-border bg-bg-secondary/60 hover:bg-bg-secondary transition-all text-center group cursor-pointer"
+          >
+            <Upload size={22} className="text-accent group-hover:scale-110 transition-transform mb-1.5" />
+            <span className="text-xs font-bold text-text-primary">Restore PostgreSQL Dump (.sql)</span>
+            <span className="text-[10px] text-text-muted mt-0.5">Restore database via psql utility</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => setIsImportModalOpen(true)}
-            className="px-5 py-2.5 rounded-lg bg-accent text-white font-semibold text-sm shadow-md hover:bg-accent-light transition-colors whitespace-nowrap"
+            className="flex flex-col items-center justify-center p-4 rounded-xl border border-border bg-bg-secondary/60 hover:bg-bg-secondary transition-all text-center group cursor-pointer"
           >
-            Import Backup File
+            <FileText size={22} className="text-accent group-hover:scale-110 transition-transform mb-1.5" />
+            <span className="text-xs font-bold text-text-primary">Import Database Backup File</span>
+            <span className="text-[10px] text-text-muted mt-0.5">Import Cashew SQLite/JSON backup</span>
           </button>
-        </div>
-      </div>
 
-      {/* Data Export Options Box */}
-      <div className="card border border-border p-6 rounded-xl space-y-4">
-        <div className="flex items-center gap-2 text-text-primary font-bold text-lg">
-          <Download size={20} className="text-accent" />
-          <h2>Export Options & Backups</h2>
-        </div>
-        <p className="text-sm text-text-muted">Export your financial records into open formats for reporting or offline storage.</p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-          <div className="rounded-xl border border-border p-4 bg-bg-secondary flex flex-col justify-between space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-lg bg-accent/10 text-accent">
-                <FileText size={20} />
-              </div>
-              <div>
-                <h3 className="font-semibold text-text-primary text-sm">Export Transactions (CSV)</h3>
-                <p className="text-xs text-text-muted">Spreadsheet compatible format (Excel, Google Sheets).</p>
-              </div>
-            </div>
-            <button
-              onClick={handleExportCsv}
-              disabled={downloadingCsv}
-              className="w-full py-2 px-4 rounded-lg border border-border bg-bg-card hover:bg-bg-hover text-text-primary font-medium text-xs flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
-            >
-              <Download size={14} />
-              <span>{downloadingCsv ? 'Preparing CSV...' : 'Download CSV'}</span>
-            </button>
-          </div>
-
-          <div className="rounded-xl border border-border p-4 bg-bg-secondary flex flex-col justify-between space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-lg bg-accent/10 text-accent">
-                <Database size={20} />
-              </div>
-              <div>
-                <h3 className="font-semibold text-text-primary text-sm">Full System Backup (JSON)</h3>
-                <p className="text-xs text-text-muted">Includes Accounts, Categories, Transactions, Budgets & Goals.</p>
-              </div>
-            </div>
-            <button
-              onClick={handleExportJson}
-              disabled={downloadingJson}
-              className="w-full py-2 px-4 rounded-lg border border-border bg-bg-card hover:bg-bg-hover text-text-primary font-medium text-xs flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
-            >
-              <Download size={14} />
-              <span>{downloadingJson ? 'Preparing JSON...' : 'Download Full Backup (JSON)'}</span>
-            </button>
-          </div>
-
-          {/* Dedicated Native Postgres DB Backup & Restore Card */}
-          <div className="col-span-1 sm:col-span-2 rounded-xl border border-accent/40 bg-accent/5 p-5 flex flex-col justify-between space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-accent text-white shadow-lg">
-                  <Database size={22} />
-                </div>
-                <div>
-                  <h3 className="font-bold text-text-primary text-base">Native PostgreSQL Database Backup & Restore</h3>
-                  <p className="text-xs text-text-muted">Export complete Postgres SQL dump file or restore database tables & records from an existing .sql dump.</p>
-                </div>
-              </div>
-              <span className="hidden sm:inline-block text-[10px] uppercase font-extrabold px-2.5 py-1 rounded bg-accent/20 text-accent border border-accent/30 tracking-wider">
-                Volume Persisted
-              </span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-              <button
-                onClick={handleExportDbDump}
-                disabled={downloadingDbDump}
-                className="py-2.5 px-4 rounded-xl bg-accent hover:bg-accent-light text-white font-semibold text-xs flex items-center justify-center gap-2 transition-all shadow-md disabled:opacity-50 cursor-pointer"
-              >
-                <Download size={15} />
-                <span>{downloadingDbDump ? 'Exporting DB Dump...' : 'Export Postgres DB Dump (.sql)'}</span>
-              </button>
-              <button
-                onClick={() => setIsDbRestoreModalOpen(true)}
-                className="py-2.5 px-4 rounded-xl border border-border bg-bg-card hover:bg-bg-hover text-text-primary font-semibold text-xs flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
-              >
-                <Upload size={15} className="text-accent" />
-                <span>Restore Postgres DB Dump (.sql)</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Danger Zone / Data Cleanup Card */}
-      <div className="card border border-danger/30 bg-danger/5 p-6 rounded-xl space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-danger/10 text-danger rounded-xl">
-              <Trash2 size={24} />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-text-primary">Data Cleanup & Reset</h2>
-              <p className="text-sm text-text-secondary">Erase all financial transactions, accounts, categories, and goals from your account.</p>
-            </div>
-          </div>
           <button
-            onClick={() => setIsCleanupModalOpen(true)}
-            className="px-5 py-2.5 rounded-lg bg-danger text-white font-semibold text-sm shadow-md hover:bg-danger/90 transition-colors whitespace-nowrap"
+            type="button"
+            onClick={handleExportJson}
+            disabled={downloadingJson}
+            className="flex flex-col items-center justify-center p-4 rounded-xl border border-border bg-bg-secondary/60 hover:bg-bg-secondary transition-all text-center group cursor-pointer disabled:opacity-50"
           >
-            Erase All Data
+            <Download size={22} className="text-accent group-hover:scale-110 transition-transform mb-1.5" />
+            <span className="text-xs font-bold text-text-primary">Export System Backup (.json)</span>
+            <span className="text-[10px] text-text-muted mt-0.5">Full JSON data export</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleExportCsv}
+            disabled={downloadingCsv}
+            className="flex flex-col items-center justify-center p-4 rounded-xl border border-border bg-bg-secondary/60 hover:bg-bg-secondary transition-all text-center group cursor-pointer disabled:opacity-50"
+          >
+            <FileText size={22} className="text-accent group-hover:scale-110 transition-transform mb-1.5" />
+            <span className="text-xs font-bold text-text-primary">Export Transactions (.csv)</span>
+            <span className="text-[10px] text-text-muted mt-0.5">Spreadsheet-compatible CSV</span>
           </button>
         </div>
       </div>
 
-      <CashewImportModal
-        isOpen={isImportModalOpen}
-        onClose={() => setIsImportModalOpen(false)}
-      />
+      {/* 7. Factory Reset & Data Erasure */}
+      <div className="card border border-danger/30 p-6 rounded-2xl bg-danger/5 space-y-4">
+        <div className="flex items-center justify-between border-b border-danger/20 pb-3">
+          <div className="flex items-center gap-2 text-danger font-bold text-base">
+            <Trash2 size={18} />
+            <h2>Factory Reset & Financial Data Erasure</h2>
+          </div>
+        </div>
 
-      <DbRestoreModal
-        isOpen={isDbRestoreModalOpen}
-        onClose={() => setIsDbRestoreModalOpen(false)}
-      />
+        <p className="text-xs text-text-muted leading-relaxed">
+          Permanently erase all user accounts, transactions, categories, budgets, and goals. User profile credentials and system settings are retained.
+        </p>
 
-      <DataCleanupModal
-        isOpen={isCleanupModalOpen}
-        onClose={() => setIsCleanupModalOpen(false)}
-      />
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() => setIsCleanupModalOpen(true)}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-danger hover:bg-danger/90 text-white text-xs font-bold shadow-lg transition-all cursor-pointer"
+          >
+            <Trash2 size={15} />
+            <span>Erase All Financial Data...</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Modal Dialogs */}
+      <CashewImportModal isOpen={isImportModalOpen} onClose={() => setIsImportModalOpen(false)} />
+      <DbRestoreModal isOpen={isDbRestoreModalOpen} onClose={() => setIsDbRestoreModalOpen(false)} />
+      <DataCleanupModal isOpen={isCleanupModalOpen} onClose={() => setIsCleanupModalOpen(false)} />
     </div>
   );
 }
