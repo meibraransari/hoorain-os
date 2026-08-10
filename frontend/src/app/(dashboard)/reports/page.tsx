@@ -95,6 +95,7 @@ function ReportsContent() {
   const { formatPrivateCurrency } = usePrivacy();
   const searchParams = useSearchParams();
   const initialAccountParam = searchParams.get('account') || searchParams.get('accountId') || '';
+  const initialCategoryParam = searchParams.get('category') || searchParams.get('categoryId') || '';
 
   const [activeTab, setActiveTab] = useState<'account' | 'category' | 'type' | 'timeline' | 'merchants'>('account');
   const [isFilterOpen, setIsFilterOpen] = useState(true);
@@ -104,7 +105,7 @@ function ReportsContent() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [accountFilter, setAccountFilter] = useState(initialAccountParam);
-  const [categoryFilter, setCategoryFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState(initialCategoryParam);
   const [typeFilter, setTypeFilter] = useState('');
   const [minAmount, setMinAmount] = useState('');
   const [maxAmount, setMaxAmount] = useState('');
@@ -120,9 +121,14 @@ function ReportsContent() {
   useEffect(() => {
     if (initialAccountParam) {
       setAccountFilter(initialAccountParam);
+      setActiveTab('account');
+      setIsFilterOpen(true);
+    } else if (initialCategoryParam) {
+      setCategoryFilter(initialCategoryParam);
+      setActiveTab('category');
       setIsFilterOpen(true);
     }
-  }, [initialAccountParam]);
+  }, [initialAccountParam, initialCategoryParam]);
 
   const { transactions } = useTransactions({ limit: 1000 });
   const { accounts } = useAccounts();

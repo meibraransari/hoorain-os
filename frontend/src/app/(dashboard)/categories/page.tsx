@@ -4,10 +4,11 @@ import { useState, useMemo } from 'react';
 import { useCategories, useTransactions } from '@/lib/hooks/useFinance';
 import { AddCategoryModal } from '@/components/modals/AddCategoryModal';
 import { DeleteCategoryModal } from '@/components/modals/DeleteCategoryModal';
+import Link from 'next/link';
 import {
   Tag, Plus, Search, Edit2, Trash2, Layers, TrendingDown, TrendingUp,
   Filter, AlertTriangle, Sparkles, FolderTree, PieChart, ArrowUpRight,
-  ShieldAlert, X, ChevronRight
+  ShieldAlert, X, ChevronRight, BarChart3, Eye
 } from 'lucide-react';
 import { formatCurrency, renderCategoryIcon } from '@/lib/utils';
 
@@ -284,6 +285,13 @@ export default function CategoriesPage() {
 
                   {/* Action Buttons */}
                   <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                    <Link
+                      href={`/reports?category=${encodeURIComponent(cat.id)}`}
+                      className="p-1.5 rounded-xl border border-accent/40 bg-accent/10 text-accent hover:bg-accent hover:text-white transition-all shadow-sm cursor-pointer"
+                      title={`View Reports for ${cat.name}`}
+                    >
+                      <BarChart3 size={13} />
+                    </Link>
                     <button
                       onClick={() => {
                         setCategoryToEdit(cat);
@@ -343,9 +351,19 @@ export default function CategoriesPage() {
                   </div>
                 )}
 
-                {/* Footer Activity Info */}
+                {/* Footer Activity Info & View Reports Button */}
                 <div className="flex items-center justify-between text-xs pt-3 border-t border-border/60 text-text-muted font-medium">
-                  <span>{stat.count} transaction{stat.count === 1 ? '' : 's'}</span>
+                  <div className="flex items-center gap-2">
+                    <span>{stat.count} transaction{stat.count === 1 ? '' : 's'}</span>
+                    <span className="opacity-40">•</span>
+                    <Link
+                      href={`/reports?category=${encodeURIComponent(cat.id)}`}
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-accent hover:text-accent-light transition-colors"
+                    >
+                      <Eye size={12} />
+                      <span>View Reports →</span>
+                    </Link>
+                  </div>
                   <span className={`font-mono font-bold text-sm ${
                     cat.type === 'income' ? 'text-income' : 'text-text-primary'
                   }`}>
