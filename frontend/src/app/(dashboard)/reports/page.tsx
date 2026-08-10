@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useTransactions, useAccounts, useCategories } from '@/lib/hooks/useFinance';
 import { formatCurrency } from '@/lib/utils';
 import { api } from '@/lib/api';
@@ -24,7 +25,10 @@ import {
   ChevronUp
 } from 'lucide-react';
 
-export default function ReportsPage() {
+function ReportsContent() {
+  const searchParams = useSearchParams();
+  const initialAccountParam = searchParams.get('account') || searchParams.get('accountId') || '';
+
   const [activeTab, setActiveTab] = useState<'account' | 'category' | 'type' | 'timeline' | 'merchants'>('account');
   const [isFilterOpen, setIsFilterOpen] = useState(true);
 
@@ -32,12 +36,19 @@ export default function ReportsPage() {
   const [timeRange, setTimeRange] = useState<'all' | 'today' | 'thisWeek' | 'thisMonth' | '30days' | '90days' | 'thisYear' | 'custom'>('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [accountFilter, setAccountFilter] = useState('');
+  const [accountFilter, setAccountFilter] = useState(initialAccountParam);
   const [categoryFilter, setCategoryFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [minAmount, setMinAmount] = useState('');
   const [maxAmount, setMaxAmount] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
+
+  useEffect(() => {
+    if (initialAccountParam) {
+      setAccountFilter(initialAccountParam);
+      setIsFilterOpen(true);
+    }
+  }, [initialAccountParam]);
 
   const { transactions } = useTransactions({ limit: 1000 });
   const { accounts } = useAccounts();
@@ -817,5 +828,13 @@ export default function ReportsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ReportsPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-text-muted">Loading Reports...</div>}>
+      <ReportsContent />
+    </Suspense>
   );
 }

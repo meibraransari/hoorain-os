@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { AreaChart as RechartsAreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { formatCurrency } from '@/lib/utils';
@@ -19,6 +19,14 @@ export function AreaChart({ data, title, height = 320, action, defaultCollapsed 
   const { isPrivate, formatPrivateCurrency } = usePrivacy();
   const { theme } = useTheme();
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
+
+  const totalIncome = useMemo(() => {
+    return (data || []).reduce((sum, item) => sum + (Number(item.income) || 0), 0);
+  }, [data]);
+
+  const totalExpense = useMemo(() => {
+    return (data || []).reduce((sum, item) => sum + (Number(item.expense) || 0), 0);
+  }, [data]);
   
   const textColor = theme === 'light' ? '#555577' : '#8888a8';
   const gridColor = theme === 'light' ? '#e0e0ef' : '#2a2a3a';
@@ -100,11 +108,22 @@ export function AreaChart({ data, title, height = 320, action, defaultCollapsed 
                 <Legend 
                   verticalAlign="top" 
                   height={36}
-                  formatter={(value) => (
-                    <span className="text-xs font-semibold text-text-primary capitalize">
-                      {value === 'income' ? '💚 Income' : '🔴 Expense'}
-                    </span>
-                  )}
+                  formatter={(value) => {
+                    if (value === 'income') {
+                      return (
+                        <span className="text-xs font-semibold text-text-primary mr-4 inline-flex items-center gap-1">
+                          <span>💚 Income:</span>
+                          <span className="text-income font-bold">{formatPrivateCurrency(totalIncome)}</span>
+                        </span>
+                      );
+                    }
+                    return (
+                      <span className="text-xs font-semibold text-text-primary inline-flex items-center gap-1">
+                        <span>🔴 Expense:</span>
+                        <span className="text-expense font-bold">{formatPrivateCurrency(totalExpense)}</span>
+                      </span>
+                    );
+                  }}
                 />
                 <Area type="monotone" dataKey="income" stroke="#10d88a" strokeWidth={2.5} fillOpacity={1} fill="url(#colorIncome)" />
                 <Area type="monotone" dataKey="expense" stroke="#ff4d6d" strokeWidth={2.5} fillOpacity={1} fill="url(#colorExpense)" />

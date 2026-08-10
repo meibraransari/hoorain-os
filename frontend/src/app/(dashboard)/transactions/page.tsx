@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { format, isToday, isYesterday } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
 import { useTransactions } from '@/lib/hooks/useFinance';
@@ -9,13 +10,22 @@ import { AddTransactionModal } from '@/components/modals/AddTransactionModal';
 import { api } from '@/lib/api';
 import { Plus, Search, Filter, Edit2, Trash2, ArrowUpDown, ChevronLeft, ChevronRight, Download, TrendingDown } from 'lucide-react';
 
-export default function TransactionsPage() {
-  const [search, setSearch] = useState('');
+function TransactionsContent() {
+  const searchParams = useSearchParams();
+  const accountParam = searchParams.get('account') || searchParams.get('accountId') || '';
+
+  const [search, setSearch] = useState(accountParam);
   const [typeFilter, setTypeFilter] = useState('');
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(50);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [transactionToEdit, setTransactionToEdit] = useState<any>(null);
+
+  useEffect(() => {
+    if (accountParam) {
+      setSearch(accountParam);
+    }
+  }, [accountParam]);
 
   const { transactions, total, isLoading, deleteTransaction } = useTransactions({
     page,
@@ -305,5 +315,13 @@ export default function TransactionsPage() {
         transactionToEdit={transactionToEdit}
       />
     </div>
+  );
+}
+
+export default function TransactionsPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-text-muted">Loading Transactions...</div>}>
+      <TransactionsContent />
+    </Suspense>
   );
 }
