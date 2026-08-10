@@ -41,6 +41,16 @@ export class ImportController {
     return { success: true, columns: res, message: 'All database table balances successfully reconciled and synced.' };
   }
 
+  @Post('db-dump')
+  @ApiOperation({ summary: 'Restore PostgreSQL database from a native SQL dump backup' })
+  @UseInterceptors(FileInterceptor('file'))
+  async restoreDatabaseDump(@UploadedFile() file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('No database backup file uploaded');
+    }
+    return this.importService.restoreDatabaseDump(file.buffer, file.originalname);
+  }
+
   @Get(':logId')
   async getImportStatus(@Param('logId') logId: string) {
     return this.importService.getImportStatus(logId);

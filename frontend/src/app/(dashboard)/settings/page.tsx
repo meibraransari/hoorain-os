@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { CashewImportModal } from '@/components/modals/CashewImportModal';
 import { DataCleanupModal } from '@/components/modals/DataCleanupModal';
+import { DbRestoreModal } from '@/components/modals/DbRestoreModal';
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { api } from '@/lib/api';
 import { Upload, Download, Palette, DollarSign, Trash2, FileText, Database, Save, Check, Globe, Calendar, RefreshCw, LayoutDashboard, Activity } from 'lucide-react';
@@ -10,6 +11,7 @@ import { Upload, Download, Palette, DollarSign, Trash2, FileText, Database, Save
 export default function SettingsPage() {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isCleanupModalOpen, setIsCleanupModalOpen] = useState(false);
+  const [isDbRestoreModalOpen, setIsDbRestoreModalOpen] = useState(false);
   const [currency, setCurrency] = useState('INR');
   const [dateFormat, setDateFormat] = useState('DD/MM/YYYY');
   const [numberFormat, setNumberFormat] = useState('standard');
@@ -117,6 +119,27 @@ export default function SettingsPage() {
       alert('Failed to export JSON backup');
     } finally {
       setDownloadingJson(false);
+    }
+  };
+
+  const [downloadingDbDump, setDownloadingDbDump] = useState(false);
+
+  const handleExportDbDump = async () => {
+    setDownloadingDbDump(true);
+    try {
+      const response: any = await api.get('/export/db-dump', { responseType: 'blob' });
+      const blob = new Blob([response.data || response], { type: 'application/sql' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `hoorain_postgres_db_backup_${new Date().toISOString().split('T')[0]}.sql`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      alert('Failed to export PostgreSQL database dump');
+    } finally {
+      setDownloadingDbDump(false);
     }
   };
 
@@ -431,6 +454,41 @@ export default function SettingsPage() {
               <span>{downloadingJson ? 'Preparing JSON...' : 'Download Full Backup (JSON)'}</span>
             </button>
           </div>
+
+          {/* Dedicated Native Postgres DB Backup & Restore Card */}
+          <div className="col-span-1 sm:col-span-2 rounded-xl border border-accent/40 bg-accent/5 p-5 flex flex-col justify-between space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-xl bg-accent text-white shadow-lg">
+                  <Database size={22} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-text-primary text-base">Native PostgreSQL Database Backup & Restore</h3>
+                  <p className="text-xs text-text-muted">Export complete Postgres SQL dump file or restore database tables & records from an existing .sql dump.</p>
+                </div>
+              </div>
+              <span className="hidden sm:inline-block text-[10px] uppercase font-extrabold px-2.5 py-1 rounded bg-accent/20 text-accent border border-accent/30 tracking-wider">
+                Volume Persisted
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <button
+                onClick={handleExportDbDump}
+                disabled={downloadingDbDump}
+                className="py-2.5 px-4 rounded-xl bg-accent hover:bg-accent-light text-white font-semibold text-xs flex items-center justify-center gap-2 transition-all shadow-md disabled:opacity-50 cursor-pointer"
+              >
+                <Download size={15} />
+                <span>{downloadingDbDump ? 'Exporting DB Dump...' : 'Export Postgres DB Dump (.sql)'}</span>
+              </button>
+              <button
+                onClick={() => setIsDbRestoreModalOpen(true)}
+                className="py-2.5 px-4 rounded-xl border border-border bg-bg-card hover:bg-bg-hover text-text-primary font-semibold text-xs flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
+              >
+                <Upload size={15} className="text-accent" />
+                <span>Restore Postgres DB Dump (.sql)</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -458,6 +516,11 @@ export default function SettingsPage() {
       <CashewImportModal
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
+      />
+
+      <DbRestoreModal
+        isOpen={isDbRestoreModalOpen}
+        onClose={() => setIsDbRestoreModalOpen(false)}
       />
 
       <DataCleanupModal

@@ -11,6 +11,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-financeos}
     volumes:
       - ${DATA_FOLDER:-./data}/postgres:/var/lib/postgresql/data
+      - ${BACKUP_PATH:-./backups}:/var/lib/postgresql/backups
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     healthcheck:

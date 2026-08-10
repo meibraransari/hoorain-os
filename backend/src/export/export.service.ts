@@ -1,11 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { Transaction } from '../database/entities/transaction.entity';
 import { Account } from '../database/entities/account.entity';
 import { Category } from '../database/entities/category.entity';
 import { Budget } from '../database/entities/budget.entity';
 import { Goal } from '../database/entities/goal.entity';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import * as fs from 'fs';
+import * as path from 'path';
+
+const execAsync = promisify(exec);
 
 const CSV_COLUMNS = [
   'id',
@@ -23,6 +29,8 @@ const CSV_COLUMNS = [
 
 @Injectable()
 export class ExportService {
+  private readonly logger = new Logger(ExportService.name);
+
   constructor(
     @InjectRepository(Transaction)
     private readonly transactionRepo: Repository<Transaction>,
@@ -34,7 +42,63 @@ export class ExportService {
     private readonly budgetRepo: Repository<Budget>,
     @InjectRepository(Goal)
     private readonly goalRepo: Repository<Goal>,
+    private readonly dataSource: DataSource,
   ) {}
+
+  async generatePostgresDump() {
+    const host = process.env.DATABASE_HOST || 'postgres';
+    const port = process.env.DATABASE_PORT || '5432';
+    const user = process.env.DATABASE_USER || 'financeos';
+    const pass = process.env.DATABASE_PASSWORD || 'financeos_secret_2024';
+    const dbName = process.env.DATABASE_NAME || 'financeos';
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = `hoorain_postgres_db_backup_${timestamp}.sql`;
+    const backupDir = path.join(process.cwd(), 'backups');
+    if (!fs.existsSync(backupDir)) {
+      fs.mkdirSync(backupDir, { recursive: true });
+    }
+    const filepath = path.join(backupDir, filename);
+
+    try {
+      const cmd = `PGPASSWORD="${pass}" pg_dump -h "${host}" -p "${port}" -U "${user}" -d "${dbName}" --clean --if-exists --inserts`;
+      const { stdout } = await execAsync(cmd, { maxBuffer: 1024 * 1024 * 50 });
+      fs.writeFileSync(filepath, stdout, 'utf8');
+      return { dumpSql: stdout, filename, filepath };
+    } catch (err: any) {
+      this.logger.warn(`pg_dump command note: ${err.message}. Generating SQL dump via DataSource...`);
+      let dumpSql = `-- HOORAIN POSTGRES DATABASE DUMP\n-- Exported At: ${new Date().toISOString()}\n\n`;
+      const tables = [
+        'users', 'accounts', 'categories', 'transactions', 'budgets', 'goals',
+        'tags', 'account_types', 'app_settings', 'category_rules',
+        'cashew_import_logs', 'audit_logs', 'exchange_rates', 'recurring_transactions', 'notifications'
+      ];
+
+      for (const t of tables) {
+        try {
+          const rows = await this.dataSource.query(`SELECT * FROM "${t}"`);
+          if (rows.length > 0) {
+            dumpSql += `-- Data for table ${t}\n`;
+            for (const row of rows) {
+              const cols = Object.keys(row).map((c) => `"${c}"`).join(', ');
+              const vals = Object.values(row).map((v) => {
+                if (v === null || v === undefined) return 'NULL';
+                if (typeof v === 'number' || typeof v === 'boolean') return v;
+                if (typeof v === 'object') return `'${JSON.stringify(v).replace(/'/g, "''")}'`;
+                return `'${String(v).replace(/'/g, "''")}'`;
+              }).join(', ');
+              dumpSql += `INSERT INTO "${t}" (${cols}) VALUES (${vals}) ON CONFLICT DO NOTHING;\n`;
+            }
+            dumpSql += `\n`;
+          }
+        } catch (e) {
+          // Table may not exist
+        }
+      }
+      fs.writeFileSync(filepath, dumpSql, 'utf8');
+      return { dumpSql, filename, filepath };
+    }
+  }
 
   async getTransactions(userId: string): Promise<Transaction[]> {
     return this.transactionRepo.find({

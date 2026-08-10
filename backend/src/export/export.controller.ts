@@ -39,4 +39,13 @@ export class ExportController {
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.send(JSON.stringify(backup, null, 2));
   }
+
+  @Get('db-dump')
+  @ApiOperation({ summary: 'Export active PostgreSQL database dump as downloadable .sql file' })
+  async exportDatabaseDump(@Res() res: Response) {
+    const { dumpSql, filename } = await this.exportService.generatePostgresDump();
+    res.setHeader('Content-Type', 'application/sql');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(dumpSql);
+  }
 }
