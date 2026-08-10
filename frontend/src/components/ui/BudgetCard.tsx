@@ -1,4 +1,4 @@
-import { formatCurrency } from '@/lib/utils';
+import { usePrivacy } from '@/components/providers/PrivacyProvider';
 import { AlertCircle, Edit2, Trash2 } from 'lucide-react';
 
 interface BudgetCardProps {
@@ -8,6 +8,7 @@ interface BudgetCardProps {
 }
 
 export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
+  const { formatPrivateCurrency } = usePrivacy();
   if (!budget) return null;
 
   const limit = parseFloat(budget.amount || budget.limit) || 1;
@@ -71,8 +72,8 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
 
       <div>
         <div className="flex justify-between items-center text-xs mb-1.5 font-medium">
-          <span className="text-text-muted">Spent: <strong className="text-text-primary">{formatCurrency(spent)}</strong></span>
-          <span className="text-text-muted">Limit: <strong className="text-text-primary">{formatCurrency(limit)}</strong></span>
+          <span className="text-text-muted">Spent: <strong className="text-text-primary">{formatPrivateCurrency(spent)}</strong></span>
+          <span className="text-text-muted">Limit: <strong className="text-text-primary">{formatPrivateCurrency(limit)}</strong></span>
         </div>
         
         <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-bg-card border border-border">
@@ -89,7 +90,7 @@ export function BudgetCard({ budget, onEdit, onDelete }: BudgetCardProps) {
         </span>
         <span className={`font-extrabold ${remaining >= 0 ? 'text-income' : 'text-expense flex items-center gap-1'}`}>
           {remaining < 0 && <AlertCircle size={13} />}
-          {formatCurrency(Math.abs(remaining))}
+          {formatPrivateCurrency(Math.abs(remaining))}
         </span>
       </div>
     </div>

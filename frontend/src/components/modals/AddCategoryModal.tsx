@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { X, Tag, Plus, Check, Smile } from 'lucide-react';
 import { useCategories } from '@/lib/hooks/useFinance';
 import { renderCategoryIcon } from '@/lib/utils';
+import { SmoothSelect, SelectOption } from '@/components/ui/SmoothSelect';
 
 interface AddCategoryModalProps {
   isOpen: boolean;
@@ -195,18 +196,21 @@ export function AddCategoryModal({ isOpen, onClose, categoryToEdit }: AddCategor
           {/* Parent Category (Optional) */}
           <div>
             <label className="text-xs font-semibold text-text-secondary block mb-1.5">Parent Category (Optional)</label>
-            <select
+            <SmoothSelect
               value={parentId}
-              onChange={(e) => setParentId(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-bg-card border border-border rounded-xl text-sm text-text-primary focus:outline-none focus:border-accent"
-            >
-              <option value="">None (Top-Level Category)</option>
-              {parentCategories.map((c: any) => (
-                <option key={c.id} value={c.id}>
-                  {c.name} ({c.type})
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setParentId(val)}
+              searchable
+              placeholder="None (Top-Level Category)"
+              options={[
+                { value: '', label: 'None (Top-Level Category)', icon: '🏷️' },
+                ...parentCategories.map((c: any) => ({
+                  value: c.id,
+                  label: c.name,
+                  icon: renderCategoryIcon(c.icon, c.name),
+                  description: `${c.type.toUpperCase()} Category`,
+                })),
+              ]}
+            />
           </div>
 
           {/* Extensive Emoji & Icon Picker */}

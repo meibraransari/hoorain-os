@@ -78,7 +78,7 @@ export function CashewImportModal({ isOpen, onClose }: CashewImportModalProps) {
 
         <div className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
           <p className="text-sm text-text-secondary">
-            Upload your Cashew App SQLite export file (e.g. <code className="text-accent">cashew-2026-08-07-15-25-31-228356.sql</code>) to migrate all your accounts, categories, transactions, and goals seamlessly into FinanceOS.
+            Upload your Cashew App SQLite export file (e.g. <code className="text-accent">cashew-2026-08-07-15-25-31-228356.sql</code>) to migrate all your accounts, categories, transactions, and goals seamlessly into Hoorain.
           </p>
 
           {error && (

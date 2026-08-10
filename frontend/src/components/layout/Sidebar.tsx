@@ -42,7 +42,7 @@ export function Sidebar() {
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent text-white">
               <WalletIcon size={18} />
             </div>
-            <span className="font-display font-bold text-lg whitespace-nowrap">FinanceOS</span>
+            <span className="font-display font-bold text-lg whitespace-nowrap">Hoorain</span>
           </div>
         )}
         {sidebarCollapsed && (

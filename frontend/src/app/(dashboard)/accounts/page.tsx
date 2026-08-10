@@ -7,8 +7,10 @@ import { AddAccountModal } from '@/components/modals/AddAccountModal';
 import { ManageAccountTypesModal } from '@/components/modals/ManageAccountTypesModal';
 import { Plus, Edit2, Trash2, Wallet, Layers, Filter } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
+import { usePrivacy } from '@/components/providers/PrivacyProvider';
 
 export default function AccountsPage() {
+  const { formatPrivateCurrency } = usePrivacy();
   const { accounts, isLoading, deleteAccount } = useAccounts();
   const { accountTypes, deleteAccountType } = useAccountTypes();
 
@@ -189,7 +191,7 @@ export default function AccountsPage() {
               <span className="text-xs font-semibold uppercase text-text-muted">
                 {selectedType === 'all' ? 'Total Accounts Balance' : `Filtered Balance (${selectedType})`}
               </span>
-              <div className="text-3xl font-bold text-text-primary mt-1">{formatCurrency(totalBalance)}</div>
+              <div className="text-3xl font-bold text-text-primary mt-1">{formatPrivateCurrency(totalBalance)}</div>
             </div>
             <div className="p-3 bg-accent/10 text-accent rounded-xl">
               <Wallet size={28} />

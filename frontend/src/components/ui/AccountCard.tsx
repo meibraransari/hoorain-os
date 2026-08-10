@@ -1,4 +1,4 @@
-import { formatCurrency } from '@/lib/utils';
+import { usePrivacy } from '@/components/providers/PrivacyProvider';
 import { CreditCard, Landmark, PiggyBank, Briefcase, Wallet } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -7,6 +7,7 @@ interface AccountCardProps {
 }
 
 export function AccountCard({ account }: AccountCardProps) {
+  const { formatPrivateCurrency } = usePrivacy();
   if (!account) return null;
 
   const getIcon = () => {
@@ -47,7 +48,7 @@ export function AccountCard({ account }: AccountCardProps) {
       <div className="mt-4">
         <h3 className="text-text-secondary font-medium">{account.name || 'Account'}</h3>
         <p className="text-2xl font-display font-bold text-text-primary mt-1">
-          {formatCurrency(balance, account.currency || 'INR')}
+          {formatPrivateCurrency(balance, account.currency || 'INR')}
         </p>
       </div>
     </motion.div>

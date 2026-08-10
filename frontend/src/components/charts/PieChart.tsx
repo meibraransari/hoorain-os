@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { formatCurrency } from '@/lib/utils';
+import { usePrivacy } from '@/components/providers/PrivacyProvider';
 import { ShoppingBag, Coffee, Activity, ShoppingCart, Heart, Package, Utensils, ChevronDown } from 'lucide-react';
 
 export interface PieChartDataItem {
@@ -34,6 +35,7 @@ const getCategoryIcon = (name: string) => {
 };
 
 export function PieChart({ data, title, height = 320, defaultCollapsed = false }: PieChartProps) {
+  const { formatPrivateCurrency } = usePrivacy();
   const { theme } = useTheme();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
@@ -74,7 +76,7 @@ export function PieChart({ data, title, height = 320, defaultCollapsed = false }
           </div>
 
           <span className="text-xs text-text-muted font-medium bg-bg-card/70 px-2.5 py-1 rounded-lg border border-border">
-            Total: {formatCurrency(totalValue)}
+            Total: {formatPrivateCurrency(totalValue)}
           </span>
         </div>
       )}
@@ -119,7 +121,7 @@ export function PieChart({ data, title, height = 320, defaultCollapsed = false }
                     boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
                   }}
                   formatter={(value: number, name: any, props: any) => [
-                    `${formatCurrency(value)} (${props.payload.percentage}%)`,
+                    `${formatPrivateCurrency(value)} (${props.payload.percentage}%)`,
                     props.payload.name
                   ]}
                 />
@@ -132,7 +134,7 @@ export function PieChart({ data, title, height = 320, defaultCollapsed = false }
                 {activeItem ? activeItem.name : 'Total Expense'}
               </span>
               <span className="text-lg font-bold text-text-primary mt-0.5">
-                {formatCurrency(activeItem ? activeItem.value : totalValue)}
+                {formatPrivateCurrency(activeItem ? activeItem.value : totalValue)}
               </span>
               <span className="text-[10px] font-semibold text-accent mt-0.5">
                 {activeItem ? `${activeItem.percentage}% of total` : `${data.length} Categories`}
@@ -178,7 +180,7 @@ export function PieChart({ data, title, height = 320, defaultCollapsed = false }
 
                     <div className="text-right">
                       <span className="font-bold text-sm text-text-primary block">
-                        {formatCurrency(item.value)}
+                        {formatPrivateCurrency(item.value)}
                       </span>
                       <span className="text-[10px] text-text-muted">
                         {item.percentage}% of total

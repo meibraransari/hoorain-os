@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { useTransactions, useAccounts, useCategories, useGoals, useBudgets } from '@/lib/hooks/useFinance';
 import { renderCategoryIcon, renderAccountIcon, formatCurrency } from '@/lib/utils';
+import { SmoothSelect } from '@/components/ui/SmoothSelect';
 
 interface AddTransactionModalProps {
   isOpen: boolean;
@@ -245,35 +246,37 @@ export function AddTransactionModal({ isOpen, onClose, transactionToEdit }: AddT
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold uppercase text-text-muted mb-1">Account</label>
-                <select
+                <SmoothSelect
                   value={accountId}
-                  onChange={(e) => setAccountId(e.target.value)}
-                  className="w-full rounded-lg border border-border bg-bg-hover px-3 py-2.5 text-text-primary focus:border-accent focus:outline-none cursor-pointer font-medium"
-                  required
-                >
-                  <option value="" className="bg-bg-card text-text-primary" disabled>Select Account</option>
-                  {accounts.map((acc: any) => (
-                    <option key={acc.id} value={acc.id} className="bg-bg-card text-text-primary py-1">
-                      {renderAccountIcon(acc.name, acc.type)} {acc.name} ({acc.currency})
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setAccountId(val)}
+                  searchable
+                  placeholder="Select Account"
+                  options={accounts.map((acc: any) => ({
+                    value: acc.id,
+                    label: acc.name,
+                    icon: renderAccountIcon(acc.name, acc.type),
+                    description: `${acc.currency || 'INR'} • ${formatCurrency(acc.currentBalance ?? acc.balance ?? 0)}`,
+                  }))}
+                />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold uppercase text-text-muted mb-1">Category</label>
-                <select
+                <SmoothSelect
                   value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
-                  className="w-full rounded-lg border border-border bg-bg-hover px-3 py-2.5 text-text-primary focus:border-accent focus:outline-none cursor-pointer font-medium"
-                >
-                  <option value="" className="bg-bg-card text-text-primary">🏷️ Uncategorized</option>
-                  {categories.map((cat: any) => (
-                    <option key={cat.id} value={cat.id} className="bg-bg-card text-text-primary py-1">
-                      {renderCategoryIcon(cat.icon, cat.name)} {cat.name} ({cat.type.toUpperCase()})
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setCategoryId(val)}
+                  searchable
+                  placeholder="Uncategorized"
+                  options={[
+                    { value: '', label: 'Uncategorized', icon: '🏷️' },
+                    ...categories.map((cat: any) => ({
+                      value: cat.id,
+                      label: cat.name,
+                      icon: renderCategoryIcon(cat.icon, cat.name),
+                      description: `${cat.type.toUpperCase()}`,
+                    })),
+                  ]}
+                />
               </div>
             </div>
           ) : (

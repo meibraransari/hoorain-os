@@ -48,7 +48,7 @@ export default function LoginPage() {
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-accent text-white shadow-lg shadow-accent/50">
               <Wallet size={32} />
             </div>
-            <h1 className="text-5xl font-display font-bold text-text-primary tracking-tight">FinanceOS</h1>
+            <h1 className="text-5xl font-display font-bold text-text-primary tracking-tight">Hoorain</h1>
           </motion.div>
           
           <motion.p 
@@ -202,7 +202,7 @@ export default function LoginPage() {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-text-primary">Password Reset</h3>
-                  <p className="text-sm text-text-secondary mt-1">FinanceOS is self-hosted</p>
+                  <p className="text-sm text-text-secondary mt-1">Hoorain is self-hosted</p>
                 </div>
 
                 {/* Info box */}

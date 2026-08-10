@@ -1,6 +1,6 @@
 {
-  "name": "FinanceOS",
-  "short_name": "FinanceOS",
+  "name": "Hoorain",
+  "short_name": "Hoorain",
   "description": "Self-hosted personal finance platform",
   "start_url": "/",
   "display": "standalone",

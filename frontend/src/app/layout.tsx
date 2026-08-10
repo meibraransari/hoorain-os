@@ -3,13 +3,17 @@ import './globals.css';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
 import { QueryProvider } from '@/components/providers/QueryProvider';
 import { AuthProvider } from '@/components/providers/AuthProvider';
+import { PrivacyProvider } from '@/components/providers/PrivacyProvider';
 
 export const metadata: Metadata = {
-  title: 'FinanceOS — Self-Hosted Finance Platform',
+  title: 'Hoorain — Self-Hosted Finance Platform',
   description: 'A production-grade personal finance management platform',
   manifest: '/manifest.json',
-  themeColor: '#6c63ff',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
+  icons: {
+    icon: '/icon.svg',
+    shortcut: '/icon.svg',
+    apple: '/icon.svg',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -19,7 +23,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider>
           <QueryProvider>
             <AuthProvider>
-              {children}
+              <PrivacyProvider>
+                {children}
+              </PrivacyProvider>
             </AuthProvider>
           </QueryProvider>
         </ThemeProvider>

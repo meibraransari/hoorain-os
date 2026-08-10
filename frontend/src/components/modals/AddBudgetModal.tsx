@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { useBudgets } from '@/lib/hooks/useFinance';
+import { SmoothSelect } from '@/components/ui/SmoothSelect';
 
 interface AddBudgetModalProps {
   isOpen: boolean;
@@ -129,15 +130,15 @@ export function AddBudgetModal({ isOpen, onClose, budgetToEdit }: AddBudgetModal
 
             <div>
               <label className="block text-xs font-semibold uppercase text-text-muted mb-1">Budget Period</label>
-              <select
+              <SmoothSelect
                 value={period}
-                onChange={(e) => setPeriod(e.target.value)}
-                className="w-full rounded-lg border border-border bg-bg-hover px-3 py-2.5 text-text-primary focus:border-accent focus:outline-none cursor-pointer capitalize"
-              >
-                <option value="monthly" className="bg-bg-card text-text-primary">Monthly</option>
-                <option value="weekly" className="bg-bg-card text-text-primary">Weekly</option>
-                <option value="yearly" className="bg-bg-card text-text-primary">Yearly</option>
-              </select>
+                onChange={(val) => setPeriod(val)}
+                options={[
+                  { value: 'monthly', label: 'Monthly' },
+                  { value: 'weekly', label: 'Weekly' },
+                  { value: 'yearly', label: 'Yearly' },
+                ]}
+              />
             </div>
           </div>
 

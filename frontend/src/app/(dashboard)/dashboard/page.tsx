@@ -11,9 +11,12 @@ import { CollapsibleCard } from '@/components/ui/CollapsibleCard';
 import { AddTransactionModal } from '@/components/modals/AddTransactionModal';
 import { Wallet, TrendingUp, TrendingDown, Target, Plus, AlertCircle, ArrowUpRight, ArrowDownRight, Calendar } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
+import { usePrivacy } from '@/components/providers/PrivacyProvider';
+import { PrivacyToggle } from '@/components/ui/PrivacyToggle';
 import Link from 'next/link';
 
 export default function DashboardPage() {
+  const { isPrivate, formatPrivateCurrency, formatPrivateNumber } = usePrivacy();
   const { accounts, isLoading: accountsLoading } = useAccounts();
   const { transactions, isLoading: txLoading } = useTransactions({ limit: 2000 });
   const { budgets, isLoading: budgetLoading } = useBudgets();
@@ -203,7 +206,10 @@ export default function DashboardPage() {
               {currentMonthLabel}
             </span>
           </div>
-          <p className="text-text-secondary mt-1">Here is your financial performance for {currentMonthLabel}.</p>
+          <div className="flex items-center gap-3 mt-1 flex-wrap">
+            <p className="text-text-secondary">Here is your financial performance for {currentMonthLabel}.</p>
+            <PrivacyToggle />
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -233,14 +239,14 @@ export default function DashboardPage() {
         >
           <div>
             <div className={`text-2xl font-bold ${netWorth >= 0 ? 'text-text-primary' : 'text-expense'}`}>
-              {formatCurrency(netWorth)}
+              {formatPrivateCurrency(netWorth)}
             </div>
             <div className="flex items-center gap-3 text-xs mt-2 pt-2 border-t border-border">
               <span className="text-income font-medium flex items-center gap-0.5">
-                <ArrowUpRight size={13} /> Assets: {formatCurrency(totalAssets)}
+                <ArrowUpRight size={13} /> Assets: {formatPrivateCurrency(totalAssets)}
               </span>
               <span className="text-expense font-medium flex items-center gap-0.5">
-                <ArrowDownRight size={13} /> Debt: {formatCurrency(totalLiabilities)}
+                <ArrowDownRight size={13} /> Debt: {formatPrivateCurrency(totalLiabilities)}
               </span>
             </div>
           </div>
@@ -257,7 +263,7 @@ export default function DashboardPage() {
 
         <StatCard
           title={`Income (${currentMonthLabel})`}
-          value={formatCurrency(monthlyIncome)}
+          value={formatPrivateCurrency(monthlyIncome)}
           icon={<TrendingUp size={20} className="text-income" />}
           trend="This Month"
           trendType="up"
@@ -265,7 +271,7 @@ export default function DashboardPage() {
         />
         <StatCard
           title={`Expenses (${currentMonthLabel})`}
-          value={formatCurrency(monthlyExpense)}
+          value={formatPrivateCurrency(monthlyExpense)}
           icon={<TrendingDown size={20} className="text-expense" />}
           trend="This Month"
           trendType="down"
@@ -273,7 +279,7 @@ export default function DashboardPage() {
         />
         <StatCard
           title="Savings Rate"
-          value={`${savingsRate}%`}
+          value={formatPrivateNumber(savingsRate, '%')}
           icon={<Target size={20} className="text-accent" />}
           subtitle="Target: 20%"
           isLoading={txLoading}

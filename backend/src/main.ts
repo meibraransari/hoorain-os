@@ -33,8 +33,8 @@ async function bootstrap() {
 
   // Swagger Configuration
   const config = new DocumentBuilder()
-    .setTitle('FinanceOS API')
-    .setDescription('The FinanceOS API description')
+    .setTitle('Hoorain API')
+    .setDescription('The Hoorain API description')
     .setVersion('1.0')
     .addBearerAuth()
     .build();

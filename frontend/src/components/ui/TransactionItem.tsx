@@ -1,4 +1,4 @@
-import { formatCurrency } from '@/lib/utils';
+import { usePrivacy } from '@/components/providers/PrivacyProvider';
 import { format } from 'date-fns';
 import { ShoppingBag, Coffee, Car, Home, Smartphone, Briefcase, HelpCircle, ArrowRightLeft } from 'lucide-react';
 
@@ -20,6 +20,7 @@ const getCategoryIcon = (categoryName?: string, isTransfer?: boolean) => {
 };
 
 export function TransactionItem({ transaction }: TransactionItemProps) {
+  const { formatPrivateCurrency } = usePrivacy();
   if (!transaction) return null;
 
   const rawAmount = typeof transaction.amount === 'number' ? transaction.amount : parseFloat(transaction.amount) || 0;
@@ -84,7 +85,7 @@ export function TransactionItem({ transaction }: TransactionItemProps) {
             ? 'text-income'
             : 'text-text-primary'
         }`}>
-          {isTransfer ? '' : isIncome ? '+' : '-'}{formatCurrency(Math.abs(rawAmount))}
+          {isTransfer ? '' : isIncome ? '+' : '-'}{formatPrivateCurrency(Math.abs(rawAmount))}
         </span>
         {formattedTime && <span className="text-[12px] text-text-muted/70 mt-0.5 font-medium tracking-wide">{formattedTime}</span>}
       </div>

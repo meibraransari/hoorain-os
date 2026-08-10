@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
         if (res?.accessToken) {
           localStorage.setItem('financeos_access_token', res.accessToken);
-          setAuth(res.user || { id: 'admin', name: 'Admin', email: 'admin@financeos.local' }, res.accessToken);
+          setAuth(res.user || { id: 'admin', name: 'Admin', email: 'admin@hoorain.app' }, res.accessToken);
           await mutate(() => true);
         }
       } catch (err) {
@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const res: any = await api.post('/auth/login', { username, password });
     if (res?.accessToken) {
       localStorage.setItem('financeos_access_token', res.accessToken);
-      setAuth(res.user || { id: 'admin', name: 'Admin', email: 'admin@financeos.local' }, res.accessToken);
+      setAuth(res.user || { id: 'admin', name: 'Admin', email: 'admin@hoorain.app' }, res.accessToken);
       await mutate(() => true); // Revalidate all active SWR queries
     } else {
       throw new Error('Login failed: invalid response from server');

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { AreaChart as RechartsAreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { formatCurrency } from '@/lib/utils';
+import { usePrivacy } from '@/components/providers/PrivacyProvider';
 import { ChevronDown } from 'lucide-react';
 
 interface AreaChartProps {
@@ -15,6 +16,7 @@ interface AreaChartProps {
 }
 
 export function AreaChart({ data, title, height = 320, action, defaultCollapsed = false }: AreaChartProps) {
+  const { isPrivate, formatPrivateCurrency } = usePrivacy();
   const { theme } = useTheme();
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   
@@ -79,7 +81,7 @@ export function AreaChart({ data, title, height = 320, action, defaultCollapsed 
                   axisLine={false} 
                   tickLine={false} 
                   tick={{ fill: textColor, fontSize: 11 }}
-                  tickFormatter={(value) => `${currencySymbol}${value >= 100000 ? `${(value / 100000).toFixed(1)}L` : value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value}`}
+                  tickFormatter={(value) => isPrivate ? `${currencySymbol}•••` : `${currencySymbol}${value >= 100000 ? `${(value / 100000).toFixed(1)}L` : value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value}`}
                 />
                 <Tooltip 
                   contentStyle={{ 
@@ -90,7 +92,7 @@ export function AreaChart({ data, title, height = 320, action, defaultCollapsed 
                     boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
                   }}
                   formatter={(value: any, name: any) => [
-                    formatCurrency(Number(value)), 
+                    formatPrivateCurrency(Number(value)), 
                     name === 'income' ? '💚 Income' : '🔴 Expense'
                   ]}
                   labelStyle={{ fontWeight: 'bold', color: textColor, marginBottom: '4px' }}

@@ -19,7 +19,7 @@ export class AdminSeederService {
       const passwordHash = await bcrypt.hash('AdminPass123!', 10);
       admin = this.userRepository.create({
         username: 'admin',
-        email: 'admin@financeos.local',
+        email: 'admin@hoorain.app',
         passwordHash,
         role: UserRole.ADMIN,
         mustChangePassword: false,
@@ -30,7 +30,7 @@ export class AdminSeederService {
 
       console.log(`
 ╔══════════════════════════════════════╗
-║     FinanceOS — First Boot Setup     ║
+║     Hoorain — First Boot Setup       ║
 ╠══════════════════════════════════════╣
 ║  Admin Account Created               ║
 ║  Username: admin                     ║

@@ -109,7 +109,7 @@ export default function SettingsPage() {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `financeos-backup-${new Date().toISOString().split('T')[0]}.json`);
+      link.setAttribute('download', `hoorain-backup-${new Date().toISOString().split('T')[0]}.json`);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -371,7 +371,7 @@ export default function SettingsPage() {
             </div>
             <div>
               <h2 className="text-lg font-bold text-text-primary">Cashew Backup & SQL Importer</h2>
-              <p className="text-sm text-text-secondary">Import Cashew exported database (.sql / .sqlite / .json) directly into FinanceOS.</p>
+              <p className="text-sm text-text-secondary">Import Cashew exported database (.sql / .sqlite / .json) directly into Hoorain.</p>
             </div>
           </div>
           <button
