@@ -48,7 +48,7 @@
 - **Savings Goals**: Goal target tracking with progress bars and target completion dates.
 
 ### 7. 📤 Data Import & Integration
-- **Cashew ObjectBox Import**: Direct import tool for importing account, category, and transaction data exported from the Cashew finance mobile app (JSON/CSV).
+- **Database & Mobile App Import**: Direct import tool for importing account, category, and transaction data exported from personal finance mobile apps or database backups (JSON/CSV/SQL).
 
 ### 8. 🐳 Docker & Self-Hosted Infrastructure
 - **5 Container Services**:

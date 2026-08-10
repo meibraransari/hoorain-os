@@ -19,16 +19,16 @@ APP_PORT="${APP_PORT:-8080}"
 BASE_URL="http://localhost:${APP_PORT}"
 
 if [ -z "${1:-}" ]; then
-  echo "FinanceOS — Cashew Import Tool"
-  echo "================================"
-  echo "Usage: $0 <cashew-export-file> [auth-token]"
+  echo "Hoorain — Mobile App & Database Import Tool"
+  echo "============================================"
+  echo "Usage: $0 <export-file> [auth-token]"
   echo ""
-  echo "  <cashew-export-file>  Path to the Cashew .json or .csv export file"
-  echo "  [auth-token]          Optional JWT token (or set TOKEN env var)"
+  echo "  <export-file>  Path to the .json, .sqlite or .sql export file"
+  echo "  [auth-token]   Optional JWT token (or set TOKEN env var)"
   echo ""
   echo "Examples:"
-  echo "  TOKEN=\$(cat .token) $0 cashew_export_2024.json"
-  echo "  $0 /path/to/cashew_backup.json eyJhbGci..."
+  echo "  TOKEN=\$(cat .token) $0 database_export_2026.json"
+  echo "  $0 /path/to/backup.json eyJhbGci..."
   exit 1
 fi
 
@@ -45,7 +45,7 @@ if [ -z "$AUTH_TOKEN" ]; then
   echo "   Set TOKEN env var or pass it as the second argument."
   echo "   Get a token by logging in first:"
   echo "   curl -s -X POST $BASE_URL/api/v1/auth/login -H 'Content-Type: application/json' \\"
-  echo "        -d '{\"email\":\"you@example.com\",\"password\":\"yourpassword\"}' | python3 -m json.tool"
+  echo "        -d '{\"username\":\"admin\",\"password\":\"yourpassword\"}' | python3 -m json.tool"
   exit 1
 fi
 
@@ -54,7 +54,7 @@ DEST="$IMPORTS_DIR/$FILE_NAME"
 mkdir -p "$IMPORTS_DIR"
 
 echo "============================================"
-echo "  FinanceOS — Cashew Import"
+echo "  Hoorain — Database Data Import"
 echo "  $(date '+%Y-%m-%d %H:%M:%S')"
 echo "============================================"
 echo "  Source: $SOURCE_FILE"

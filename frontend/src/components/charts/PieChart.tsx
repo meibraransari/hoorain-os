@@ -142,7 +142,7 @@ export function PieChart({ data, title, height = 320, defaultCollapsed = false }
             </div>
           </div>
 
-          {/* Cashew-Style Category Breakdown Cards List */}
+          {/* Category Breakdown Cards List */}
           <div className="space-y-2.5 pt-2 border-t border-border/60">
             {processedData.map((item, index) => {
               const isHovered = activeIndex === index;

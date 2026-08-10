@@ -33,33 +33,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return;
           }
         } catch (e) {
-          console.warn('Existing token is stale or invalid for active DB, purging and re-authenticating...');
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('financeos_access_token');
-          }
+          console.warn('Existing token is stale or invalid, clearing authentication state...');
         }
       }
 
-      // Auto-login with default admin credentials
-      try {
-        const res: any = await api.post('/auth/login', {
-          username: 'admin',
-          password: 'AdminPass123!',
-        });
-        if (res?.accessToken) {
-          localStorage.setItem('financeos_access_token', res.accessToken);
-          setAuth(res.user || { id: 'admin', name: 'Admin', email: 'admin@hoorain.app' }, res.accessToken);
-          await mutate(() => true);
-        }
-      } catch (err) {
-        console.warn('Auto-login attempt failed.');
-      } finally {
-        setIsLoading(false);
+      // If no valid token, purge and end loading
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('financeos_access_token');
       }
+      logoutStore();
+      setIsLoading(false);
     };
 
     initAuth();
-  }, [setAuth]);
+  }, [setAuth, logoutStore]);
 
   const login = async (username: string, password: string) => {
     const res: any = await api.post('/auth/login', { username, password });

@@ -6,6 +6,7 @@ import { X } from 'lucide-react';
 import { useTransactions, useAccounts, useCategories, useGoals, useBudgets } from '@/lib/hooks/useFinance';
 import { renderCategoryIcon, renderAccountIcon, formatCurrency } from '@/lib/utils';
 import { SmoothSelect } from '@/components/ui/SmoothSelect';
+import { FancyDateTimePicker } from '@/components/ui/FancyDateTimePicker';
 
 interface AddTransactionModalProps {
   isOpen: boolean;
@@ -352,17 +353,12 @@ export function AddTransactionModal({ isOpen, onClose, transactionToEdit }: AddT
             </div>
           </div>
 
-          {/* Date & Time Input Field */}
-          <div>
-            <label className="block text-xs font-semibold uppercase text-text-muted mb-1">Date & Time</label>
-            <input
-              type="datetime-local"
-              value={dateTime}
-              onChange={(e) => setDateTime(e.target.value)}
-              className="w-full rounded-lg border border-border bg-bg-hover px-4 py-2.5 text-text-primary focus:border-accent focus:outline-none"
-              required
-            />
-          </div>
+          {/* Fancy Date & Time Selection Picker */}
+          <FancyDateTimePicker
+            value={dateTime}
+            onChange={(val) => setDateTime(val)}
+            label="Date & Time Selection"
+          />
 
           {/* Bigger Notes / Description Textarea Box at Below Side */}
           <div>

@@ -370,8 +370,8 @@ export default function SettingsPage() {
               <Upload size={24} />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-text-primary">Cashew Backup & SQL Importer</h2>
-              <p className="text-sm text-text-secondary">Import Cashew exported database (.sql / .sqlite / .json) directly into Hoorain.</p>
+              <h2 className="text-lg font-bold text-text-primary">Database Backup & SQL Importer</h2>
+              <p className="text-sm text-text-secondary">Import exported database (.sql / .sqlite / .json) directly into Hoorain.</p>
             </div>
           </div>
           <button

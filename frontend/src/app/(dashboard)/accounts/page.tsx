@@ -210,7 +210,7 @@ export default function AccountsPage() {
               <p className="text-lg font-medium text-text-primary">No accounts found</p>
               <p className="text-sm text-text-muted">
                 {selectedType === 'all'
-                  ? 'Click "Add Account" or import your Cashew export file to create accounts.'
+                  ? 'Click "Add Account" or import your database backup file to create accounts.'
                   : `No accounts created under "${selectedType}". Click "Add Account" to create one.`}
               </p>
             </div>

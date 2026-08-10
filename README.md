@@ -131,25 +131,25 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for full SSL + Cloudflare setup.
 
 ---
 
-## 📤 Import from Cashew
+## 📤 Import Database & Mobile App Data
 
-FinanceOS can import your existing data from the [Cashew](https://cashewapp.web.app/) personal finance app.
+Hoorain can import your existing data from mobile finance apps and database backups (.sql / .sqlite / .json).
 
-### Step 1 — Export from Cashew
-1. Open Cashew → Settings → Export Data
-2. Choose **ObjectBox / JSON** format
+### Step 1 — Export Data
+1. Open your mobile finance app or backup settings
+2. Choose **JSON / SQLite / SQL** format
 3. Save the export file
 
-### Step 2 — Import to FinanceOS
+### Step 2 — Import to Hoorain
 ```bash
 # Get your auth token first
 TOKEN=$(curl -s -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"you@example.com","password":"yourpassword"}' \
-  | python3 -c "import sys,json; print(json.load(sys.stdin)['data']['accessToken'])")
+  -d '{"username":"admin","password":"yourpassword"}' \
+  | python3 -c "import sys,json; print(json.load(sys.stdin)['accessToken'])")
 
 # Run the import script
-./scripts/import-cashew.sh /path/to/cashew_export.json "$TOKEN"
+./scripts/import-cashew.sh /path/to/database_export.json "$TOKEN"
 ```
 
 ### Step 3 — Check Import Status

@@ -338,7 +338,7 @@ export default function DashboardPage() {
               </div>
             ) : transactions.length === 0 ? (
               <div className="p-8 text-center text-text-muted">
-                No transactions recorded yet. Click "Add Transaction" or import your Cashew backup.
+                No transactions recorded yet. Click "Add Transaction" or import your database backup.
               </div>
             ) : (
               <div className="space-y-1">

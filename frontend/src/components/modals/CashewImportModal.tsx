@@ -45,7 +45,7 @@ export function CashewImportModal({ isOpen, onClose }: CashewImportModalProps) {
 
   const handleUpload = async () => {
     if (!file) {
-      setError('Please select a Cashew SQL or ObjectBox export file first.');
+      setError('Please select a valid SQL or database backup file first.');
       return;
     }
 
@@ -69,7 +69,7 @@ export function CashewImportModal({ isOpen, onClose }: CashewImportModalProps) {
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <div className="flex items-center gap-2">
             <Upload size={20} className="text-accent" />
-            <h2 className="text-xl font-bold text-text-primary">Import Cashew SQL Backup</h2>
+            <h2 className="text-xl font-bold text-text-primary">Import Database SQL Backup</h2>
           </div>
           <button onClick={onClose} className="text-text-muted hover:text-text-primary transition-colors">
             <X size={20} />
@@ -78,7 +78,7 @@ export function CashewImportModal({ isOpen, onClose }: CashewImportModalProps) {
 
         <div className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
           <p className="text-sm text-text-secondary">
-            Upload your Cashew App SQLite export file (e.g. <code className="text-accent">cashew-2026-08-07-15-25-31-228356.sql</code>) to migrate all your accounts, categories, transactions, and goals seamlessly into Hoorain.
+            Upload your mobile application SQLite database export file (e.g. <code className="text-accent">backup-2026-08-07-15-25-31.sql</code>) to migrate all your accounts, categories, transactions, and goals seamlessly into Hoorain.
           </p>
 
           {error && (
@@ -115,10 +115,10 @@ export function CashewImportModal({ isOpen, onClose }: CashewImportModalProps) {
               <label htmlFor="cashew-file-input" className="cursor-pointer flex flex-col items-center gap-2">
                 <FileText size={40} className="text-text-muted" />
                 <span className="font-semibold text-text-primary">
-                  {file ? file.name : 'Click or drop Cashew SQL file here'}
+                  {file ? file.name : 'Click or drop database SQL file here'}
                 </span>
                 <span className="text-xs text-text-muted">
-                  Supports Cashew .sql / .sqlite exports ({file ? `${(file.size / 1024).toFixed(1)} KB` : 'Up to 50MB'})
+                  Supports .sql / .sqlite / .json exports ({file ? `${(file.size / 1024).toFixed(1)} KB` : 'Up to 50MB'})
                 </span>
               </label>
             </div>
