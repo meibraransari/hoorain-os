@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, Wallet, ArrowLeftRight, Tag, PieChart, 
   Target, FileText, Settings, LogOut, ChevronLeft, ChevronRight,
-  Wallet as WalletIcon
+  Wallet as WalletIcon, User
 } from 'lucide-react';
 import { useUIStore } from '@/store/ui.store';
 import { useAuth } from '@/components/providers/AuthProvider';
@@ -21,6 +21,7 @@ const navItems = [
   { icon: PieChart, label: 'Budgets', href: '/budgets' },
   { icon: Target, label: 'Goals', href: '/goals' },
   { icon: FileText, label: 'Reports', href: '/reports' },
+  { icon: User, label: 'Profile', href: '/profile' },
   { icon: Settings, label: 'Settings', href: '/settings' },
 ];
 
@@ -84,19 +85,26 @@ export function Sidebar() {
 
       <div className="p-4 border-t border-border">
         {!sidebarCollapsed ? (
-          <div className="flex items-center gap-3 mb-4">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-bg-hover flex items-center justify-center border border-border font-bold text-text-primary">
+          <Link
+            href="/profile"
+            className="flex items-center gap-3 mb-4 p-1 rounded-xl hover:bg-bg-hover transition-colors group cursor-pointer"
+          >
+            <div className="h-10 w-10 shrink-0 rounded-full bg-accent/15 text-accent flex items-center justify-center border border-accent/30 font-bold text-text-primary group-hover:scale-105 transition-transform">
               {user?.name?.charAt(0) || 'U'}
             </div>
             <div className="flex-1 overflow-hidden">
-              <p className="truncate text-sm font-medium text-text-primary">{user?.name || 'User'}</p>
-              <p className="truncate text-xs text-text-muted">{user?.email || 'user@finance.os'}</p>
+              <p className="truncate text-sm font-medium text-text-primary group-hover:text-accent transition-colors">{user?.name || 'User'}</p>
+              <p className="truncate text-xs text-text-muted">{user?.email || 'admin@hoorain.app'}</p>
             </div>
-          </div>
+          </Link>
         ) : (
-          <div className="h-10 w-10 mx-auto shrink-0 rounded-full bg-bg-hover flex items-center justify-center border border-border mb-4 font-bold text-text-primary">
+          <Link
+            href="/profile"
+            className="h-10 w-10 mx-auto shrink-0 rounded-full bg-accent/15 text-accent flex items-center justify-center border border-accent/30 mb-4 font-bold text-text-primary hover:scale-105 transition-transform block"
+            title="User Profile"
+          >
             {user?.name?.charAt(0) || 'U'}
-          </div>
+          </Link>
         )}
         <button 
           onClick={logout}

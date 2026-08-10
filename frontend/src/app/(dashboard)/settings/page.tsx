@@ -7,7 +7,8 @@ import { DbRestoreModal } from '@/components/modals/DbRestoreModal';
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { useSettings } from '@/components/providers/SettingsProvider';
 import { api } from '@/lib/api';
-import { Upload, Download, Palette, DollarSign, Trash2, FileText, Database, Save, Check, Globe, Calendar, RefreshCw, LayoutDashboard, Activity } from 'lucide-react';
+import { Upload, Download, Palette, DollarSign, Trash2, FileText, Database, Save, Check, Globe, Calendar, RefreshCw, LayoutDashboard, Activity, User, ShieldCheck } from 'lucide-react';
+import Link from 'next/link';
 
 export default function SettingsPage() {
   const { settings, updateSettings, isLoading: settingsLoading } = useSettings();
@@ -98,7 +99,7 @@ export default function SettingsPage() {
   const handleExportJson = async () => {
     setDownloadingJson(true);
     try {
-      const response: any = await api.get('/export/full-backup', { responseType: 'blob' });
+      const response: any = await api.get('/export/backup/json', { responseType: 'blob' });
       const blob = new Blob([response.data || response], { type: 'application/json' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -162,6 +163,25 @@ export default function SettingsPage() {
             <span>Save Settings</span>
           </button>
         </div>
+      </div>
+
+      {/* User Profile & Account Management Card */}
+      <div className="card border border-accent/40 bg-accent/5 p-6 rounded-2xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-xl">
+        <div className="flex items-center gap-4">
+          <div className="p-3.5 rounded-2xl bg-accent text-white shadow-lg">
+            <User size={26} />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-text-primary">User Profile & Account Security</h2>
+            <p className="text-xs text-text-muted mt-0.5">Manage display name, contact email, avatar, and security password.</p>
+          </div>
+        </div>
+        <Link
+          href="/profile"
+          className="px-5 py-2.5 rounded-xl bg-accent text-white font-bold text-xs shadow-md hover:bg-accent-light transition-all whitespace-nowrap text-center"
+        >
+          Manage User Profile & Security →
+        </Link>
       </div>
 
       {/* Preferences & Default Currency */}
