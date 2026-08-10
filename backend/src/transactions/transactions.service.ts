@@ -1,0 +1,190 @@
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Account } from '../database/entities/account.entity';
+import { Transaction } from '../database/entities/transaction.entity';
+import { Goal } from '../database/entities/goal.entity';
+import { Budget } from '../database/entities/budget.entity';
+import { CreateTransactionDto } from './dto/create-transaction.dto';
+import { QueryTransactionDto } from './dto/query-transaction.dto';
+import { UpdateTransactionDto } from './dto/update-transaction.dto';
+
+@Injectable()
+export class TransactionsService implements OnModuleInit {
+  constructor(
+    @InjectRepository(Transaction)
+    private readonly transactionRepo: Repository<Transaction>,
+    @InjectRepository(Account)
+    private readonly accountRepo: Repository<Account>,
+    @InjectRepository(Goal)
+    private readonly goalRepo: Repository<Goal>,
+    @InjectRepository(Budget)
+    private readonly budgetRepo: Repository<Budget>,
+  ) {}
+
+  async onModuleInit() {
+    try {
+      await this.transactionRepo.query(`
+        ALTER TABLE transactions ADD COLUMN IF NOT EXISTS goal_id UUID;
+        ALTER TABLE transactions ADD COLUMN IF NOT EXISTS budget_id UUID;
+      `);
+    } catch (err) {
+      console.error('TransactionsService init columns error:', err);
+    }
+  }
+
+  async findAll(userId: string, query: QueryTransactionDto) {
+    const page = query.page ?? 1;
+    const limit = Math.min(query.limit ?? 50, 2000);
+
+    const qb = this.transactionRepo
+      .createQueryBuilder('transaction')
+      .leftJoinAndSelect('transaction.account', 'account')
+      .leftJoinAndSelect('transaction.category', 'category')
+      .where('transaction.userId = :userId', { userId });
+
+    if (query.search && query.search.trim() !== '' && query.search !== 'undefined') {
+      qb.andWhere('(transaction.title ILIKE :search OR transaction.notes ILIKE :search)', { search: `%${query.search}%` });
+    }
+    if (query.accountId && query.accountId !== 'undefined') {
+      qb.andWhere('transaction.accountId = :accountId', { accountId: query.accountId });
+    }
+    if (query.categoryId && query.categoryId !== 'undefined') {
+      qb.andWhere('transaction.categoryId = :categoryId', { categoryId: query.categoryId });
+    }
+    if (query.type && query.type !== 'undefined') {
+      if ((query.type as string) === 'transfer') {
+        qb.andWhere('(transaction.type = \'transfer\' OR transaction.isTransfer = true)');
+      } else if ((query.type as string) === 'expense') {
+        qb.andWhere('transaction.type = \'expense\' AND (transaction.isTransfer IS NOT TRUE)');
+      } else if ((query.type as string) === 'income') {
+        qb.andWhere('transaction.type = \'income\' AND (transaction.isTransfer IS NOT TRUE)');
+      } else {
+        qb.andWhere('transaction.type = :type', { type: query.type });
+      }
+    }
+    if (query.from) {
+      qb.andWhere('transaction.date >= :from', { from: query.from });
+    }
+    if (query.to) {
+      qb.andWhere('transaction.date <= :to', { to: query.to });
+    }
+
+    qb.orderBy('transaction.date', 'DESC')
+      .addOrderBy('transaction.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [items, total] = await qb.getManyAndCount();
+
+    return {
+      items,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.max(1, Math.ceil(total / limit)),
+      },
+    };
+  }
+
+  async findOne(id: string, userId: string): Promise<Transaction> {
+    const transaction = await this.transactionRepo.findOne({
+      where: { id, userId },
+      relations: ['splits', 'transactionTags', 'attachments'],
+    });
+    if (!transaction) {
+      throw new NotFoundException(`Transaction ${id} not found`);
+    }
+    return transaction;
+  }
+
+  private async assertAccountOwnership(accountId: string, userId: string): Promise<void> {
+    const account = await this.accountRepo.findOne({ where: { id: accountId, userId } });
+    if (!account) {
+      throw new NotFoundException(`Account ${accountId} not found`);
+    }
+  }
+
+  async syncGoalProgress(userId: string, goalId?: string, amount?: number, type?: string) {
+    if (!goalId || !amount) return;
+    const goal = await this.goalRepo.findOne({ where: { id: goalId, userId } });
+    if (!goal) return;
+
+    const amt = Number(amount);
+    const goalType = goal.type || 'income';
+
+    if (goalType === 'expense') {
+      if (type === 'expense') {
+        goal.currentAmount = Number(goal.currentAmount) + amt;
+      } else if (type === 'income') {
+        goal.currentAmount = Math.max(0, Number(goal.currentAmount) - amt);
+      }
+    } else {
+      if (type === 'income') {
+        goal.currentAmount = Number(goal.currentAmount) + amt;
+      } else if (type === 'expense') {
+        goal.currentAmount = Math.max(0, Number(goal.currentAmount) - amt);
+      }
+    }
+
+    goal.isCompleted = Number(goal.currentAmount) >= Number(goal.targetAmount);
+    await this.goalRepo.save(goal);
+  }
+
+  async syncBudgetProgress(userId: string, budgetId?: string, amount?: number, type?: string) {
+    if (!budgetId || !amount) return;
+    const budget = await this.budgetRepo.findOne({ where: { id: budgetId, userId } });
+    if (!budget) return;
+
+    const amt = Number(amount);
+    if (type === 'expense') {
+      budget.spentAmount = Number(budget.spentAmount || 0) + amt;
+    } else if (type === 'income') {
+      budget.spentAmount = Math.max(0, Number(budget.spentAmount || 0) - amt);
+    }
+
+    await this.budgetRepo.save(budget);
+  }
+
+  async create(userId: string, dto: CreateTransactionDto): Promise<Transaction> {
+    await this.assertAccountOwnership(dto.accountId, userId);
+
+    const transaction = this.transactionRepo.create({ ...dto, userId });
+    const saved = await this.transactionRepo.save(transaction);
+
+    if (dto.goalId) {
+      await this.syncGoalProgress(userId, dto.goalId, dto.amount, dto.type);
+    }
+    if (dto.budgetId) {
+      await this.syncBudgetProgress(userId, dto.budgetId, dto.amount, dto.type);
+    }
+
+    return saved;
+  }
+
+  async update(id: string, userId: string, dto: UpdateTransactionDto): Promise<Transaction> {
+    const transaction = await this.findOne(id, userId);
+    if (dto.accountId) {
+      await this.assertAccountOwnership(dto.accountId, userId);
+    }
+
+    Object.assign(transaction, dto);
+    const saved = await this.transactionRepo.save(transaction);
+
+    if (dto.goalId) {
+      await this.syncGoalProgress(userId, dto.goalId, dto.amount, dto.type);
+    }
+    if (dto.budgetId) {
+      await this.syncBudgetProgress(userId, dto.budgetId, dto.amount, dto.type);
+    }
+
+    return saved;
+  }
+
+  async remove(id: string, userId: string): Promise<{ id: string; deleted: boolean }> {
+    const transaction = await this.findOne(id, userId);
+    await this.transactionRepo.remove(transaction);
+    return { id, deleted: true };
+  }
+}
