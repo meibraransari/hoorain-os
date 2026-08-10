@@ -8,6 +8,7 @@ import { useTransactions } from '@/lib/hooks/useFinance';
 import { useSettings } from '@/components/providers/SettingsProvider';
 import { TransactionItem } from '@/components/ui/TransactionItem';
 import { AddTransactionModal } from '@/components/modals/AddTransactionModal';
+import { DeleteTransactionModal } from '@/components/modals/DeleteTransactionModal';
 import { api } from '@/lib/api';
 import { Plus, Search, Filter, Edit2, Trash2, ArrowUpDown, ChevronLeft, ChevronRight, Download, TrendingDown } from 'lucide-react';
 
@@ -22,6 +23,9 @@ function TransactionsContent() {
   const [limit, setLimit] = useState(50);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [transactionToEdit, setTransactionToEdit] = useState<any>(null);
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState<any>(null);
 
   useEffect(() => {
     if (accountParam) {
@@ -48,9 +52,14 @@ function TransactionsContent() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this transaction?')) {
-      await deleteTransaction(id);
+  const handleOpenDelete = (tx: any) => {
+    setTransactionToDelete(tx);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (transactionToDelete?.id) {
+      await deleteTransaction(transactionToDelete.id);
     }
   };
 
@@ -260,27 +269,36 @@ function TransactionsContent() {
                 {/* Group Transactions */}
                 <div className="flex flex-col">
                   {group.transactions.map((tx: any) => (
-                    <div key={tx.id} className="relative group flex items-center justify-between hover:bg-bg-hover transition-colors pr-2">
-                      <div className="flex-1">
-                        <TransactionItem transaction={tx} />
-                      </div>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity absolute right-4">
-                        <button
-                          onClick={() => handleEdit(tx)}
-                          className="p-1.5 rounded-md bg-bg-secondary border border-border text-text-muted hover:text-accent hover:border-accent transition-colors shadow-sm"
-                          title="Edit Transaction"
-                        >
-                          <Edit2 size={14} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(tx.id)}
-                          className="p-1.5 rounded-md bg-bg-secondary border border-border text-text-muted hover:text-expense hover:border-expense transition-colors shadow-sm"
-                          title="Delete Transaction"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </div>
+                    <TransactionItem
+                      key={tx.id}
+                      transaction={tx}
+                      action={
+                        <>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(tx);
+                            }}
+                            className="p-1.5 rounded-lg bg-bg-secondary border border-border text-text-muted hover:text-accent hover:border-accent transition-colors shadow-sm cursor-pointer"
+                            title="Edit Transaction"
+                          >
+                            <Edit2 size={13} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenDelete(tx);
+                            }}
+                            className="p-1.5 rounded-lg bg-bg-secondary border border-border text-text-muted hover:text-expense hover:border-expense transition-colors shadow-sm cursor-pointer"
+                            title="Delete Transaction"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </>
+                      }
+                    />
                   ))}
                 </div>
               </div>
@@ -320,6 +338,13 @@ function TransactionsContent() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         transactionToEdit={transactionToEdit}
+      />
+
+      <DeleteTransactionModal
+        isOpen={isDeleteModalOpen}
+        transaction={transactionToDelete}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
       />
     </div>
   );

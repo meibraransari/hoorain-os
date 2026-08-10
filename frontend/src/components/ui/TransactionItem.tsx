@@ -1,9 +1,11 @@
 import { usePrivacy } from '@/components/providers/PrivacyProvider';
 import { format } from 'date-fns';
 import { ShoppingBag, Coffee, Car, Home, Smartphone, Briefcase, HelpCircle, ArrowRightLeft } from 'lucide-react';
+import { ReactNode } from 'react';
 
 interface TransactionItemProps {
   transaction: any;
+  action?: ReactNode;
 }
 
 const getCategoryIcon = (categoryName?: string, isTransfer?: boolean) => {
@@ -19,7 +21,7 @@ const getCategoryIcon = (categoryName?: string, isTransfer?: boolean) => {
   return <HelpCircle size={16} />;
 };
 
-export function TransactionItem({ transaction }: TransactionItemProps) {
+export function TransactionItem({ transaction, action }: TransactionItemProps) {
   const { formatPrivateCurrency } = usePrivacy();
   if (!transaction) return null;
 
@@ -52,7 +54,7 @@ export function TransactionItem({ transaction }: TransactionItemProps) {
 
   return (
     <div className="flex items-center justify-between py-3 px-4 hover:bg-bg-hover/50 transition-colors group cursor-pointer border-b border-border/50 last:border-b-0">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 min-w-0 flex-1 pr-3">
         <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-transform group-hover:scale-105 ${
           isTransfer
             ? 'bg-accent/10 text-accent'
@@ -62,14 +64,14 @@ export function TransactionItem({ transaction }: TransactionItemProps) {
         }`}>
           {getCategoryIcon(categoryName, isTransfer)}
         </div>
-        <div className="flex flex-col">
-          <h4 className="font-semibold text-text-primary text-[15px] leading-snug">{primaryTitle}</h4>
-          <div className="flex items-center gap-2 text-[13px] text-text-muted mt-0.5 font-medium">
+        <div className="flex flex-col min-w-0">
+          <h4 className="font-semibold text-text-primary text-[15px] leading-snug truncate">{primaryTitle}</h4>
+          <div className="flex items-center gap-2 text-[13px] text-text-muted mt-0.5 font-medium truncate">
             <span>{categoryName}</span>
             <span className="opacity-50">•</span>
             <span>{accountName}</span>
             {transaction.excludeFromBalance && (
-              <span className="px-1.5 py-0.2 text-[10px] font-bold rounded bg-amber-500/15 text-amber-500 border border-amber-500/30">
+              <span className="px-1.5 py-0.2 text-[10px] font-bold rounded bg-amber-500/15 text-amber-500 border border-amber-500/30 shrink-0">
                 Excluded from Balance
               </span>
             )}
@@ -82,17 +84,26 @@ export function TransactionItem({ transaction }: TransactionItemProps) {
           </div>
         </div>
       </div>
-      <div className="flex flex-col items-end shrink-0">
-        <span className={`font-semibold text-[15px] tracking-tight ${
-          isTransfer
-            ? 'text-text-primary'
-            : isIncome
-            ? 'text-income'
-            : 'text-text-primary'
-        }`}>
-          {isTransfer ? '' : isIncome ? '+' : '-'}{formatPrivateCurrency(Math.abs(rawAmount))}
-        </span>
-        {formattedTime && <span className="text-[12px] text-text-muted/70 mt-0.5 font-medium tracking-wide">{formattedTime}</span>}
+
+      <div className="flex items-center gap-3 shrink-0">
+        <div className="flex flex-col items-end">
+          <span className={`font-semibold text-[15px] tracking-tight ${
+            isTransfer
+              ? 'text-text-primary'
+              : isIncome
+              ? 'text-income'
+              : 'text-text-primary'
+          }`}>
+            {isTransfer ? '' : isIncome ? '+' : '-'}{formatPrivateCurrency(Math.abs(rawAmount))}
+          </span>
+          {formattedTime && <span className="text-[12px] text-text-muted/70 mt-0.5 font-medium tracking-wide">{formattedTime}</span>}
+        </div>
+
+        {action && (
+          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            {action}
+          </div>
+        )}
       </div>
     </div>
   );
