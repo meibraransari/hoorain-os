@@ -1,96 +1,58 @@
-# 💸 FinanceOS
+# 💎 Hoorain
 
 <div align="center">
-
+ 
 **A self-hosted, open-source personal finance platform**  
 _Track everything. Own your data. Never pay a subscription._
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Node.js](https://img.shields.io/badge/Node.js-22-green)](https://nodejs.org)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-blue)](https://postgresql.org)
-[![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org)
-[![NestJS](https://img.shields.io/badge/NestJS-10-red)](https://nestjs.com)
-[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED)](https://docker.com)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6)](https://typescriptlang.org)
 
 </div>
 
 ---
 
-## ✨ Features
+## 🔑 First-Time Admin Setup & Login
 
-| Category | Capabilities |
-|---|---|
-| 💰 **Accounts** | Checking, savings, credit cards, investment, cash, crypto |
-| 📊 **Transactions** | Income, expenses, transfers, splits, multi-currency |
-| 🏷️ **Categories** | Hierarchical categories, custom sub-categories, tags |
-| 📅 **Budgets** | Period-based budgets, per-category allocation, rollover |
-| 🎯 **Goals** | Savings goals with progress tracking and target dates |
-| 🔁 **Recurring** | Auto-create recurring bills, income, and subscriptions |
-| 📤 **Import** | Import from Cashew ObjectBox export (JSON/CSV) |
-| 📎 **Attachments** | Upload receipts and statements per transaction |
-| 🌍 **Multi-currency** | Historical exchange rates, base-currency conversion |
-| 📈 **Reports** | Spending by category, trends, net worth over time |
-| 🔔 **Notifications** | Budget alerts, bill reminders, unusual spending |
-| 🔒 **Self-hosted** | Your data stays on your server — no third parties |
-| 🐳 **Docker** | One-command deploy with Docker Compose |
-| 📖 **API Docs** | Full OpenAPI / Swagger documentation at `/api/docs` |
+When you launch **Hoorain** for the first time via `docker compose up -d`, an initial administrator account is automatically seeded into the database:
 
----
+- **Username:** `admin`
+- **Email:** `admin@hoorain.app`
+- **Default Password:** `AdminPass123!`
 
-## 📸 Screenshots
+> ⚠️ **Security Tip:** After logging in for the first time, update your admin password from the Settings page.
 
-> Screenshots will be added after the initial release.
->
-> ```
-> [ Dashboard ]   [ Transactions ]   [ Budget Overview ]   [ Reports ]
-> ```
+### Creating Additional Admin Users
+You can create new users or secondary administrator accounts via the API:
 
----
+```bash
+# 1. Obtain Auth Token as default Admin
+TOKEN=$(curl -s -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"AdminPass123!"}' \
+  | python3 -c "import sys,json; print(json.load(sys.stdin)['accessToken'])")
 
-## 🏗 Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                         NGINX (port 80/443)                 │
-│              SSL termination · Reverse proxy · Gzip         │
-└───────────────────────────┬─────────────────┬───────────────┘
-                            │                 │
-              ┌─────────────▼──┐    ┌─────────▼──────────┐
-              │  Frontend      │    │  Backend API        │
-              │  Next.js 15    │    │  NestJS 10          │
-              │  App Router    │    │  REST + WebSocket   │
-              │  Tailwind CSS  │    │  OpenAPI/Swagger     │
-              │  shadcn/ui     │    │  Bull Queue          │
-              └────────────────┘    └──────┬──────┬───────┘
-                                          │      │
-                              ┌───────────▼┐   ┌─▼─────────────┐
-                              │ PostgreSQL  │   │ Redis          │
-                              │ 17-alpine   │   │ 7-alpine       │
-                              │ Schema +    │   │ Sessions +     │
-                              │ Triggers    │   │ Job Queue      │
-                              └────────────┘   └───────────────┘
-                                    │
-                              ┌─────▼──────────┐
-                              │  pgbackup       │
-                              │  Daily dumps    │
-                              │  to /backups    │
-                              └────────────────┘
+# 2. Register a new Administrator
+curl -X POST http://localhost:8080/api/v1/users \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "hoorain_admin",
+    "email": "admin2@hoorain.app",
+    "password": "YourSecurePassword123!",
+    "role": "ADMIN"
+  }'
 ```
 
 ---
 
 ## 🚀 Quick Start
 
-**5 commands to get FinanceOS running:**
+**5 commands to get Hoorain running:**
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/yourusername/financeos.git && cd financeos
+git clone https://github.com/yourusername/hoorain.git && cd hoorain
 
 # 2. Configure environment
 cp .env.example .env
-# Edit .env with your passwords and secrets
 
 # 3. Start all services
 docker compose up -d
@@ -98,7 +60,7 @@ docker compose up -d
 # 4. Wait for healthy state (~30 seconds)
 docker compose ps
 
-# 5. Open the app
+# 5. Open the app in your browser
 open http://localhost:8080
 ```
 
