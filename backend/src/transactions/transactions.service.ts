@@ -69,6 +69,11 @@ export class TransactionsService implements OnModuleInit {
           RETURN COALESCE(NEW, OLD);
         END;
         $$ LANGUAGE plpgsql;
+
+        DROP TRIGGER IF EXISTS trg_sync_account_balance ON transactions;
+        CREATE TRIGGER trg_sync_account_balance
+        AFTER INSERT OR UPDATE OR DELETE ON transactions
+        FOR EACH ROW EXECUTE FUNCTION sync_account_balance();
       `);
     } catch (err) {
       console.error('TransactionsService init columns & trigger error:', err);

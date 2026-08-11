@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, Wallet, ArrowLeftRight, Tag, PieChart, 
   Target, FileText, Settings, LogOut, ChevronLeft, ChevronRight,
-  Wallet as WalletIcon, User
+  Wallet as WalletIcon, User, HandCoins
 } from 'lucide-react';
 import { useUIStore } from '@/store/ui.store';
 import { useAuth } from '@/components/providers/AuthProvider';
@@ -17,6 +17,7 @@ const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
   { icon: Wallet, label: 'Accounts', href: '/accounts' },
   { icon: ArrowLeftRight, label: 'Transactions', href: '/transactions' },
+  { icon: HandCoins, label: 'Lent & Borrow', href: '/lent-borrow' },
   { icon: Tag, label: 'Categories', href: '/categories' },
   { icon: PieChart, label: 'Budgets', href: '/budgets' },
   { icon: Target, label: 'Goals', href: '/goals' },

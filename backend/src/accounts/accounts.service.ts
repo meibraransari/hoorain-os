@@ -13,10 +13,28 @@ export class AccountsService {
   ) {}
 
   async findAll(userId: string): Promise<Account[]> {
-    return this.accountRepo.find({
+    const accounts = await this.accountRepo.find({
       where: { userId, isActive: true },
       order: { createdAt: 'DESC' },
     });
+
+    for (const acc of accounts) {
+      const [{ sum }] = await this.accountRepo.query(
+        `SELECT SUM(
+          CASE 
+            WHEN type = 'income' THEN amount 
+            WHEN type = 'expense' THEN -amount 
+            ELSE 0 
+          END
+        ) as sum FROM transactions WHERE account_id = $1 AND (exclude_from_balance IS NOT TRUE OR exclude_from_balance IS NULL)`,
+        [acc.id],
+      );
+
+      const txSum = parseFloat(sum || '0');
+      acc.currentBalance = parseFloat(acc.initialBalance as any || '0') + txSum;
+    }
+
+    return accounts;
   }
 
   async findOne(id: string, userId: string): Promise<Account> {
@@ -24,6 +42,21 @@ export class AccountsService {
     if (!account) {
       throw new NotFoundException(`Account ${id} not found`);
     }
+
+    const [{ sum }] = await this.accountRepo.query(
+      `SELECT SUM(
+        CASE 
+          WHEN type = 'income' THEN amount 
+          WHEN type = 'expense' THEN -amount 
+          ELSE 0 
+        END
+      ) as sum FROM transactions WHERE account_id = $1 AND (exclude_from_balance IS NOT TRUE OR exclude_from_balance IS NULL)`,
+      [account.id],
+    );
+
+    const txSum = parseFloat(sum || '0');
+    account.currentBalance = parseFloat(account.initialBalance as any || '0') + txSum;
+
     return account;
   }
 

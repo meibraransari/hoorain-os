@@ -239,7 +239,7 @@ users (1)───────────────────────�
 `accounts.current_balance` is maintained by a database trigger on the `transactions` table:
 
 ```sql
--- Trigger: trg_transactions_balance
+-- Trigger: trg_sync_account_balance
 -- Fires: AFTER INSERT OR UPDATE OR DELETE on transactions
 -- Effect: ± updates accounts.current_balance
 
@@ -250,23 +250,22 @@ users (1)───────────────────────�
 -- On UPDATE:         reverses old, applies new
 ```
 
-### Recalculating from Scratch
+### Dynamic Balance Re-calculation
+`AccountsService.findAll()` evaluates:
 
-If you suspect drift, recalculate:
+$$\text{currentBalance} = \text{initialBalance} + \sum (\text{Active Income}) - \sum (\text{Active Expenses})$$
 
-```sql
-UPDATE accounts a SET current_balance = (
-  a.initial_balance
-  + COALESCE((
-      SELECT SUM(t.amount) FROM transactions t
-      WHERE t.account_id = a.id AND t.type = 'income'
-  ), 0)
-  - COALESCE((
-      SELECT SUM(t.amount) FROM transactions t
-      WHERE t.account_id = a.id AND t.type = 'expense'
-  ), 0)
-);
-```
+---
+
+## Lent & Borrow (Debts & Loans) Schema Mapping
+
+Every debt record in the **Lent & Borrow** module maps to an underlying `Transaction` entry:
+
+- **Money Lent (Receivable)**: Saved as a transaction (`type = 'expense'`, `category = 'Lent'`). Decreases cash balance and registers total receivables.
+- **Money Borrowed (Payable)**: Saved as a transaction (`type = 'income'`, `category = 'Borrowed'`). Increases cash balance and registers total payables.
+- **Settled Loans**: Toggling settled status updates `excludeFromBalance = true` and prefixes `[SETTLED]` to notes.
+
+---
 
 ### Net Worth Calculation
 

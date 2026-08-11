@@ -119,6 +119,7 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for full SSL + Cloudflare setup.
 | `DATA_FOLDER` | `./data` | No | Persistent storage root |
 | `BACKUP_PATH` | `./backups` | No | Backup output directory |
 | `MAX_UPLOAD_SIZE` | `50mb` | No | Max file upload size |
+| `MAX_UPLOAD_SIZE` | `50mb` | No | Max file upload size |
 | `BACKUP_RETAIN_DAYS` | `30` | No | Days to keep old backups |
 | `DOMAIN` | — | Prod | Your domain name for SSL |
 | `SSL_CERT_PATH` | `./ssl` | Prod | Path to Let's Encrypt certs |
@@ -128,6 +129,27 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for full SSL + Cloudflare setup.
 > ```bash
 > openssl rand -hex 64
 > ```
+
+---
+
+## 🤝 Lent & Borrow (Debts & Loans Management)
+
+Hoorain includes a dedicated **Lent & Borrow** module (`/lent-borrow`) designed for tracking money given out to contacts and money borrowed from people:
+
+- **Money Lent (Receivable)**: Saved as a transaction (`type = 'expense'`, `category = 'Lent'`) for your chosen account (e.g. Savings), automatically decreasing cash balance and adding to total receivables (`+₹XX,XXX`).
+- **Money Borrowed (Payable)**: Saved as a transaction (`type = 'income'`, `category = 'Borrowed'`) for your chosen account (e.g. Savings), automatically increasing account cash balance and adding to total payables (`-₹XX,XXX`).
+- **Settlement & Repayment**: Marking a record as **Settled** toggles `excludeFromBalance` and marks loan as fully repaid.
+
+---
+
+## ⚡ Real-Time Account Balance Calculation
+
+Account balances are mathematically calculated and synchronized in real time via database triggers and dynamic service aggregation:
+
+$$\text{Current Balance} = \text{Initial Balance} + \sum (\text{Active Income}) - \sum (\text{Active Expenses})$$
+
+- **PostgreSQL Database Trigger**: `trg_sync_account_balance` automatically updates `accounts.current_balance` on every `INSERT`, `UPDATE`, or `DELETE` transaction.
+- **Dynamic Re-calculation**: `AccountsService.findAll()` evaluates total non-excluded transactions for 100% mathematical precision across all bank, cash, and credit accounts.
 
 ---
 
