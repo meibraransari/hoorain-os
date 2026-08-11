@@ -22,6 +22,8 @@ import { AdminSeederService } from './database/seeders/admin.seeder';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { User } from './database/entities/user.entity';
+import { Category } from './database/entities/category.entity';
+import { AccountType } from './database/entities/account-type.entity';
 import { SettingsModule } from './settings/settings.module';
 import { RecurringModule } from './recurring/recurring.module';
 import { DebtModule } from './debt/debt.module';
@@ -37,7 +39,7 @@ import { InsightsModule } from './insights/insights.module';
       useFactory: (configService: ConfigService) => typeormConfig(configService),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Category, AccountType]),
     ScheduleModule.forRoot(),
     AuthModule,
     UsersModule,

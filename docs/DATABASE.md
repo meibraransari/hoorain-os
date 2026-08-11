@@ -307,27 +307,30 @@ WHERE user_id = $1 AND is_active = TRUE AND include_in_total = TRUE;
 
 ---
 
-## Migration Process
+## Migration & Seeding Process
 
-### Initial Setup (first deploy)
+### Automated Migrations
 
-Database migrations are auto-applied by mounting `./database/migrations/` to `/docker-entrypoint-initdb.d/`. PostgreSQL only runs these scripts on a **fresh, empty** database.
+TypeORM database migrations run automatically upon NestJS container startup or manually via `npm run migration:run`. The platform includes 4 core migration scripts:
 
-### File naming convention
+1. **`1786266764766-InitSchema.ts`**: Core application tables (`users`, `accounts`, `categories`, `transactions`, `recurring_transactions`, `budgets`, `goals`, `tags`, `attachments`, `notifications`, etc.).
+2. **`1786266770000-AddIndexesAndBalanceTrigger.ts`**: PostgreSQL indexes for ultra-fast queries and `trg_sync_account_balance` triggers.
+3. **`1786417200000-AddDebtsTable.ts`**: `debts` table for Debt Payoff & Amortization Planner.
+4. **`1786417300000-AddMissingColumnsAndAccountTypesTable.ts`**: `account_types` table creation and `transactions` schema columns (`goal_id`, `budget_id`, `exclude_from_balance`).
 
-```
-migrations/
-  000_schema.sql             ← Core schema (auto-run first)
-  001_default_categories.sql ← Seeds
-  002_add_exchange_rates.sql ← Future migrations
-```
+### First-Boot Seeding (`AdminSeederService`)
+
+When launching the application on a clean database, `AdminSeederService` automatically seeds:
+- **Admin User**: Default `admin` user (`admin@hoorain.app`).
+- **Account Types**: Pre-seeded default account types (Bank Account, Savings Account, Cash Wallet, Credit Card, Investment, Digital Wallet).
+- **Default Categories**: Income categories (Salary, Freelance, Investments, Borrowed) and Expense categories (Food & Dining, Rent & Housing, Utilities, Transportation, Shopping, Health, Entertainment, Debt Payoff, Lent).
 
 ### Running Migrations Manually
 
 ```bash
-# Apply a specific migration
-docker compose exec postgres psql -U financeos financeos \
-  -f /docker-entrypoint-initdb.d/002_add_exchange_rates.sql
+# Run pending TypeORM migrations inside backend container
+docker compose exec backend npm run migration:run
+```
 
 # Or via the backend CLI
 docker compose exec backend npm run migration:run
