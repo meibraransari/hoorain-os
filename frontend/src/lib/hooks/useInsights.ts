@@ -8,8 +8,10 @@ export function useInsights() {
     revalidateOnFocus: true,
   });
 
+  const payload = (data as any)?.data ?? (data as any) ?? null;
+
   return {
-    insightsData: (data as any) || null,
+    insightsData: payload,
     isLoading,
     error,
     refreshInsights: mutate,

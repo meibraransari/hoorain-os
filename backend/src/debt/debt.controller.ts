@@ -18,7 +18,7 @@ import { UpdateDebtDto } from './dto/update-debt.dto';
 @ApiTags('Debt Payoff & Amortization Planner')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@Controller('debts')
+@Controller('api/v1/debts')
 export class DebtController {
   constructor(private readonly debtService: DebtService) {}
 

@@ -18,7 +18,7 @@ import { UpdateRecurringDto } from './dto/update-recurring.dto';
 @ApiTags('Recurring Transactions & Bills')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@Controller('recurring-transactions')
+@Controller('api/v1/recurring-transactions')
 export class RecurringController {
   constructor(private readonly recurringService: RecurringService) {}
 

@@ -33,9 +33,9 @@ export default function FinancialHealthPage() {
     );
   }
 
-  const healthScore = insightsData?.healthScore ?? 85;
-  const ratingLabel = insightsData?.ratingLabel ?? 'Good';
-  const ratingColor = insightsData?.ratingColor ?? 'text-teal-300';
+  const healthScore = insightsData?.healthScore ?? 0;
+  const ratingLabel = insightsData?.ratingLabel ?? (healthScore > 0 ? 'Good' : 'No Financial Data');
+  const ratingColor = insightsData?.ratingColor ?? 'text-[#8888a8]';
   const metrics = insightsData?.metrics || {};
   const insights = insightsData?.insights || [];
 
@@ -190,13 +190,13 @@ export default function FinancialHealthPage() {
               <PieChart size={16} className="text-[#6c63ff]" /> Budget Control
             </span>
             <span className="text-xs font-bold text-[#6c63ff] bg-[#6c63ff]/10 px-2 py-0.5 rounded-md border border-[#6c63ff]/20">
-              {metrics.budgetScore} / 25 pts
+              {metrics.budgetScore ?? 0} / 25 pts
             </span>
           </div>
 
           <div>
             <div className="text-2xl font-bold text-[#ffffff]">
-              {Math.round(((metrics.budgetScore || 25) / 25) * 100)}%
+              {Math.round(((metrics.budgetScore ?? 0) / 25) * 100)}%
             </div>
             <div className="text-xs text-[#8888a8] font-medium mt-0.5">
               Monthly Budget Adherence
@@ -206,7 +206,7 @@ export default function FinancialHealthPage() {
           <div className="w-full bg-[#10101a] h-2 rounded-full overflow-hidden border border-[#26263a]">
             <div
               className="bg-[#6c63ff] h-full rounded-full transition-all duration-500"
-              style={{ width: `${Math.round(((metrics.budgetScore || 25) / 25) * 100)}%` }}
+              style={{ width: `${Math.round(((metrics.budgetScore ?? 0) / 25) * 100)}%` }}
             />
           </div>
           <span className="text-[11px] text-[#8888a8] block">Target: 100% budgets within limit</span>

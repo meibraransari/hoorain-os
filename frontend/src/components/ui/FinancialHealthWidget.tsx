@@ -14,9 +14,9 @@ export function FinancialHealthWidget() {
     return <div className="h-44 rounded-2xl skeleton" />;
   }
 
-  const healthScore = insightsData?.healthScore ?? 85;
-  const ratingLabel = insightsData?.ratingLabel ?? 'Good';
-  const ratingColor = insightsData?.ratingColor ?? 'text-teal-300';
+  const healthScore = insightsData?.healthScore ?? 0;
+  const ratingLabel = insightsData?.ratingLabel ?? (healthScore > 0 ? 'Good' : 'No Data');
+  const ratingColor = insightsData?.ratingColor ?? 'text-text-muted';
   const metrics = insightsData?.metrics || {};
   const topInsights = (insightsData?.insights || []).slice(0, 2);
 

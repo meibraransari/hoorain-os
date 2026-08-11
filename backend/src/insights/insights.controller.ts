@@ -6,7 +6,7 @@ import { InsightsService } from './insights.service';
 @ApiTags('AI Financial Health & Insights')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@Controller('insights')
+@Controller('api/v1/insights')
 export class InsightsController {
   constructor(private readonly insightsService: InsightsService) {}
 

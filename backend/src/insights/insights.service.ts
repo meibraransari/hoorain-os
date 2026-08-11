@@ -20,84 +20,147 @@ export class InsightsService {
   ) {}
 
   async getHealthScoreAndInsights(userId: string): Promise<any> {
-    const [accounts, transactions, budgets, debts] = await Promise.all([
-      this.accountRepo.find({ where: { userId } }),
-      this.transactionRepo.find({ where: { userId } }),
-      this.budgetRepo.find({ where: { userId } }),
-      this.debtRepo.find({ where: { userId } }),
-    ]);
+    // 1. Fetch User Accounts & Calculate Dynamic Balances
+    const accounts = await this.accountRepo.find({ where: { userId, isActive: true } });
+    for (const acc of accounts) {
+      const [{ sum }] = await this.accountRepo.query(
+        `SELECT SUM(
+          CASE 
+            WHEN type = 'income' THEN amount 
+            WHEN type = 'expense' THEN -amount 
+            ELSE 0 
+          END
+        ) as sum FROM transactions WHERE account_id = $1 AND (exclude_from_balance IS NOT TRUE OR exclude_from_balance IS NULL)`,
+        [acc.id],
+      );
+      const txSum = parseFloat(sum || '0');
+      acc.currentBalance = parseFloat(acc.initialBalance as any || '0') + txSum;
+    }
+
+    // 2. Fetch User Transactions (linked via userId OR account.userId)
+    const transactions = await this.transactionRepo
+      .createQueryBuilder('transaction')
+      .leftJoinAndSelect('transaction.account', 'account')
+      .leftJoinAndSelect('transaction.category', 'category')
+      .where('transaction.userId = :userId OR account.userId = :userId', { userId })
+      .getMany();
+
+    // 3. Fetch Budgets & Debts
+    const budgets = await this.budgetRepo.find({ where: { userId } });
+    const debts = await this.debtRepo.find({ where: { userId } });
+
+    const hasData = accounts.length > 0 || transactions.length > 0 || budgets.length > 0 || debts.length > 0;
+
+    if (!hasData) {
+      return {
+        healthScore: 0,
+        ratingLabel: 'No Financial Data',
+        ratingColor: 'text-[#8888a8]',
+        metrics: {
+          emergencyMonths: 0,
+          emergencyScore: 0,
+          dtiRatio: 0,
+          dtiScore: 0,
+          savingsRate: 0,
+          savingsScore: 0,
+          budgetScore: 0,
+          liquidSavings: 0,
+          currentMonthIncome: 0,
+          currentMonthExpense: 0,
+          monthlyDebtPayments: 0,
+        },
+        insights: [
+          {
+            type: 'info',
+            title: 'No Financial Data Logged',
+            description: 'Start by adding your bank or cash accounts, or log transactions to calculate your real AI Financial Health Index.',
+          },
+        ],
+      };
+    }
 
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth() + 1;
     const currentMonthKey = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
-
     const prevMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const prevMonthKey = `${prevMonthDate.getFullYear()}-${String(prevMonthDate.getMonth() + 1).padStart(2, '0')}`;
 
-    // 1. Calculate Liquid Emergency Savings (Savings, Checking, Cash accounts)
+    // Calculate Liquid Emergency Savings (Bank, Cash, Savings, Checking, Wallet, Debit Card accounts)
     const liquidSavings = accounts
       .filter((a) => {
-        const nameLower = a.name.toLowerCase();
-        const typeLower = (a.type || '').toLowerCase();
+        const t = (a.type || '').toLowerCase();
         return (
-          typeLower.includes('savings') ||
-          typeLower.includes('checking') ||
-          typeLower.includes('cash') ||
-          nameLower.includes('saving') ||
-          nameLower.includes('cash') ||
-          nameLower.includes('bank')
+          t !== 'credit_card' &&
+          t !== 'loan' &&
+          t !== 'investment' &&
+          t !== 'crypto' &&
+          a.includeInNetWorth !== false
         );
       })
-      .reduce((sum, a: any) => sum + (Number(a.currentBalance ?? a.balance ?? 0)), 0);
+      .reduce((sum, a: any) => sum + Math.max(0, Number(a.currentBalance ?? a.balance ?? 0)), 0);
 
-    // 2. Compute Current Month & Previous Month Financials
+    // Compute Income & Expense Velocity
     let currentMonthIncome = 0;
     let currentMonthExpense = 0;
-    let prevMonthExpense = 0;
+    let totalAllTimeIncome = 0;
+    let totalAllTimeExpense = 0;
 
+    const monthlyTotals: Record<string, { income: number; expense: number }> = {};
     const currentCatExpenses: Record<string, number> = {};
     const prevCatExpenses: Record<string, number> = {};
 
     transactions.forEach((tx) => {
       if (tx.isTransfer || tx.excludeFromBalance || !tx.date) return;
       const d = new Date(tx.date);
+      if (isNaN(d.getTime())) return;
       const mKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
       const amt = Math.abs(Number(tx.amount) || 0);
       const isInc = tx.type === 'income' || (tx as any).income === 1;
 
-      if (mKey === currentMonthKey) {
-        if (isInc) {
-          currentMonthIncome += amt;
-        } else {
+      if (!monthlyTotals[mKey]) {
+        monthlyTotals[mKey] = { income: 0, expense: 0 };
+      }
+
+      if (isInc) {
+        totalAllTimeIncome += amt;
+        monthlyTotals[mKey].income += amt;
+        if (mKey === currentMonthKey) currentMonthIncome += amt;
+      } else {
+        totalAllTimeExpense += amt;
+        monthlyTotals[mKey].expense += amt;
+        if (mKey === currentMonthKey) {
           currentMonthExpense += amt;
           const cat = typeof tx.category === 'object' ? (tx.category as any)?.name || 'General' : tx.category || 'General';
           currentCatExpenses[cat] = (currentCatExpenses[cat] || 0) + amt;
-        }
-      } else if (mKey === prevMonthKey) {
-        if (!isInc) {
-          prevMonthExpense += amt;
+        } else if (mKey === prevMonthKey) {
           const cat = typeof tx.category === 'object' ? (tx.category as any)?.name || 'General' : tx.category || 'General';
           prevCatExpenses[cat] = (prevCatExpenses[cat] || 0) + amt;
         }
       }
     });
 
-    const avgMonthlyExpense = currentMonthExpense > 0 ? currentMonthExpense : (prevMonthExpense > 0 ? prevMonthExpense : 1);
+    // Effective income & expense fallback for multi-month or historical data
+    const monthKeys = Object.keys(monthlyTotals).sort().reverse();
+    const activeMonthKey = currentMonthIncome > 0 || currentMonthExpense > 0 ? currentMonthKey : (monthKeys[0] || currentMonthKey);
+    const effectiveIncome = monthlyTotals[activeMonthKey]?.income ?? (monthKeys.length > 0 ? totalAllTimeIncome / monthKeys.length : currentMonthIncome);
+    const effectiveExpense = monthlyTotals[activeMonthKey]?.expense ?? (monthKeys.length > 0 ? totalAllTimeExpense / monthKeys.length : currentMonthExpense);
+
+    const avgMonthlyExpense = effectiveExpense > 0 ? effectiveExpense : 1;
 
     // Metric A: Emergency Fund Coverage (Target: 3-6 months)
-    const emergencyMonths = Number((liquidSavings / Math.max(1, avgMonthlyExpense)).toFixed(1));
+    const emergencyMonths = liquidSavings > 0 ? Number((liquidSavings / avgMonthlyExpense).toFixed(1)) : 0;
     const emergencyScore = Math.min(25, Math.round((emergencyMonths / 6) * 25));
 
     // Metric B: Debt-to-Income (DTI) Ratio (Target: < 36%)
-    const monthlyDebtPayments = debts.reduce((sum, d) => sum + (Number(d.minimumPayment) + Number(d.extraPayment || 0)), 0);
-    const dtiRatio = currentMonthIncome > 0 ? Number(((monthlyDebtPayments / currentMonthIncome) * 100).toFixed(1)) : (monthlyDebtPayments > 0 ? 50 : 0);
-    const dtiScore = dtiRatio <= 20 ? 25 : dtiRatio <= 36 ? 20 : dtiRatio <= 50 ? 10 : 0;
+    const monthlyDebtPayments = debts.reduce((sum, d) => sum + (Number(d.minimumPayment || 0) + Number(d.extraPayment || 0)), 0);
+    const dtiRatio = effectiveIncome > 0 ? Number(((monthlyDebtPayments / effectiveIncome) * 100).toFixed(1)) : (monthlyDebtPayments > 0 ? 50 : 0);
+    const dtiScore = monthlyDebtPayments === 0 ? 25 : (dtiRatio <= 20 ? 25 : dtiRatio <= 36 ? 20 : dtiRatio <= 50 ? 10 : 0);
 
     // Metric C: Savings Rate Benchmark (Target: >= 20%)
-    const netSavings = currentMonthIncome - currentMonthExpense;
-    const savingsRate = currentMonthIncome > 0 ? Math.max(0, Number(((netSavings / currentMonthIncome) * 100).toFixed(1))) : 0;
-    const savingsScore = Math.min(25, Math.round((savingsRate / 20) * 25));
+    const netSavings = effectiveIncome - effectiveExpense;
+    const savingsRate = effectiveIncome > 0 ? Math.max(0, Number(((netSavings / effectiveIncome) * 100).toFixed(1))) : 0;
+    const savingsScore = effectiveIncome > 0 ? Math.min(25, Math.round((savingsRate / 20) * 25)) : (liquidSavings > 0 ? 20 : 0);
 
     // Metric D: Budget Adherence Score
     let budgetScore = 25;
@@ -154,11 +217,17 @@ export class InsightsService {
         title: 'Solid Emergency Coverage',
         description: `Your emergency fund covers ${emergencyMonths} months of expenses (Target: 3 to 6 months).`,
       });
-    } else {
+    } else if (emergencyMonths > 0) {
       insights.push({
         type: 'warning',
         title: 'Emergency Fund Alert',
-        description: `Emergency fund covers only ${emergencyMonths} months of expenses. Aim to build 3-6 months buffer.`,
+        description: `Emergency fund covers ${emergencyMonths} months of expenses. Aim to build 3-6 months buffer.`,
+      });
+    } else {
+      insights.push({
+        type: 'warning',
+        title: 'Emergency Fund Notice',
+        description: 'No liquid savings detected. Consider allocating surplus to a liquid emergency account.',
       });
     }
 
@@ -167,18 +236,18 @@ export class InsightsService {
       insights.push({
         type: 'success',
         title: 'High Savings Rate',
-        description: `You saved ${savingsRate}% of your income this month, exceeding the 20% benchmark!`,
+        description: `You saved ${savingsRate}% of your income, exceeding the 20% benchmark!`,
       });
-    } else if (currentMonthIncome > 0) {
+    } else if (effectiveIncome > 0) {
       insights.push({
         type: 'info',
         title: 'Savings Benchmark Notice',
-        description: `Current savings rate is ${savingsRate}%. Increasing savings by ₹${Math.round((currentMonthIncome * 0.2) - netSavings).toLocaleString()} reaches 20%.`,
+        description: `Current savings rate is ${savingsRate}%. Increasing savings by ₹${Math.round((effectiveIncome * 0.2) - netSavings).toLocaleString()} reaches 20%.`,
       });
     }
 
     // Insight 4: DTI status
-    if (dtiRatio === 0) {
+    if (monthlyDebtPayments === 0) {
       insights.push({
         type: 'success',
         title: 'Zero Debt Load',
@@ -211,8 +280,8 @@ export class InsightsService {
         savingsScore,
         budgetScore,
         liquidSavings,
-        currentMonthIncome,
-        currentMonthExpense,
+        currentMonthIncome: effectiveIncome,
+        currentMonthExpense: effectiveExpense,
         monthlyDebtPayments,
       },
       insights,
