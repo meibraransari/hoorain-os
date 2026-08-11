@@ -101,23 +101,40 @@ export default function DashboardPage() {
     };
   }, [accounts]);
 
-  // Determine current month target key (e.g. '2026-08')
+  // Timezone-safe local date YYYY-MM helper
+  const getLocalDateKey = (dateStr: string) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '';
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  };
+
+  // Timezone-safe local date YYYY helper
+  const getLocalYear = (dateStr: string) => {
+    if (!dateStr) return null;
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return null;
+    return d.getFullYear();
+  };
+
+  // Current real calendar month key (e.g. '2026-08')
   const currentMonthKey = useMemo(() => {
-    if (transactions.length === 0) {
-      const now = new Date();
-      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    }
-    const dates = transactions.map((t: any) => (t.date ? new Date(t.date).toISOString().substring(0, 7) : '')).filter(Boolean);
-    return dates.length > 0 ? dates.sort().reverse()[0] : '2026-08';
-  }, [transactions]);
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  }, []);
+
+  // Current real calendar year (e.g. 2026)
+  const currentYear = useMemo(() => {
+    return new Date().getFullYear();
+  }, []);
 
   // THIS MONTH Income
   const monthlyIncome = useMemo(() => {
     return transactions
       .filter((tx: any) => {
-        if (tx.isTransfer || !tx.date) return false;
-        const d = new Date(tx.date).toISOString().substring(0, 7);
-        return d === currentMonthKey && (tx.type === 'income' || tx.income === 1);
+        if (tx.isTransfer || tx.excludeFromBalance || !tx.date) return false;
+        const dKey = getLocalDateKey(tx.date);
+        return dKey === currentMonthKey && (tx.type === 'income' || tx.income === 1);
       })
       .reduce((sum: number, tx: any) => sum + (parseFloat(tx.amount) || 0), 0);
   }, [transactions, currentMonthKey]);
@@ -126,12 +143,34 @@ export default function DashboardPage() {
   const monthlyExpense = useMemo(() => {
     return transactions
       .filter((tx: any) => {
-        if (tx.isTransfer || !tx.date) return false;
-        const d = new Date(tx.date).toISOString().substring(0, 7);
-        return d === currentMonthKey && (tx.type === 'expense' || tx.income === 0);
+        if (tx.isTransfer || tx.excludeFromBalance || !tx.date) return false;
+        const dKey = getLocalDateKey(tx.date);
+        return dKey === currentMonthKey && (tx.type === 'expense' || tx.income === 0);
       })
       .reduce((sum: number, tx: any) => sum + Math.abs(parseFloat(tx.amount) || 0), 0);
   }, [transactions, currentMonthKey]);
+
+  // THIS YEAR Income
+  const yearlyIncome = useMemo(() => {
+    return transactions
+      .filter((tx: any) => {
+        if (tx.isTransfer || tx.excludeFromBalance || !tx.date) return false;
+        const yr = getLocalYear(tx.date);
+        return yr === currentYear && (tx.type === 'income' || tx.income === 1);
+      })
+      .reduce((sum: number, tx: any) => sum + (parseFloat(tx.amount) || 0), 0);
+  }, [transactions, currentYear]);
+
+  // THIS YEAR Expense
+  const yearlyExpense = useMemo(() => {
+    return transactions
+      .filter((tx: any) => {
+        if (tx.isTransfer || tx.excludeFromBalance || !tx.date) return false;
+        const yr = getLocalYear(tx.date);
+        return yr === currentYear && (tx.type === 'expense' || tx.income === 0);
+      })
+      .reduce((sum: number, tx: any) => sum + Math.abs(parseFloat(tx.amount) || 0), 0);
+  }, [transactions, currentYear]);
 
   const savingsRate = monthlyIncome > 0 ? Math.max(0, Math.round(((monthlyIncome - monthlyExpense) / monthlyIncome) * 100)) : 0;
 
@@ -142,7 +181,7 @@ export default function DashboardPage() {
     return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   }, [currentMonthKey]);
 
-  // Compute Cash Flow Chart Data
+  // Compute Cash Flow Chart Data (Formatted for AreaChart with lowercase income & expense keys)
   const chartData = useMemo(() => {
     if (chartTimeframe === 'thisMonth') {
       const [yearStr, monthStr] = currentMonthKey.split('-');
@@ -156,9 +195,9 @@ export default function DashboardPage() {
       }
 
       transactions.forEach((tx: any) => {
-        if (tx.isTransfer || !tx.date) return;
-        const txDateStr = new Date(tx.date).toISOString().substring(0, 7);
-        if (txDateStr === currentMonthKey) {
+        if (tx.isTransfer || tx.excludeFromBalance || !tx.date) return;
+        const dKey = getLocalDateKey(tx.date);
+        if (dKey === currentMonthKey) {
           const day = new Date(tx.date).getDate();
           const amt = Math.abs(parseFloat(tx.amount) || 0);
           if (tx.type === 'income' || tx.income === 1) {
@@ -170,34 +209,43 @@ export default function DashboardPage() {
       });
 
       return Object.entries(dailyMap).map(([day, val]) => ({
-        date: `Day ${day}`,
-        Income: Math.round(val.income),
-        Expense: Math.round(val.expense),
+        name: `Day ${day}`,
+        income: Math.round(val.income),
+        expense: Math.round(val.expense),
       }));
     } else {
+      // 12-Month Trend for current year
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const yrShort = String(currentYear).slice(-2);
+
       const monthlyMap: Record<string, { income: number; expense: number }> = {};
+      monthNames.forEach((m) => {
+        monthlyMap[`${m} ${yrShort}`] = { income: 0, expense: 0 };
+      });
 
       transactions.forEach((tx: any) => {
-        if (tx.isTransfer || !tx.date) return;
-        const monthStr = new Date(tx.date).toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-        if (!monthlyMap[monthStr]) {
-          monthlyMap[monthStr] = { income: 0, expense: 0 };
-        }
-        const amt = Math.abs(parseFloat(tx.amount) || 0);
-        if (tx.type === 'income' || tx.income === 1) {
-          monthlyMap[monthStr].income += amt;
-        } else {
-          monthlyMap[monthStr].expense += amt;
+        if (tx.isTransfer || tx.excludeFromBalance || !tx.date) return;
+        const yr = getLocalYear(tx.date);
+        if (yr === currentYear) {
+          const d = new Date(tx.date);
+          const mName = monthNames[d.getMonth()];
+          const key = `${mName} ${yrShort}`;
+          const amt = Math.abs(parseFloat(tx.amount) || 0);
+          if (tx.type === 'income' || tx.income === 1) {
+            if (monthlyMap[key]) monthlyMap[key].income += amt;
+          } else {
+            if (monthlyMap[key]) monthlyMap[key].expense += amt;
+          }
         }
       });
 
-      return Object.entries(monthlyMap).map(([monthStr, val]) => ({
-        date: monthStr,
-        Income: Math.round(val.income),
-        Expense: Math.round(val.expense),
+      return Object.entries(monthlyMap).map(([mStr, val]) => ({
+        name: mStr,
+        income: Math.round(val.income),
+        expense: Math.round(val.expense),
       }));
     }
-  }, [transactions, currentMonthKey, chartTimeframe]);
+  }, [transactions, currentMonthKey, currentYear, chartTimeframe]);
 
   // Compute Top Expenses Category Breakdown Data
   const categoryData = useMemo(() => {
@@ -501,6 +549,7 @@ export default function DashboardPage() {
         <StatCard
           title={`Income (${currentMonthLabel})`}
           value={formatPrivateCurrency(monthlyIncome)}
+          subtitle={`Yearly ${currentYear}: ${formatPrivateCurrency(yearlyIncome)}`}
           icon={<TrendingUp size={20} className="text-income" />}
           trend="This Month"
           trendType="up"
@@ -509,6 +558,7 @@ export default function DashboardPage() {
         <StatCard
           title={`Expenses (${currentMonthLabel})`}
           value={formatPrivateCurrency(monthlyExpense)}
+          subtitle={`Yearly ${currentYear}: ${formatPrivateCurrency(yearlyExpense)}`}
           icon={<TrendingDown size={20} className="text-expense" />}
           trend="This Month"
           trendType="down"
@@ -517,8 +567,8 @@ export default function DashboardPage() {
         <StatCard
           title="Savings Rate"
           value={formatPrivateNumber(savingsRate, '%')}
+          subtitle={`Yearly Net: ${formatPrivateCurrency(yearlyIncome - yearlyExpense)}`}
           icon={<Target size={20} className="text-accent" />}
-          subtitle="Target: 20%"
           isLoading={txLoading}
         />
       </div>
