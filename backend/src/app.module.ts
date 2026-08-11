@@ -23,6 +23,7 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { User } from './database/entities/user.entity';
 import { SettingsModule } from './settings/settings.module';
+import { RecurringModule } from './recurring/recurring.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { SettingsModule } from './settings/settings.module';
     ExportModule,
     HealthModule,
     SettingsModule,
+    RecurringModule,
   ],
   providers: [
     AdminSeederService,

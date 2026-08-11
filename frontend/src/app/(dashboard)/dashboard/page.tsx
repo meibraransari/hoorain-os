@@ -12,6 +12,7 @@ import { QuickTransferWidget } from '@/components/ui/QuickTransferWidget';
 import { CategoryAnalyticsWidget } from '@/components/ui/CategoryAnalyticsWidget';
 import { AddTransactionModal } from '@/components/modals/AddTransactionModal';
 import { DateRangePicker } from '@/components/ui/DateRangePicker';
+import { RecurringBillsWidget } from '@/components/ui/RecurringBillsWidget';
 import {
   Wallet,
   TrendingUp,
@@ -32,6 +33,7 @@ import {
   ChevronRight,
   Building2,
   Banknote,
+  CalendarClock,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { usePrivacy } from '@/components/providers/PrivacyProvider';
@@ -50,6 +52,7 @@ export default function DashboardPage() {
     showObjectives = false,
     showQuickTransfer = true,
     showCategoryAnalytics = true,
+    showRecurringBills = true,
     hiddenAccounts = {},
     removeZeroTransactionEntries = false,
   } = settings || {};
@@ -427,6 +430,7 @@ export default function DashboardPage() {
                     { key: 'showCreditDebt', label: 'Assets & Debt Breakdown', active: showCreditDebt, icon: Activity },
                     { key: 'showSpendingGraph', label: 'Cash Flow Analysis Chart', active: showSpendingGraph, icon: TrendingUp },
                     { key: 'showPieChart', label: 'Top Expenses Donut Chart', active: showPieChart, icon: PieChartIcon },
+                    { key: 'showRecurringBills', label: 'Overdue & Upcoming Bills Widget', active: showRecurringBills, icon: CalendarClock },
                     { key: 'showObjectives', label: 'Financial Objectives Widget', active: showObjectives, icon: Target },
                     { key: 'showQuickTransfer', label: 'Quick Fund Transfer Tool', active: showQuickTransfer, icon: Sparkles },
                     { key: 'showCategoryAnalytics', label: 'Category Expense Progress', active: showCategoryAnalytics, icon: PieChartIcon },
@@ -735,9 +739,12 @@ export default function DashboardPage() {
           </CollapsibleCard>
         </div>
 
-        {/* Right Column (1 Span): Top Expenses + Category Analytics + Monthly Budgets */}
+        {/* Right Column (1 Span): Top Expenses + Category Analytics + Monthly Budgets + Recurring Bills */}
         <div className="space-y-6">
-          {/* 1. Top Expenses Donut Widget */}
+          {/* 1. Overdue & Upcoming Bills Widget */}
+          {showRecurringBills && <RecurringBillsWidget />}
+
+          {/* 2. Top Expenses Donut Widget */}
           {showPieChart && <PieChart data={categoryData} title={`Top Expenses (${currentMonthLabel})`} />}
 
           {/* 2. Category Expense Analytics Bar (Persistently toggled) */}

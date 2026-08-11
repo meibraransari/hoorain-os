@@ -129,6 +129,7 @@ export class ImportService {
   async resetUserData(userId: string) {
     return this.dataSource.transaction(async (manager) => {
       await manager.query(`DELETE FROM transactions WHERE user_id = $1`, [userId]);
+      await manager.query(`DELETE FROM recurring_transactions WHERE user_id = $1`, [userId]);
       await manager.query(`DELETE FROM budget_categories WHERE budget_id IN (SELECT id FROM budgets WHERE user_id = $1)`, [userId]);
       await manager.query(`DELETE FROM budgets WHERE user_id = $1`, [userId]);
       await manager.query(`DELETE FROM goals WHERE user_id = $1`, [userId]);

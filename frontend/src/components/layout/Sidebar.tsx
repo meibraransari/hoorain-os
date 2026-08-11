@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, Wallet, ArrowLeftRight, Tag, PieChart, 
   Target, FileText, Settings, LogOut, ChevronLeft, ChevronRight,
-  Wallet as WalletIcon, User, HandCoins
+  Wallet as WalletIcon, User, HandCoins, CalendarClock
 } from 'lucide-react';
 import { useUIStore } from '@/store/ui.store';
 import { useAuth } from '@/components/providers/AuthProvider';
@@ -18,6 +18,7 @@ const navItems = [
   { icon: Wallet, label: 'Accounts', href: '/accounts' },
   { icon: ArrowLeftRight, label: 'Transactions', href: '/transactions' },
   { icon: HandCoins, label: 'Lent & Borrow', href: '/lent-borrow' },
+  { icon: CalendarClock, label: 'Overdue & Upcoming', href: '/bills-recurring' },
   { icon: Tag, label: 'Categories', href: '/categories' },
   { icon: PieChart, label: 'Budgets', href: '/budgets' },
   { icon: Target, label: 'Goals', href: '/goals' },

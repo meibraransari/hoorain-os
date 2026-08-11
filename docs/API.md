@@ -615,31 +615,44 @@ Returns budget with current spending summary:
 
 ---
 
-### Recurring Transactions
+### Recurring Transactions & Bills
 
-#### `GET /recurring`
-#### `POST /recurring`
+#### `GET /recurring-transactions`
+Returns list of configured recurring bills, home rent, utility subscriptions, and income rules with calculated `dueDays`, `isOverdue`, `isUpcoming`, and `status`.
+
+#### `POST /recurring-transactions`
 
 **Request:**
 ```json
 {
-  "accountId": "uuid",
-  "categoryId": "uuid",
+  "title": "Home Rent",
+  "amount": 15000.00,
   "type": "expense",
-  "amount": 12.99,
-  "currency": "USD",
-  "description": "Netflix Subscription",
+  "accountId": "uuid-account-id",
+  "categoryId": "uuid-category-id",
   "frequency": "monthly",
-  "startDate": "2024-09-01",
-  "autoCreate": true,
-  "reminderDays": 3
+  "nextDate": "2026-09-01",
+  "notes": "Landlord Rent Account: HDFC",
+  "isActive": true
 }
 ```
 
-#### `PATCH /recurring/:id`
-#### `DELETE /recurring/:id`
-#### `POST /recurring/:id/skip` — Skip next occurrence
-#### `POST /recurring/:id/create-now` — Manually trigger creation
+#### `GET /recurring-transactions/:id`
+#### `PUT /recurring-transactions/:id`
+#### `DELETE /recurring-transactions/:id`
+
+#### `POST /recurring-transactions/:id/pay` — Log Bill Payment & Deduct Balance
+
+**Request:**
+```json
+{
+  "accountId": "uuid-payment-account",
+  "date": "2026-08-11T08:30:00.000Z",
+  "notes": "Paid Home Rent via GPay"
+}
+```
+
+Creates a REAL system `Transaction`, updates account balance in real-time via PostgreSQL triggers, and advances `nextDate` to the next cycle (+1 month, +1 year, etc.).
 
 ---
 
