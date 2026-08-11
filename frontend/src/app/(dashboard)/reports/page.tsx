@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { useTransactions, useAccounts, useCategories } from '@/lib/hooks/useFinance';
 import { usePrivacy } from '@/components/providers/PrivacyProvider';
 import { SmoothSelect, SelectOption } from '@/components/ui/SmoothSelect';
+import { DateRangePicker } from '@/components/ui/DateRangePicker';
 import { api } from '@/lib/api';
 import {
   BarChart3,
@@ -27,6 +28,8 @@ import {
   ChevronUp,
   Eye,
   ListFilter,
+  Check,
+  Sparkles,
 } from 'lucide-react';
 
 function ItemizedTransactionSubTable({ transactions }: { transactions: any[] }) {
@@ -100,16 +103,27 @@ function ReportsContent() {
   const [activeTab, setActiveTab] = useState<'account' | 'category' | 'type' | 'timeline' | 'merchants'>('account');
   const [isFilterOpen, setIsFilterOpen] = useState(true);
 
-  // Filter States
-  const [timeRange, setTimeRange] = useState<'all' | 'today' | 'thisWeek' | 'thisMonth' | '30days' | '90days' | 'thisYear' | 'custom'>('all');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [accountFilter, setAccountFilter] = useState(initialAccountParam);
-  const [categoryFilter, setCategoryFilter] = useState(initialCategoryParam);
-  const [typeFilter, setTypeFilter] = useState('');
-  const [minAmount, setMinAmount] = useState('');
-  const [maxAmount, setMaxAmount] = useState('');
-  const [searchKeyword, setSearchKeyword] = useState('');
+  // Pending Filter States (User selections before clicking Apply Filter)
+  const [pendingTimeRange, setPendingTimeRange] = useState<string>('all');
+  const [pendingStartDate, setPendingStartDate] = useState('');
+  const [pendingEndDate, setPendingEndDate] = useState('');
+  const [pendingAccountFilter, setPendingAccountFilter] = useState(initialAccountParam);
+  const [pendingCategoryFilter, setPendingCategoryFilter] = useState(initialCategoryParam);
+  const [pendingTypeFilter, setPendingTypeFilter] = useState('');
+  const [pendingMinAmount, setPendingMinAmount] = useState('');
+  const [pendingMaxAmount, setPendingMaxAmount] = useState('');
+  const [pendingSearchKeyword, setPendingSearchKeyword] = useState('');
+
+  // Applied Filter States (Committed states used to filter data after clicking Apply Filter)
+  const [appliedTimeRange, setAppliedTimeRange] = useState<string>('all');
+  const [appliedStartDate, setAppliedStartDate] = useState('');
+  const [appliedEndDate, setAppliedEndDate] = useState('');
+  const [appliedAccountFilter, setAppliedAccountFilter] = useState(initialAccountParam);
+  const [appliedCategoryFilter, setAppliedCategoryFilter] = useState(initialCategoryParam);
+  const [appliedTypeFilter, setAppliedTypeFilter] = useState('');
+  const [appliedMinAmount, setAppliedMinAmount] = useState('');
+  const [appliedMaxAmount, setAppliedMaxAmount] = useState('');
+  const [appliedSearchKeyword, setAppliedSearchKeyword] = useState('');
 
   // Expandable transaction sections tracking
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
@@ -120,11 +134,13 @@ function ReportsContent() {
 
   useEffect(() => {
     if (initialAccountParam) {
-      setAccountFilter(initialAccountParam);
+      setPendingAccountFilter(initialAccountParam);
+      setAppliedAccountFilter(initialAccountParam);
       setActiveTab('account');
       setIsFilterOpen(true);
     } else if (initialCategoryParam) {
-      setCategoryFilter(initialCategoryParam);
+      setPendingCategoryFilter(initialCategoryParam);
+      setAppliedCategoryFilter(initialCategoryParam);
       setActiveTab('category');
       setIsFilterOpen(true);
     }
@@ -134,35 +150,102 @@ function ReportsContent() {
   const { accounts } = useAccounts();
   const { categories } = useCategories();
 
-  // Reset all custom filters
-  const handleResetFilters = () => {
-    setTimeRange('all');
-    setStartDate('');
-    setEndDate('');
-    setAccountFilter('');
-    setCategoryFilter('');
-    setTypeFilter('');
-    setMinAmount('');
-    setMaxAmount('');
-    setSearchKeyword('');
+  // Commit pending filters to applied state
+  const handleApplyFilters = () => {
+    setAppliedTimeRange(pendingTimeRange);
+    setAppliedStartDate(pendingStartDate);
+    setAppliedEndDate(pendingEndDate);
+    setAppliedAccountFilter(pendingAccountFilter);
+    setAppliedCategoryFilter(pendingCategoryFilter);
+    setAppliedTypeFilter(pendingTypeFilter);
+    setAppliedMinAmount(pendingMinAmount);
+    setAppliedMaxAmount(pendingMaxAmount);
+    setAppliedSearchKeyword(pendingSearchKeyword);
   };
 
-  // Count active filters
+  // Reset all filters
+  const handleResetFilters = () => {
+    setPendingTimeRange('all');
+    setPendingStartDate('');
+    setPendingEndDate('');
+    setPendingAccountFilter('');
+    setPendingCategoryFilter('');
+    setPendingTypeFilter('');
+    setPendingMinAmount('');
+    setPendingMaxAmount('');
+    setPendingSearchKeyword('');
+
+    setAppliedTimeRange('all');
+    setAppliedStartDate('');
+    setAppliedEndDate('');
+    setAppliedAccountFilter('');
+    setAppliedCategoryFilter('');
+    setAppliedTypeFilter('');
+    setAppliedMinAmount('');
+    setAppliedMaxAmount('');
+    setAppliedSearchKeyword('');
+  };
+
+  // Check if pending filters differ from applied filters
+  const isDirty = useMemo(() => {
+    return (
+      pendingTimeRange !== appliedTimeRange ||
+      pendingStartDate !== appliedStartDate ||
+      pendingEndDate !== appliedEndDate ||
+      pendingAccountFilter !== appliedAccountFilter ||
+      pendingCategoryFilter !== appliedCategoryFilter ||
+      pendingTypeFilter !== appliedTypeFilter ||
+      pendingMinAmount !== appliedMinAmount ||
+      pendingMaxAmount !== appliedMaxAmount ||
+      pendingSearchKeyword !== appliedSearchKeyword
+    );
+  }, [
+    pendingTimeRange,
+    appliedTimeRange,
+    pendingStartDate,
+    appliedStartDate,
+    pendingEndDate,
+    appliedEndDate,
+    pendingAccountFilter,
+    appliedAccountFilter,
+    pendingCategoryFilter,
+    appliedCategoryFilter,
+    pendingTypeFilter,
+    appliedTypeFilter,
+    pendingMinAmount,
+    appliedMinAmount,
+    pendingMaxAmount,
+    appliedMaxAmount,
+    pendingSearchKeyword,
+    appliedSearchKeyword,
+  ]);
+
+  // Count active applied filters
   const activeFiltersCount = useMemo(() => {
     let count = 0;
-    if (timeRange !== 'all') count++;
-    if (startDate) count++;
-    if (endDate) count++;
-    if (accountFilter) count++;
-    if (categoryFilter) count++;
-    if (typeFilter) count++;
-    if (minAmount) count++;
-    if (maxAmount) count++;
-    if (searchKeyword) count++;
+    if (appliedTimeRange !== 'all') count++;
+    if (appliedStartDate) count++;
+    if (appliedEndDate) count++;
+    if (appliedAccountFilter) count++;
+    if (appliedCategoryFilter) count++;
+    if (appliedTypeFilter) count++;
+    if (appliedMinAmount) count++;
+    if (appliedMaxAmount) count++;
+    if (appliedSearchKeyword) count++;
     return count;
-  }, [timeRange, startDate, endDate, accountFilter, categoryFilter, typeFilter, minAmount, maxAmount, searchKeyword]);
+  }, [
+    appliedTimeRange,
+    appliedStartDate,
+    appliedEndDate,
+    appliedAccountFilter,
+    appliedCategoryFilter,
+    appliedTypeFilter,
+    appliedMinAmount,
+    appliedMaxAmount,
+    appliedSearchKeyword,
+  ]);
 
-  // Filter transactions based on all custom multi-dimensional options
+  // Filter transactions based on APPLIED options
   const filteredTransactions = useMemo(() => {
     if (!transactions || !Array.isArray(transactions)) return [];
 
@@ -170,36 +253,34 @@ function ReportsContent() {
 
     return transactions.filter((tx: any) => {
       const rawAmt = Math.abs(typeof tx.amount === 'number' ? tx.amount : parseFloat(tx.amount) || 0);
-      const isTransfer = tx.isTransfer || tx.type === 'transfer';
+      const isTransfer = tx.isTransfer || tx.type === 'type' || tx.type === 'transfer';
       const isIncome = !isTransfer && (tx.type === 'income' || tx.income === 1);
-      const isExpense = !isTransfer && !isIncome;
-
       const txType = isTransfer ? 'transfer' : isIncome ? 'income' : 'expense';
 
       // 1. Type Filter
-      if (typeFilter && txType !== typeFilter) return false;
+      if (appliedTypeFilter && txType !== appliedTypeFilter) return false;
 
       // 2. Account Filter
-      if (accountFilter) {
+      if (appliedAccountFilter) {
         const accId = tx.accountId || (typeof tx.account === 'object' ? tx.account?.id : '');
         const accName = typeof tx.account === 'string' ? tx.account : tx.account?.name || '';
-        if (accId !== accountFilter && accName !== accountFilter) return false;
+        if (accId !== appliedAccountFilter && accName !== appliedAccountFilter) return false;
       }
 
       // 3. Category Filter
-      if (categoryFilter) {
+      if (appliedCategoryFilter) {
         const catId = tx.categoryId || (typeof tx.category === 'object' ? tx.category?.id : '');
         const catName = typeof tx.category === 'string' ? tx.category : tx.category?.name || '';
-        if (catId !== categoryFilter && catName !== categoryFilter) return false;
+        if (catId !== appliedCategoryFilter && catName !== appliedCategoryFilter) return false;
       }
 
       // 4. Amount Range
-      if (minAmount && rawAmt < parseFloat(minAmount)) return false;
-      if (maxAmount && rawAmt > parseFloat(maxAmount)) return false;
+      if (appliedMinAmount && rawAmt < parseFloat(appliedMinAmount)) return false;
+      if (appliedMaxAmount && rawAmt > parseFloat(appliedMaxAmount)) return false;
 
       // 5. Search Keyword Filter
-      if (searchKeyword) {
-        const query = searchKeyword.toLowerCase();
+      if (appliedSearchKeyword) {
+        const query = appliedSearchKeyword.toLowerCase();
         const title = (tx.title || '').toLowerCase();
         const notes = (tx.notes || '').toLowerCase();
         const name = (tx.name || '').toLowerCase();
@@ -210,31 +291,30 @@ function ReportsContent() {
       if (tx.date) {
         const txDate = new Date(tx.date);
         if (!isNaN(txDate.getTime())) {
-          if (timeRange === 'today') {
-            if (txDate.toDateString() !== now.toDateString()) return false;
-          } else if (timeRange === 'thisWeek') {
+          if (appliedTimeRange === 'this_week' || appliedTimeRange === 'thisWeek') {
             const weekAgo = new Date();
             weekAgo.setDate(now.getDate() - 7);
             if (txDate < weekAgo) return false;
-          } else if (timeRange === '30days') {
-            const past30 = new Date();
-            past30.setDate(now.getDate() - 30);
-            if (txDate < past30) return false;
-          } else if (timeRange === '90days') {
-            const past90 = new Date();
-            past90.setDate(now.getDate() - 90);
-            if (txDate < past90) return false;
-          } else if (timeRange === 'thisMonth') {
+          } else if (appliedTimeRange === 'last_week') {
+            const weekAgo = new Date();
+            weekAgo.setDate(now.getDate() - 7);
+            const twoWeeksAgo = new Date();
+            twoWeeksAgo.setDate(now.getDate() - 14);
+            if (txDate < twoWeeksAgo || txDate > weekAgo) return false;
+          } else if (appliedTimeRange === 'this_month' || appliedTimeRange === 'thisMonth') {
             if (txDate.getMonth() !== now.getMonth() || txDate.getFullYear() !== now.getFullYear()) return false;
-          } else if (timeRange === 'thisYear') {
+          } else if (appliedTimeRange === 'last_month') {
+            const lm = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            if (txDate.getMonth() !== lm.getMonth() || txDate.getFullYear() !== lm.getFullYear()) return false;
+          } else if (appliedTimeRange === 'this_year' || appliedTimeRange === 'thisYear') {
             if (txDate.getFullYear() !== now.getFullYear()) return false;
-          } else if (timeRange === 'custom') {
-            if (startDate) {
-              const start = new Date(startDate);
+          } else if (appliedTimeRange === 'custom' || appliedStartDate || appliedEndDate) {
+            if (appliedStartDate) {
+              const start = new Date(appliedStartDate);
               if (!isNaN(start.getTime()) && txDate < start) return false;
             }
-            if (endDate) {
-              const end = new Date(endDate);
+            if (appliedEndDate) {
+              const end = new Date(appliedEndDate);
               end.setHours(23, 59, 59, 999);
               if (!isNaN(end.getTime()) && txDate > end) return false;
             }
@@ -244,7 +324,18 @@ function ReportsContent() {
 
       return true;
     });
-  }, [transactions, typeFilter, accountFilter, categoryFilter, minAmount, maxAmount, searchKeyword, timeRange, startDate, endDate]);
+  }, [
+    transactions,
+    appliedTypeFilter,
+    appliedAccountFilter,
+    appliedCategoryFilter,
+    appliedMinAmount,
+    appliedMaxAmount,
+    appliedSearchKeyword,
+    appliedTimeRange,
+    appliedStartDate,
+    appliedEndDate,
+  ]);
 
   // Derived expense & financial stats
   const {
@@ -285,7 +376,6 @@ function ReportsContent() {
       const amount = Math.abs(typeof tx.amount === 'number' ? tx.amount : parseFloat(tx.amount) || 0);
       const isTransfer = tx.isTransfer || tx.type === 'transfer';
       const isIncome = !isTransfer && (tx.type === 'income' || tx.income === 1);
-      const isExpense = !isTransfer && !isIncome;
 
       const accId = tx.accountId || (typeof tx.account === 'object' ? tx.account?.id : '');
       const accName = typeof tx.account === 'string' ? tx.account : tx.account?.name || 'Unassigned Account';
@@ -371,10 +461,11 @@ function ReportsContent() {
       }
     });
 
-    const accArray = Object.values(accMap).sort((a, b) => b.amount - a.amount);
-    const catArray = Object.values(catMap).sort((a, b) => b.amount - a.amount);
-    const merchArray = Object.values(merchMap).sort((a, b) => b.amount - a.amount).slice(0, 10);
-    const monthArray = Object.values(monthMap);
+    const avgExp = expList.length > 0 ? expSum / expList.length : 0;
+    const accList = Object.values(accMap).sort((a, b) => b.amount - a.amount);
+    const catList = Object.values(catMap).sort((a, b) => b.amount - a.amount);
+    const merchList = Object.values(merchMap).sort((a, b) => b.amount - a.amount).slice(0, 10);
+    const monthList = Object.values(monthMap);
 
     return {
       totalExpenses: expSum,
@@ -383,33 +474,22 @@ function ReportsContent() {
       expenseTxs: expList,
       incomeTxs: incList,
       transferTxs: trfList,
-      avgExpense: expList.length > 0 ? expSum / expList.length : 0,
-      accountBreakdown: accArray,
-      categoryBreakdown: catArray,
-      merchantBreakdown: merchArray,
-      monthlyBreakdown: monthArray,
-      spendingBrackets: brackets,
+      avgExpense: avgExp,
+      accountBreakdown: accList,
+      categoryBreakdown: catList,
+      merchantBreakdown: merchList,
+      monthlyBreakdown: monthList,
+      spendingBrackets: Object.values(brackets),
     };
   }, [filteredTransactions, accounts, categories]);
 
-  // Options for Fancy SmoothSelect Filter Dropdowns
-  const dateOptions: SelectOption[] = [
-    { value: 'all', label: 'All Time Records' },
-    { value: 'today', label: 'Today Only' },
-    { value: 'thisWeek', label: 'This Week (7 Days)' },
-    { value: 'thisMonth', label: 'This Month' },
-    { value: '30days', label: 'Last 30 Days' },
-    { value: '90days', label: 'Last 90 Days' },
-    { value: 'thisYear', label: 'This Year (2026)' },
-    { value: 'custom', label: 'Custom Date Range...' },
-  ];
-
+  // Options for SmoothSelect dropdowns
   const accountOptions: SelectOption[] = useMemo(() => {
     return [
       { value: '', label: 'All Accounts' },
       ...accounts.map((acc: any) => ({
         value: acc.id,
-        label: `${acc.name} (${acc.type || 'Account'})`,
+        label: acc.name,
         color: acc.color || '#6c63ff',
       })),
     ];
@@ -426,12 +506,14 @@ function ReportsContent() {
     ];
   }, [categories]);
 
-  const typeOptions: SelectOption[] = [
-    { value: '', label: 'All Types (Expenses, Income, Transfers)' },
-    { value: 'expense', label: 'Expenses Only' },
-    { value: 'income', label: 'Income Only' },
-    { value: 'transfer', label: 'Transfers Only' },
-  ];
+  const typeOptions: SelectOption[] = useMemo(() => {
+    return [
+      { value: '', label: 'All Types (Expenses, Income, Transfers)' },
+      { value: 'expense', label: 'Expenses Only' },
+      { value: 'income', label: 'Income Only' },
+      { value: 'transfer', label: 'Transfers Only' },
+    ];
+  }, []);
 
   const handleExportCsv = async () => {
     try {
@@ -473,7 +555,7 @@ function ReportsContent() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsFilterOpen(!isFilterOpen)}
-            className="flex items-center gap-2 rounded-lg border border-border bg-bg-card px-4 py-2 text-sm font-medium text-text-primary hover:bg-bg-hover transition-colors"
+            className="flex items-center gap-2 rounded-xl border border-border bg-bg-card px-4 py-2 text-sm font-medium text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
           >
             <SlidersHorizontal size={16} className="text-accent" />
             <span>Custom Filters</span>
@@ -487,7 +569,7 @@ function ReportsContent() {
 
           <button
             onClick={handleExportCsv}
-            className="flex items-center gap-2 rounded-lg border border-border bg-bg-card px-4 py-2 text-sm font-medium text-text-primary hover:bg-bg-hover transition-colors"
+            className="flex items-center gap-2 rounded-xl border border-border bg-bg-card px-4 py-2 text-sm font-medium text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
           >
             <Download size={16} />
             <span>Export CSV</span>
@@ -495,7 +577,7 @@ function ReportsContent() {
 
           <button
             onClick={handlePrint}
-            className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white shadow-md hover:bg-accent-light transition-all"
+            className="flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white shadow-md hover:bg-accent-light transition-all cursor-pointer"
           >
             <Printer size={16} />
             <span>Print Report</span>
@@ -503,131 +585,171 @@ function ReportsContent() {
         </div>
       </div>
 
-      {/* Advanced Custom Filter Control Panel with Fancy SmoothSelect Dropdowns */}
+      {/* Advanced Custom Filter Control Panel with Luxury DateRangePicker & Apply Button */}
       {isFilterOpen && (
-        <div className="card p-5 border border-accent/30 bg-bg-card rounded-xl space-y-4 shadow-xl animate-fade-in">
-          <div className="flex items-center justify-between border-b border-border pb-3">
-            <div className="flex items-center gap-2 font-bold text-text-primary text-sm">
-              <Filter size={16} className="text-accent" />
-              <span>Multi-Dimensional Custom Report Filters</span>
+        <div className="card p-6 border border-accent/30 bg-bg-card rounded-2xl space-y-5 shadow-2xl animate-fade-in relative overflow-hidden">
+          {/* Header Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border/80 pb-4 gap-3">
+            <div className="flex items-center gap-2.5">
+              <Filter size={18} className="text-accent" />
+              <span className="font-extrabold text-text-primary text-base tracking-tight">
+                Multi-Dimensional Custom Report Filters
+              </span>
+              {isDirty && (
+                <span className="px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider bg-amber-500/15 text-amber-300 rounded-full border border-amber-500/30">
+                  Unapplied Changes
+                </span>
+              )}
             </div>
-            {activeFiltersCount > 0 && (
+
+            <div className="flex items-center gap-3">
+              {activeFiltersCount > 0 && (
+                <button
+                  onClick={handleResetFilters}
+                  className="flex items-center gap-1.5 text-xs font-bold text-expense hover:underline cursor-pointer"
+                >
+                  <RotateCcw size={13} />
+                  <span>Reset All ({activeFiltersCount})</span>
+                </button>
+              )}
+
+              {/* Main Prominent Apply Filter Button */}
               <button
-                onClick={handleResetFilters}
-                className="flex items-center gap-1.5 text-xs font-bold text-expense hover:underline cursor-pointer"
+                onClick={handleApplyFilters}
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-lg ${
+                  isDirty
+                    ? 'bg-[#6c63ff] text-white shadow-[#6c63ff]/40 hover:bg-[#8b85ff] scale-[1.03] ring-2 ring-[#6c63ff]/50'
+                    : 'bg-accent/20 text-accent border border-accent/40 hover:bg-accent hover:text-white'
+                }`}
               >
-                <RotateCcw size={13} />
-                <span>Reset All Filters ({activeFiltersCount})</span>
+                <Check size={16} />
+                <span>Apply Filter</span>
               </button>
-            )}
+            </div>
           </div>
 
+          {/* Filter Inputs Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            {/* 1. Fancy Date Preset Selection */}
-            <div>
-              <label className="block text-xs font-semibold uppercase text-text-muted mb-1">Date Range Preset</label>
-              <SmoothSelect
-                value={timeRange}
-                onChange={(val) => setTimeRange(val as any)}
-                options={dateOptions}
-                placeholder="Select Date Range..."
+            {/* 1. Premium Calendar DateRangePicker */}
+            <div className="space-y-1">
+              <label className="block text-xs font-bold uppercase tracking-wider text-text-muted">
+                Calendar & Date Filter
+              </label>
+              <DateRangePicker
+                startDate={pendingStartDate}
+                endDate={pendingEndDate}
+                datePreset={pendingTimeRange}
+                onSelectRange={(start, end, preset) => {
+                  setPendingStartDate(start);
+                  setPendingEndDate(end);
+                  setPendingTimeRange(preset);
+                }}
               />
             </div>
 
-            {/* 2. Fancy Account Filter */}
-            <div>
-              <label className="block text-xs font-semibold uppercase text-text-muted mb-1">Account Filter</label>
+            {/* 2. Account Filter */}
+            <div className="space-y-1">
+              <label className="block text-xs font-bold uppercase tracking-wider text-text-muted">
+                Account Filter
+              </label>
               <SmoothSelect
-                value={accountFilter}
-                onChange={(val) => setAccountFilter(val)}
+                value={pendingAccountFilter}
+                onChange={(val) => setPendingAccountFilter(val)}
                 options={accountOptions}
                 placeholder="All Accounts"
               />
             </div>
 
-            {/* 3. Fancy Category Filter */}
-            <div>
-              <label className="block text-xs font-semibold uppercase text-text-muted mb-1">Category Filter</label>
+            {/* 3. Category Filter */}
+            <div className="space-y-1">
+              <label className="block text-xs font-bold uppercase tracking-wider text-text-muted">
+                Category Filter
+              </label>
               <SmoothSelect
-                value={categoryFilter}
-                onChange={(val) => setCategoryFilter(val)}
+                value={pendingCategoryFilter}
+                onChange={(val) => setPendingCategoryFilter(val)}
                 options={categoryOptions}
                 placeholder="All Categories"
               />
             </div>
 
-            {/* 4. Fancy Transaction Type Filter */}
-            <div>
-              <label className="block text-xs font-semibold uppercase text-text-muted mb-1">Transaction Type</label>
+            {/* 4. Transaction Type Filter */}
+            <div className="space-y-1">
+              <label className="block text-xs font-bold uppercase tracking-wider text-text-muted">
+                Transaction Type
+              </label>
               <SmoothSelect
-                value={typeFilter}
-                onChange={(val) => setTypeFilter(val)}
+                value={pendingTypeFilter}
+                onChange={(val) => setPendingTypeFilter(val)}
                 options={typeOptions}
                 placeholder="All Types"
               />
             </div>
           </div>
 
-          {/* Custom Date Inputs & Amount Filters Row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-2 border-t border-border">
-            {timeRange === 'custom' && (
-              <>
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-text-muted mb-1">Start Date</label>
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full rounded-lg border border-border bg-bg-hover px-3 py-2 text-sm text-text-primary focus:border-accent focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase text-text-muted mb-1">End Date</label>
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full rounded-lg border border-border bg-bg-hover px-3 py-2 text-sm text-text-primary focus:border-accent focus:outline-none"
-                  />
-                </div>
-              </>
-            )}
-
+          {/* Amount Filters & Keyword Search Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-3 border-t border-border/80">
             <div>
-              <label className="block text-xs font-semibold uppercase text-text-muted mb-1">Min Amount (₹/$)</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1">
+                Min Amount (₹)
+              </label>
               <input
                 type="number"
                 placeholder="0"
-                value={minAmount}
-                onChange={(e) => setMinAmount(e.target.value)}
-                className="w-full rounded-lg border border-border bg-bg-hover px-3 py-2 text-sm text-text-primary focus:border-accent focus:outline-none"
+                value={pendingMinAmount}
+                onChange={(e) => setPendingMinAmount(e.target.value)}
+                className="w-full rounded-xl border border-border bg-bg-hover px-3.5 py-2 text-sm font-medium text-text-primary focus:border-accent focus:outline-none transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase text-text-muted mb-1">Max Amount (₹/$)</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1">
+                Max Amount (₹)
+              </label>
               <input
                 type="number"
                 placeholder="No Limit"
-                value={maxAmount}
-                onChange={(e) => setMaxAmount(e.target.value)}
-                className="w-full rounded-lg border border-border bg-bg-hover px-3 py-2 text-sm text-text-primary focus:border-accent focus:outline-none"
+                value={pendingMaxAmount}
+                onChange={(e) => setPendingMaxAmount(e.target.value)}
+                className="w-full rounded-xl border border-border bg-bg-hover px-3.5 py-2 text-sm font-medium text-text-primary focus:border-accent focus:outline-none transition-all"
               />
             </div>
 
-            <div className={timeRange === 'custom' ? 'col-span-1 sm:col-span-2' : 'col-span-1 md:col-span-2'}>
-              <label className="block text-xs font-semibold uppercase text-text-muted mb-1">Merchant / Notes Search</label>
+            <div className="col-span-1 md:col-span-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1">
+                Vendor / Notes Search
+              </label>
               <div className="relative">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
                 <input
                   type="text"
-                  placeholder="Filter by vendor, item name or note..."
-                  value={searchKeyword}
-                  onChange={(e) => setSearchKeyword(e.target.value)}
-                  className="w-full rounded-lg border border-border bg-bg-hover pl-9 pr-3 py-2 text-sm text-text-primary focus:border-accent focus:outline-none"
+                  placeholder="Filter by vendor, item name or notes..."
+                  value={pendingSearchKeyword}
+                  onChange={(e) => setPendingSearchKeyword(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-bg-hover pl-10 pr-3.5 py-2 text-sm font-medium text-text-primary focus:border-accent focus:outline-none transition-all"
                 />
               </div>
             </div>
+          </div>
+
+          {/* Action Footer Bar */}
+          <div className="flex items-center justify-between pt-2 border-t border-border/60">
+            <div className="text-xs text-text-muted font-medium flex items-center gap-2">
+              <Sparkles size={14} className="text-accent" />
+              <span>Select calendar range or criteria, then click <strong>Apply Filter</strong>.</span>
+            </div>
+
+            <button
+              onClick={handleApplyFilters}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-lg ${
+                isDirty
+                  ? 'bg-[#6c63ff] text-white shadow-[#6c63ff]/40 hover:bg-[#8b85ff] scale-[1.02] ring-2 ring-[#6c63ff]/50'
+                  : 'bg-accent/20 text-accent border border-accent/40 hover:bg-accent hover:text-white'
+              }`}
+            >
+              <Check size={16} />
+              <span>Apply Filter</span>
+            </button>
           </div>
         </div>
       )}
@@ -653,402 +775,314 @@ function ReportsContent() {
           <div className="text-2xl font-extrabold text-text-primary mt-1">
             {formatPrivateCurrency(totalIncome)}
           </div>
-          <p className="text-xs text-text-muted">{incomeTxs.length} income deposits</p>
+          <p className="text-xs text-text-muted">{incomeTxs.length} income transactions</p>
         </div>
 
         <div className="card p-5 border border-accent/30 bg-accent/5 rounded-xl space-y-1">
           <div className="flex items-center justify-between text-xs text-accent font-bold uppercase">
-            <span>Average Expense</span>
-            <DollarSign size={18} />
+            <span>Filtered Transfers</span>
+            <ArrowRightLeft size={18} />
           </div>
           <div className="text-2xl font-extrabold text-text-primary mt-1">
-            {formatPrivateCurrency(avgExpense)}
+            {formatPrivateCurrency(totalTransfers)}
           </div>
-          <p className="text-xs text-text-muted">Per transaction average</p>
+          <p className="text-xs text-text-muted">{transferTxs.length} internal transfer transactions</p>
         </div>
 
         <div className="card p-5 border border-border bg-bg-card rounded-xl space-y-1">
           <div className="flex items-center justify-between text-xs text-text-muted font-bold uppercase">
-            <span>Top Category</span>
-            <Tag size={18} className="text-accent" />
+            <span>Avg Expense Size</span>
+            <Award size={18} className="text-accent" />
           </div>
-          <div className="text-xl font-bold text-text-primary mt-1 truncate">
-            {categoryBreakdown[0]?.name || 'N/A'}
+          <div className="text-2xl font-extrabold text-text-primary mt-1">
+            {formatPrivateCurrency(avgExpense)}
           </div>
-          <p className="text-xs text-text-muted">
-            {categoryBreakdown[0] ? formatPrivateCurrency(categoryBreakdown[0].amount) : 'No data'}
-          </p>
+          <p className="text-xs text-text-muted">Average per expense ticket</p>
         </div>
       </div>
 
-      {/* 5 Report Tabs Navigation */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-2 p-1.5 bg-bg-card rounded-xl border border-border">
-        {reportsList.map((rep) => {
-          const Icon = rep.icon;
-          const isActive = activeTab === rep.id;
+      {/* Navigation Sub-Tabs for Reports Views */}
+      <div className="flex items-center gap-2 border-b border-border pb-3 overflow-x-auto scrollbar-none">
+        {reportsList.map((r) => {
+          const IconComponent = r.icon;
+          const isActive = activeTab === r.id;
           return (
             <button
-              key={rep.id}
-              onClick={() => setActiveTab(rep.id as any)}
-              className={`flex items-center justify-center gap-2 py-3 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              key={r.id}
+              onClick={() => setActiveTab(r.id as any)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 ${
                 isActive
-                  ? 'bg-accent text-white shadow-md font-bold scale-[1.02]'
-                  : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
+                  ? 'bg-accent text-white shadow-lg shadow-accent/30 scale-[1.02]'
+                  : 'bg-bg-card border border-border text-text-secondary hover:text-text-primary hover:bg-bg-hover'
               }`}
             >
-              <Icon size={16} />
-              <span className="truncate">{rep.label}</span>
+              <IconComponent size={15} />
+              <span>{r.label}</span>
             </button>
           );
         })}
       </div>
 
-      {/* REPORT 1: EXPENSES BY ACCOUNT */}
+      {/* Tab 1: Expenses by Account */}
       {activeTab === 'account' && (
-        <div className="card p-6 border border-border rounded-xl space-y-6 animate-fade-in">
-          <div className="flex items-center justify-between border-b border-border pb-4">
-            <div>
-              <h2 className="text-xl font-bold text-text-primary">Report 1: Expenses Breakdown by Account</h2>
-              <p className="text-xs text-text-muted mt-0.5">Distribution of spending across your registered bank, cash, and credit accounts.</p>
-            </div>
-            <span className="px-3 py-1 rounded-full bg-accent/15 text-accent text-xs font-bold border border-accent/20">
-              {accountBreakdown.length} Active Accounts
-            </span>
-          </div>
-
-          <div className="space-y-4">
-            {accountBreakdown.length === 0 ? (
-              <p className="text-text-muted text-center py-8">No account expense data recorded for this filter range.</p>
-            ) : (
-              accountBreakdown.map((acc) => {
-                const percentage = totalExpenses > 0 ? ((acc.amount / totalExpenses) * 100).toFixed(1) : '0';
-                const itemKey = `account-${acc.id || acc.name}`;
-                const isExpanded = !!expandedItems[itemKey];
-
-                return (
-                  <div key={acc.name} className="p-4 rounded-xl border border-border bg-bg-secondary space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="w-3.5 h-3.5 rounded-full shrink-0" style={{ backgroundColor: acc.color }} />
-                        <span className="font-semibold text-text-primary">{acc.name}</span>
-                        <span className="text-xs px-2.5 py-0.5 rounded-full bg-bg-card text-text-muted border border-border">
-                          {acc.count} transactions
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <span className="font-extrabold text-expense text-base">{formatPrivateCurrency(acc.amount)}</span>
-                          <span className="text-xs text-text-muted ml-2 font-bold">({percentage}%)</span>
-                        </div>
-                        <button
-                          onClick={() => toggleExpand(itemKey)}
-                          className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg border border-border bg-bg-card hover:bg-bg-hover text-accent transition-all cursor-pointer"
-                        >
-                          <span>{isExpanded ? 'Hide' : 'Expand'}</span>
-                          {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="w-full h-2.5 bg-bg-hover rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{ width: `${percentage}%`, backgroundColor: acc.color }}
-                      />
-                    </div>
-
-                    {/* Expandable Itemized Transactions */}
-                    {isExpanded && <ItemizedTransactionSubTable transactions={acc.txs} />}
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* REPORT 2: EXPENSES BY CATEGORY */}
-      {activeTab === 'category' && (
-        <div className="card p-6 border border-border rounded-xl space-y-6 animate-fade-in">
-          <div className="flex items-center justify-between border-b border-border pb-4">
-            <div>
-              <h2 className="text-xl font-bold text-text-primary">Report 2: Expenses Breakdown by Category</h2>
-              <p className="text-xs text-text-muted mt-0.5">Itemized distribution of spending per expense category.</p>
-            </div>
-            <span className="px-3 py-1 rounded-full bg-expense/15 text-expense text-xs font-bold border border-expense/20">
-              {categoryBreakdown.length} Categories Tracked
-            </span>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-extrabold text-lg text-text-primary">1. Expense Breakdown by Account</h3>
+            <span className="text-xs text-text-muted">{accountBreakdown.length} Accounts Active</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {categoryBreakdown.length === 0 ? (
-              <p className="text-text-muted text-center py-8 col-span-2">No category expense data found.</p>
-            ) : (
-              categoryBreakdown.map((cat) => {
-                const pct = totalExpenses > 0 ? ((cat.amount / totalExpenses) * 100).toFixed(1) : '0';
-                const itemKey = `category-${cat.id || cat.name}`;
-                const isExpanded = !!expandedItems[itemKey];
-
-                return (
-                  <div key={cat.name} className="p-4 rounded-xl border border-border bg-bg-secondary space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Tag size={16} className="text-expense" />
-                        <span className="font-bold text-text-primary">{cat.name}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="font-bold text-expense">{formatPrivateCurrency(cat.amount)}</span>
-                        <button
-                          onClick={() => toggleExpand(itemKey)}
-                          className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-lg border border-border bg-bg-card hover:bg-bg-hover text-accent transition-all cursor-pointer"
-                        >
-                          <span>{isExpanded ? 'Hide' : 'Expand'}</span>
-                          {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between text-xs text-text-muted">
-                      <span>{cat.count} transactions</span>
-                      <span className="font-bold text-text-primary">{pct}% of total</span>
-                    </div>
-
-                    <div className="w-full h-2 bg-bg-hover rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-expense rounded-full transition-all duration-500"
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-
-                    {/* Expandable Itemized Transactions */}
-                    {isExpanded && <ItemizedTransactionSubTable transactions={cat.txs} />}
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* REPORT 3: TRANSACTION TYPE & CASH FLOW */}
-      {activeTab === 'type' && (
-        <div className="card p-6 border border-border rounded-xl space-y-6 animate-fade-in">
-          <div className="flex items-center justify-between border-b border-border pb-4">
-            <div>
-              <h2 className="text-xl font-bold text-text-primary">Report 3: Transaction Type & Cash Flow Analysis</h2>
-              <p className="text-xs text-text-muted mt-0.5">Ratio of Expenses vs Income vs Internal Transfer Movements.</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Expenses Block */}
-            <div className="p-5 rounded-xl border border-expense/30 bg-expense/5 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase text-expense">Expense Outflow</span>
-                <button
-                  onClick={() => toggleExpand('type-expense')}
-                  className="flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-lg bg-expense/10 text-expense border border-expense/30 hover:bg-expense/20 transition-all cursor-pointer"
-                >
-                  <span>{expandedItems['type-expense'] ? 'Hide' : 'Expand'}</span>
-                  {expandedItems['type-expense'] ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-                </button>
-              </div>
-              <div className="text-2xl font-black text-text-primary">{formatPrivateCurrency(totalExpenses)}</div>
-              <p className="text-xs text-text-muted">{expenseTxs.length} records</p>
-
-              {expandedItems['type-expense'] && <ItemizedTransactionSubTable transactions={expenseTxs} />}
-            </div>
-
-            {/* Income Block */}
-            <div className="p-5 rounded-xl border border-income/30 bg-income/5 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase text-income">Income Inflow</span>
-                <button
-                  onClick={() => toggleExpand('type-income')}
-                  className="flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-lg bg-income/10 text-income border border-income/30 hover:bg-income/20 transition-all cursor-pointer"
-                >
-                  <span>{expandedItems['type-income'] ? 'Hide' : 'Expand'}</span>
-                  {expandedItems['type-income'] ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-                </button>
-              </div>
-              <div className="text-2xl font-black text-text-primary">{formatPrivateCurrency(totalIncome)}</div>
-              <p className="text-xs text-text-muted">{incomeTxs.length} records</p>
-
-              {expandedItems['type-income'] && <ItemizedTransactionSubTable transactions={incomeTxs} />}
-            </div>
-
-            {/* Transfer Block */}
-            <div className="p-5 rounded-xl border border-accent/30 bg-accent/5 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase text-accent">Transfer Volume</span>
-                <button
-                  onClick={() => toggleExpand('type-transfer')}
-                  className="flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-lg bg-accent/10 text-accent border border-accent/30 hover:bg-accent/20 transition-all cursor-pointer"
-                >
-                  <span>{expandedItems['type-transfer'] ? 'Hide' : 'Expand'}</span>
-                  {expandedItems['type-transfer'] ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-                </button>
-              </div>
-              <div className="text-2xl font-black text-text-primary">{formatPrivateCurrency(totalTransfers)}</div>
-              <p className="text-xs text-text-muted">{transferTxs.length} transfer pairs</p>
-
-              {expandedItems['type-transfer'] && <ItemizedTransactionSubTable transactions={transferTxs} />}
-            </div>
-          </div>
-
-          {/* Cash Flow Net Balance Box */}
-          <div className="p-5 rounded-xl border border-border bg-bg-secondary space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-bold text-text-primary">Net Savings / Financial Velocity</span>
-              <span className={`text-lg font-black ${totalIncome - totalExpenses >= 0 ? 'text-income' : 'text-expense'}`}>
-                {formatPrivateCurrency(totalIncome - totalExpenses)}
-              </span>
-            </div>
-            <p className="text-xs text-text-muted">
-              {totalIncome - totalExpenses >= 0
-                ? 'Your income exceeds your expenses. You have a positive net savings flow.'
-                : 'Expenses exceed income in this period.'}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* REPORT 4: SPENDING VELOCITY & TIMELINE */}
-      {activeTab === 'timeline' && (
-        <div className="card p-6 border border-border rounded-xl space-y-6 animate-fade-in">
-          <div className="flex items-center justify-between border-b border-border pb-4">
-            <div>
-              <h2 className="text-xl font-bold text-text-primary">Report 4: Monthly Spending Velocity & Trends</h2>
-              <p className="text-xs text-text-muted mt-0.5">Timeline overview of monthly spending vs income trends.</p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {monthlyBreakdown.length === 0 ? (
-              <p className="text-text-muted text-center py-8">No monthly data available.</p>
-            ) : (
-              monthlyBreakdown.map((m) => {
-                const itemKey = `month-${m.monthName}`;
-                const isExpanded = !!expandedItems[itemKey];
-
-                return (
-                  <div key={m.monthName} className="p-4 rounded-xl border border-border bg-bg-secondary space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Calendar size={16} className="text-accent" />
-                        <span className="font-bold text-text-primary">{m.monthName}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs text-text-muted">{m.count} records</span>
-                        <button
-                          onClick={() => toggleExpand(itemKey)}
-                          className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg border border-border bg-bg-card hover:bg-bg-hover text-accent transition-all cursor-pointer"
-                        >
-                          <span>{isExpanded ? 'Hide' : 'Expand'}</span>
-                          {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <span className="text-xs text-text-muted block">Monthly Expense</span>
-                        <span className="font-bold text-expense text-base">{formatPrivateCurrency(m.expense)}</span>
-                      </div>
-                      <div>
-                        <span className="text-xs text-text-muted block">Monthly Income</span>
-                        <span className="font-bold text-income text-base">{formatPrivateCurrency(m.income)}</span>
-                      </div>
-                    </div>
-
-                    {/* Expandable Itemized Transactions */}
-                    {isExpanded && <ItemizedTransactionSubTable transactions={m.txs} />}
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* REPORT 5: TOP PAYEES & BRACKETS */}
-      {activeTab === 'merchants' && (
-        <div className="card p-6 border border-border rounded-xl space-y-6 animate-fade-in">
-          <div className="flex items-center justify-between border-b border-border pb-4">
-            <div>
-              <h2 className="text-xl font-bold text-text-primary">Report 5: Top Payees & Transaction Size Distribution</h2>
-              <p className="text-xs text-text-muted mt-0.5">Ranked merchant targets and expenditure size tier analysis.</p>
-            </div>
-          </div>
-
-          {/* Size Brackets Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {Object.entries(spendingBrackets).map(([key, b]) => {
-              const itemKey = `bracket-${key}`;
-              const isExpanded = !!expandedItems[itemKey];
+            {accountBreakdown.map((acc) => {
+              const pct = totalExpenses > 0 ? ((acc.amount / totalExpenses) * 100).toFixed(1) : '0';
+              const isExpanded = !!expandedItems[`acc-${acc.name}`];
 
               return (
-                <div key={key} className="p-4 rounded-xl border border-border bg-bg-secondary space-y-2">
+                <div key={acc.name} className="card p-5 border border-border bg-bg-card rounded-xl space-y-3 shadow-md hover:border-accent/40 transition-all">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold" style={{ color: b.color }}>{b.label}</span>
-                    <button
-                      onClick={() => toggleExpand(itemKey)}
-                      className="flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded border border-border bg-bg-card hover:bg-bg-hover text-accent transition-all cursor-pointer"
-                    >
-                      <span>{isExpanded ? 'Hide' : 'Expand'}</span>
-                      {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: acc.color }} />
+                      <span className="font-bold text-text-primary text-sm">{acc.name}</span>
+                    </div>
+                    <span className="text-xs font-bold text-accent bg-accent/10 px-2 py-0.5 rounded-md border border-accent/20">
+                      {pct}% of Total
+                    </span>
                   </div>
-                  <div className="text-xl font-extrabold text-text-primary">{formatPrivateCurrency(b.total)}</div>
-                  <span className="text-xs text-text-muted block">{b.count} transactions</span>
 
-                  {/* Expandable Itemized Transactions */}
-                  {isExpanded && <ItemizedTransactionSubTable transactions={b.txs} />}
+                  <div>
+                    <div className="text-xl font-bold text-expense">{formatPrivateCurrency(acc.amount)}</div>
+                    <div className="text-xs text-text-muted mt-0.5">{acc.count} expense transactions logged</div>
+                  </div>
+
+                  <div className="w-full bg-bg-hover h-2 rounded-full overflow-hidden border border-border">
+                    <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: acc.color }} />
+                  </div>
+
+                  <button
+                    onClick={() => toggleExpand(`acc-${acc.name}`)}
+                    className="w-full flex items-center justify-between pt-2 border-t border-border text-xs font-semibold text-accent hover:underline cursor-pointer"
+                  >
+                    <span>{isExpanded ? 'Hide Itemized Records' : `View Itemized Records (${acc.txs.length})`}</span>
+                    {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                  </button>
+
+                  {isExpanded && <ItemizedTransactionSubTable transactions={acc.txs} />}
                 </div>
               );
             })}
           </div>
+        </div>
+      )}
 
-          {/* Top 10 Merchants Table */}
-          <div className="space-y-3 pt-2">
-            <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider">Top Spending Vendors / Payees</h3>
-            <div className="space-y-2">
-              {merchantBreakdown.length === 0 ? (
-                <p className="text-text-muted text-center py-4">No merchant data found.</p>
-              ) : (
-                merchantBreakdown.map((m, idx) => {
-                  const itemKey = `merchant-${m.name}`;
-                  const isExpanded = !!expandedItems[itemKey];
+      {/* Tab 2: Expenses by Category */}
+      {activeTab === 'category' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-extrabold text-lg text-text-primary">2. Expense Breakdown by Category</h3>
+            <span className="text-xs text-text-muted">{categoryBreakdown.length} Categories Tracked</span>
+          </div>
 
-                  return (
-                    <div key={m.name} className="p-3 rounded-lg border border-border bg-bg-hover space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-3">
-                          <span className="w-6 h-6 rounded-full bg-accent/15 text-accent font-bold text-xs flex items-center justify-center">
-                            #{idx + 1}
-                          </span>
-                          <span className="font-medium text-text-primary">{m.name}</span>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <span className="text-xs text-text-muted">{m.count} txs</span>
-                          <span className="font-bold text-expense">{formatPrivateCurrency(m.amount)}</span>
-                          <button
-                            onClick={() => toggleExpand(itemKey)}
-                            className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded border border-border bg-bg-card hover:bg-bg-hover text-accent transition-all cursor-pointer"
-                          >
-                            <span>{isExpanded ? 'Hide' : 'Expand'}</span>
-                            {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-                          </button>
-                        </div>
-                      </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {categoryBreakdown.map((cat) => {
+              const pct = totalExpenses > 0 ? ((cat.amount / totalExpenses) * 100).toFixed(1) : '0';
+              const isExpanded = !!expandedItems[`cat-${cat.name}`];
 
-                      {/* Expandable Itemized Transactions */}
-                      {isExpanded && <ItemizedTransactionSubTable transactions={m.txs} />}
+              return (
+                <div key={cat.name} className="card p-5 border border-border bg-bg-card rounded-xl space-y-3 shadow-md hover:border-accent/40 transition-all">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: cat.color }} />
+                      <span className="font-bold text-text-primary text-sm">{cat.name}</span>
                     </div>
-                  );
-                })
-              )}
+                    <span className="text-xs font-bold text-expense bg-expense/10 px-2 py-0.5 rounded-md border border-expense/20">
+                      {pct}% of Total
+                    </span>
+                  </div>
+
+                  <div>
+                    <div className="text-xl font-bold text-expense">{formatPrivateCurrency(cat.amount)}</div>
+                    <div className="text-xs text-text-muted mt-0.5">{cat.count} expense transactions logged</div>
+                  </div>
+
+                  <div className="w-full bg-bg-hover h-2 rounded-full overflow-hidden border border-border">
+                    <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: cat.color }} />
+                  </div>
+
+                  <button
+                    onClick={() => toggleExpand(`cat-${cat.name}`)}
+                    className="w-full flex items-center justify-between pt-2 border-t border-border text-xs font-semibold text-accent hover:underline cursor-pointer"
+                  >
+                    <span>{isExpanded ? 'Hide Itemized Records' : `View Itemized Records (${cat.txs.length})`}</span>
+                    {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                  </button>
+
+                  {isExpanded && <ItemizedTransactionSubTable transactions={cat.txs} />}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Tab 3: Transaction Type & Cash Flow */}
+      {activeTab === 'type' && (
+        <div className="space-y-4">
+          <h3 className="font-extrabold text-lg text-text-primary">3. Financial Flow Ratio Analysis</h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="card p-5 border border-expense/30 bg-bg-card rounded-xl space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-text-primary text-sm">Expenses Outflow</span>
+                <span className="text-xs font-bold text-expense bg-expense/15 px-2 py-0.5 rounded-md">
+                  {((totalExpenses / Math.max(1, totalExpenses + totalIncome)) * 100).toFixed(1)}%
+                </span>
+              </div>
+              <div className="text-2xl font-bold text-expense">{formatPrivateCurrency(totalExpenses)}</div>
+              <div className="text-xs text-text-muted">{expenseTxs.length} total expense entries</div>
+              <button
+                onClick={() => toggleExpand('flow-exp')}
+                className="w-full flex items-center justify-between pt-2 border-t border-border text-xs font-semibold text-accent hover:underline cursor-pointer"
+              >
+                <span>Itemized Records</span>
+                {expandedItems['flow-exp'] ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
+              {expandedItems['flow-exp'] && <ItemizedTransactionSubTable transactions={expenseTxs} />}
+            </div>
+
+            <div className="card p-5 border border-income/30 bg-bg-card rounded-xl space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-text-primary text-sm">Income Inflow</span>
+                <span className="text-xs font-bold text-income bg-income/15 px-2 py-0.5 rounded-md">
+                  {((totalIncome / Math.max(1, totalExpenses + totalIncome)) * 100).toFixed(1)}%
+                </span>
+              </div>
+              <div className="text-2xl font-bold text-income">{formatPrivateCurrency(totalIncome)}</div>
+              <div className="text-xs text-text-muted">{incomeTxs.length} total income entries</div>
+              <button
+                onClick={() => toggleExpand('flow-inc')}
+                className="w-full flex items-center justify-between pt-2 border-t border-border text-xs font-semibold text-accent hover:underline cursor-pointer"
+              >
+                <span>Itemized Records</span>
+                {expandedItems['flow-inc'] ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
+              {expandedItems['flow-inc'] && <ItemizedTransactionSubTable transactions={incomeTxs} />}
+            </div>
+
+            <div className="card p-5 border border-accent/30 bg-bg-card rounded-xl space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-text-primary text-sm">Internal Transfers</span>
+                <span className="text-xs font-bold text-accent bg-accent/15 px-2 py-0.5 rounded-md">Internal</span>
+              </div>
+              <div className="text-2xl font-bold text-accent">{formatPrivateCurrency(totalTransfers)}</div>
+              <div className="text-xs text-text-muted">{transferTxs.length} internal transfer pairs</div>
+              <button
+                onClick={() => toggleExpand('flow-trf')}
+                className="w-full flex items-center justify-between pt-2 border-t border-border text-xs font-semibold text-accent hover:underline cursor-pointer"
+              >
+                <span>Itemized Records</span>
+                {expandedItems['flow-trf'] ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
+              {expandedItems['flow-trf'] && <ItemizedTransactionSubTable transactions={transferTxs} />}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 4: Spending Velocity & Monthly Trend */}
+      {activeTab === 'timeline' && (
+        <div className="space-y-4">
+          <h3 className="font-extrabold text-lg text-text-primary">4. Monthly Spending Velocity</h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {monthlyBreakdown.map((m) => {
+              const isExpanded = !!expandedItems[`month-${m.monthName}`];
+              return (
+                <div key={m.monthName} className="card p-5 border border-border bg-bg-card rounded-xl space-y-3 shadow-md hover:border-accent/40 transition-all">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-text-primary text-base">{m.monthName}</span>
+                    <span className="text-xs font-bold text-text-muted bg-bg-hover px-2.5 py-0.5 rounded-md border border-border">
+                      {m.count} transactions
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="p-2.5 rounded-lg bg-expense/10 border border-expense/20">
+                      <span className="text-text-muted block uppercase text-[10px] font-bold">Expenses</span>
+                      <span className="font-extrabold text-expense text-sm">{formatPrivateCurrency(m.expense)}</span>
+                    </div>
+                    <div className="p-2.5 rounded-lg bg-income/10 border border-income/20">
+                      <span className="text-text-muted block uppercase text-[10px] font-bold">Income</span>
+                      <span className="font-extrabold text-income text-sm">{formatPrivateCurrency(m.income)}</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => toggleExpand(`month-${m.monthName}`)}
+                    className="w-full flex items-center justify-between pt-2 border-t border-border text-xs font-semibold text-accent hover:underline cursor-pointer"
+                  >
+                    <span>{isExpanded ? 'Hide Monthly Records' : `View Itemized Records (${m.txs.length})`}</span>
+                    {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                  </button>
+
+                  {isExpanded && <ItemizedTransactionSubTable transactions={m.txs} />}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Tab 5: Top Payees & Transaction Brackets */}
+      {activeTab === 'merchants' && (
+        <div className="space-y-6">
+          <div className="space-y-4">
+            <h3 className="font-extrabold text-lg text-text-primary">Top 10 Payees & Vendors</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {merchantBreakdown.map((m) => {
+                const isExpanded = !!expandedItems[`merch-${m.name}`];
+                return (
+                  <div key={m.name} className="card p-4 border border-border bg-bg-card rounded-xl space-y-2 hover:border-accent/40 transition-all">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-text-primary text-sm">{m.name}</span>
+                      <span className="text-xs font-bold text-expense">{formatPrivateCurrency(m.amount)}</span>
+                    </div>
+                    <div className="text-xs text-text-muted">{m.count} transactions logged</div>
+                    <button
+                      onClick={() => toggleExpand(`merch-${m.name}`)}
+                      className="w-full flex items-center justify-between pt-2 border-t border-border text-xs font-semibold text-accent hover:underline cursor-pointer"
+                    >
+                      <span>Itemized Records</span>
+                      {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                    </button>
+                    {isExpanded && <ItemizedTransactionSubTable transactions={m.txs} />}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="font-extrabold text-lg text-text-primary">Transaction Size Bracket Distribution</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {spendingBrackets.map((b) => {
+                const isExpanded = !!expandedItems[`bkt-${b.label}`];
+                return (
+                  <div key={b.label} className="card p-5 border border-border bg-bg-card rounded-xl space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-text-primary uppercase" style={{ color: b.color }}>{b.label}</span>
+                      <span className="text-xs text-text-muted font-bold">{b.count} txs</span>
+                    </div>
+                    <div className="text-xl font-extrabold text-text-primary">{formatPrivateCurrency(b.total)}</div>
+                    <button
+                      onClick={() => toggleExpand(`bkt-${b.label}`)}
+                      className="w-full flex items-center justify-between pt-2 border-t border-border text-xs font-semibold text-accent hover:underline cursor-pointer"
+                    >
+                      <span>Itemized Records</span>
+                      {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                    </button>
+                    {isExpanded && <ItemizedTransactionSubTable transactions={b.txs} />}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -1059,7 +1093,7 @@ function ReportsContent() {
 
 export default function ReportsPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-text-muted">Loading Reports...</div>}>
+    <Suspense fallback={<div className="h-64 rounded-2xl skeleton" />}>
       <ReportsContent />
     </Suspense>
   );
