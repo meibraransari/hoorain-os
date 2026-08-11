@@ -31,4 +31,18 @@ export class ReportsController {
   getByCategory(@Query() query: DateRangeQueryDto, @Req() req: any) {
     return this.reportsService.getByCategory(req.user.id, query);
   }
+
+  @Get('profit-loss')
+  @ApiOperation({ summary: 'Executive Profit & Loss summary with revenue, expenses, net margin, and MoM growth velocity' })
+  @ApiResponse({ status: 200, description: 'Profit & Loss summary' })
+  getProfitLoss(@Req() req: any) {
+    return this.reportsService.getProfitLoss(req.user.id);
+  }
+
+  @Get('credit-utilization')
+  @ApiOperation({ summary: 'Credit card and loan utilization percentages with debt safety status' })
+  @ApiResponse({ status: 200, description: 'Credit utilization breakdown' })
+  getCreditUtilization(@Req() req: any) {
+    return this.reportsService.getCreditUtilization(req.user.id);
+  }
 }

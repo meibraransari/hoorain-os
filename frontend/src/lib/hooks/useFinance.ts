@@ -247,3 +247,22 @@ export function useCashewImport() {
 
   return { uploadCashewFile };
 }
+
+export function useProfitLoss() {
+  const { data, error, isLoading } = useSWR('/reports/profit-loss', fetcher, { revalidateOnFocus: true });
+  return {
+    profitLoss: (data as any) || null,
+    isLoading,
+    error,
+  };
+}
+
+export function useCreditUtilization() {
+  const { data, error, isLoading } = useSWR('/reports/credit-utilization', fetcher, { revalidateOnFocus: true });
+  return {
+    creditUtilization: (data as any) || null,
+    isLoading,
+    error,
+  };
+}
+

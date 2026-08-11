@@ -14,6 +14,8 @@ import { AddTransactionModal } from '@/components/modals/AddTransactionModal';
 import { DateRangePicker } from '@/components/ui/DateRangePicker';
 import { RecurringBillsWidget } from '@/components/ui/RecurringBillsWidget';
 import { FinancialHealthWidget } from '@/components/ui/FinancialHealthWidget';
+import { ExecutiveProfitLossWidget } from '@/components/ui/ExecutiveProfitLossWidget';
+import { CreditUtilizationWidget } from '@/components/ui/CreditUtilizationWidget';
 import {
   Wallet,
   TrendingUp,
@@ -36,6 +38,8 @@ import {
   Banknote,
   CalendarClock,
   BrainCircuit,
+  BarChart3,
+  ShieldAlert,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { usePrivacy } from '@/components/providers/PrivacyProvider';
@@ -56,6 +60,8 @@ export default function DashboardPage() {
     showCategoryAnalytics = true,
     showRecurringBills = true,
     showHealthScore = true,
+    showProfitLoss = true,
+    showCreditUtilization = true,
     hiddenAccounts = {},
     removeZeroTransactionEntries = false,
   } = settings || {};
@@ -430,6 +436,8 @@ export default function DashboardPage() {
 
                   {[
                     { key: 'showNetWorth', label: 'Net Worth KPI Card', active: showNetWorth, icon: Wallet },
+                    { key: 'showProfitLoss', label: 'Executive P&L Summary Widget', active: showProfitLoss, icon: BarChart3 },
+                    { key: 'showCreditUtilization', label: 'Credit Utilization & Debt Safety Gauge', active: showCreditUtilization, icon: ShieldAlert },
                     { key: 'showHealthScore', label: 'AI Financial Health Score', active: showHealthScore, icon: BrainCircuit },
                     { key: 'showCreditDebt', label: 'Assets & Debt Breakdown', active: showCreditDebt, icon: Activity },
                     { key: 'showSpendingGraph', label: 'Cash Flow Analysis Chart', active: showSpendingGraph, icon: TrendingUp },
@@ -661,8 +669,14 @@ export default function DashboardPage() {
 
       {/* Integrated Masonry Dashboard Grid */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 items-start">
-        {/* Left Column (2 Spans): Cash Flow Analysis + Quick Transfer + Recent Transactions */}
+        {/* Left Column (2 Spans): Executive P&L + Credit Utilization + Cash Flow Analysis + Quick Transfer + Recent Transactions */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Executive P&L Summary Widget */}
+          {showProfitLoss && <ExecutiveProfitLossWidget />}
+
+          {/* Credit Utilization & Debt Safety Gauge Widget */}
+          {showCreditUtilization && <CreditUtilizationWidget />}
+
           {/* 1. Cash Flow Analysis Chart */}
           {showSpendingGraph && (
             <AreaChart

@@ -23,6 +23,11 @@ export class CreateAccountDto {
   @IsNumber()
   initialBalance?: number;
 
+  @ApiPropertyOptional({ example: 50000 })
+  @IsOptional()
+  @IsNumber()
+  creditLimit?: number;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()

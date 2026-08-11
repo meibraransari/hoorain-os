@@ -41,6 +41,9 @@ export class Account {
   @Column({ name: 'current_balance', type: 'decimal', precision: 20, scale: 4, default: 0 })
   currentBalance: number;
 
+  @Column({ name: 'credit_limit', type: 'decimal', precision: 20, scale: 4, default: 0, nullable: true })
+  creditLimit: number;
+
   @Column({ nullable: true })
   color: string;
 

@@ -19,6 +19,7 @@ export function AddAccountModal({ isOpen, onClose, accountToEdit }: AddAccountMo
   const [name, setName] = useState('');
   const [type, setType] = useState('checking');
   const [initialBalance, setInitialBalance] = useState('0');
+  const [creditLimit, setCreditLimit] = useState('0');
   const [color, setColor] = useState('#3f51b5');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -45,11 +46,13 @@ export function AddAccountModal({ isOpen, onClose, accountToEdit }: AddAccountMo
       setName(accountToEdit.name || '');
       setType(accountToEdit.type || 'checking');
       setInitialBalance(accountToEdit.initialBalance?.toString() || '0');
+      setCreditLimit(accountToEdit.creditLimit?.toString() || '0');
       setColor(accountToEdit.color || '#3f51b5');
     } else {
       setName('');
       setType(accountTypes[0]?.code || 'checking');
       setInitialBalance('0');
+      setCreditLimit('0');
       setColor('#3f51b5');
     }
   }, [accountToEdit, isOpen, accountTypes]);
@@ -72,6 +75,7 @@ export function AddAccountModal({ isOpen, onClose, accountToEdit }: AddAccountMo
           type,
           currency: defaultCurrency,
           initialBalance: parseFloat(initialBalance) || 0,
+          creditLimit: parseFloat(creditLimit) || 0,
           color,
         });
       } else {
@@ -80,6 +84,7 @@ export function AddAccountModal({ isOpen, onClose, accountToEdit }: AddAccountMo
           type,
           currency: defaultCurrency,
           initialBalance: parseFloat(initialBalance) || 0,
+          creditLimit: parseFloat(creditLimit) || 0,
           color,
         });
       }
@@ -152,6 +157,19 @@ export function AddAccountModal({ isOpen, onClose, accountToEdit }: AddAccountMo
               className="w-full rounded-lg border border-border bg-bg-hover px-4 py-2.5 text-text-primary focus:border-accent focus:outline-none"
             />
             <p className="text-[11px] text-text-muted mt-1">Set opening balance to calibrate Net Worth calculations.</p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold uppercase text-text-muted mb-1">Total Credit Limit (For Cards & Loans)</label>
+            <input
+              type="number"
+              step="any"
+              placeholder="e.g. 100000"
+              value={creditLimit}
+              onChange={(e) => setCreditLimit(e.target.value)}
+              className="w-full rounded-lg border border-border bg-bg-hover px-4 py-2.5 text-text-primary focus:border-accent focus:outline-none"
+            />
+            <p className="text-[11px] text-text-muted mt-1">Configures Credit Utilization percentage and Debt Safety Gauge.</p>
           </div>
 
           <div>

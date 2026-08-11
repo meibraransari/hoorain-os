@@ -774,7 +774,56 @@ List all import jobs for the current user.
 
 ---
 
-### Reports
+#### `GET /reports/profit-loss`
+
+Retrieves executive Profit & Loss metrics including gross revenue, operating expenses, net operating profit, net margin %, and Month-over-Month ($\text{MoM}\%$) growth velocity.
+
+**Response:**
+```json
+{
+  "grossRevenue": 150000.00,
+  "operatingExpenses": 45000.00,
+  "netOperatingProfit": 105000.00,
+  "netMarginPercentage": 70.0,
+  "momRevenueGrowth": 12.5,
+  "momExpenseGrowth": -4.2,
+  "momProfitGrowth": 21.0,
+  "previousMonth": {
+    "grossRevenue": 133333.33,
+    "operatingExpenses": 46972.86,
+    "netOperatingProfit": 86360.47
+  }
+}
+```
+
+---
+
+#### `GET /reports/credit-utilization`
+
+Retrieves aggregate and per-card credit limit utilization percentage with debt safety status (`ideal` $<30\%$, `warning` $30-70\%$, `danger` $>70\%$).
+
+**Response:**
+```json
+{
+  "totalCreditLimit": 300000.00,
+  "totalCreditUsed": 45000.00,
+  "overallUtilizationPercentage": 15.0,
+  "overallSafetyStatus": "ideal",
+  "perCardBreakdown": [
+    {
+      "id": "uuid",
+      "name": "HDFC Credit Card",
+      "type": "credit_card",
+      "currentBalance": 45000.00,
+      "creditLimit": 300000.00,
+      "utilizationPercentage": 15.0,
+      "safetyBadge": "ideal"
+    }
+  ]
+}
+```
+
+---
 
 #### `GET /reports/spending-by-category`
 

@@ -156,10 +156,29 @@ export class ImportService {
     await this.importLogRepo.save(log);
 
     const tmpFile = path.join(os.tmpdir(), `cashew-import-${randomUUID()}.sqlite`);
-    fs.writeFileSync(tmpFile, buffer);
+
+    // Detect if uploaded file is a plain-text SQL script (.sql) vs a binary SQLite file (.sqlite / .db)
+    const fileHeader = buffer.slice(0, 200).toString('utf-8');
+    const isTextSql =
+      filename.toLowerCase().endsWith('.sql') ||
+      fileHeader.toLowerCase().includes('create table') ||
+      fileHeader.toLowerCase().includes('insert into') ||
+      fileHeader.toLowerCase().includes('sqlite format');
+
+    let db: Database.Database;
 
     try {
-      const db = new Database(tmpFile, { readonly: true });
+      if (isTextSql && !fileHeader.startsWith('SQLite format')) {
+        // Plain-text SQL script: Initialize empty SQLite DB and execute SQL statements
+        db = new Database(tmpFile);
+        const sqlScript = buffer.toString('utf-8');
+        db.exec(sqlScript);
+      } else {
+        // Binary SQLite database file
+        fs.writeFileSync(tmpFile, buffer);
+        db = new Database(tmpFile, { readonly: true });
+      }
+
       try {
         const report = await this.dataSource.transaction((manager) =>
           this.importAll(db, manager, userId),

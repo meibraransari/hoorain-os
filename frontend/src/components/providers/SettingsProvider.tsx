@@ -16,6 +16,8 @@ export interface AppSettings {
   showCategoryAnalytics: boolean;
   showRecurringBills?: boolean;
   showHealthScore?: boolean;
+  showProfitLoss?: boolean;
+  showCreditUtilization?: boolean;
   hiddenAccounts?: Record<string, boolean>;
   removeZeroTransactionEntries: boolean;
   automaticallyPayUpcoming: boolean;
@@ -41,6 +43,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   showCategoryAnalytics: true,
   showRecurringBills: true,
   showHealthScore: true,
+  showProfitLoss: true,
+  showCreditUtilization: true,
   hiddenAccounts: {},
   removeZeroTransactionEntries: false,
   automaticallyPayUpcoming: true,
