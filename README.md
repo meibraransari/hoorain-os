@@ -339,6 +339,6 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 Made with ❤️ for the self-hosting community
 
-**[Documentation](docs/) · [API Reference](docs/API.md) · [Deployment Guide](docs/DEPLOYMENT.md)**
+**[Feature Guide](docs/FEATURES.md) · [API Reference](docs/API.md) · [Database Schema](docs/DATABASE.md) · [Deployment Guide](docs/DEPLOYMENT.md)**
 
 </div>
