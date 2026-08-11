@@ -130,6 +130,28 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for full SSL + Cloudflare setup.
 > openssl rand -hex 64
 > ```
 
+## 🧠 AI Financial Health Score & Smart Insights
+
+Hoorain features an intelligent **AI Financial Health Score (0-100)** engine (`/financial-health`) evaluating four core financial metrics:
+
+1. **Emergency Fund Coverage**: $\text{Liquid Savings} / \text{Average Monthly Expenses}$ (Target: 3–6 months).
+2. **Debt-to-Income Ratio (DTI)**: $\text{Monthly Debt Payments} / \text{Monthly Income}$ (Target: $< 36\%$).
+3. **Savings Rate Benchmark**: $\text{Net Monthly Savings} / \text{Monthly Income}$ (Target: $\ge 20\%$).
+4. **Budget Adherence Score**: Percentage of monthly budgets maintained within limit.
+
+Automated smart spending insights alert you of category spending spikes, emergency coverage status, and debt paydown advice.
+
+---
+
+## 📉 Debt Payoff & Amortization Planner (Snowball vs. Avalanche)
+
+An interactive payoff planner (`/debt-planner`) for credit cards, home loans, car loans, and personal debts offering two strategies:
+
+- **Debt Avalanche ⚡**: Targets highest interest rate (APR) debts first to minimize total interest paid.
+- **Debt Snowball ❄️**: Targets smallest balance debts first for quick psychological wins.
+
+Includes estimated debt-free target dates, interest savings projections, extra monthly payment simulators, and month-by-month amortization schedule tables.
+
 ---
 
 ## 🤝 Lent & Borrow (Debts & Loans Management)

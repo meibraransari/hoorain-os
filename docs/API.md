@@ -656,6 +656,39 @@ Creates a REAL system `Transaction`, updates account balance in real-time via Po
 
 ---
 
+### Debt Payoff & Amortization Planner
+
+#### `GET /debts`
+Returns active debt records along with **Debt Snowball** (lowest balance first) and **Debt Avalanche** (highest APR first) payoff simulations, total interest projections, and month-by-month amortization schedules.
+
+#### `POST /debts`
+
+**Request:**
+```json
+{
+  "title": "HDFC Credit Card",
+  "balance": 50000.00,
+  "interestRate": 18.5,
+  "minimumPayment": 2500.00,
+  "extraPayment": 1000.00,
+  "category": "Credit Card",
+  "notes": "Card Ending in 9482"
+}
+```
+
+#### `GET /debts/:id`
+#### `PUT /debts/:id`
+#### `DELETE /debts/:id`
+
+---
+
+### AI Financial Health & Insights
+
+#### `GET /insights/health-score`
+Computes dynamic **Financial Health Score (0-100)** and returns sub-metric breakdown (Emergency Fund Coverage, Debt-to-Income Ratio, Savings Rate, Budget Adherence) along with automated smart spending insights.
+
+---
+
 ### Attachments
 
 #### `POST /attachments`

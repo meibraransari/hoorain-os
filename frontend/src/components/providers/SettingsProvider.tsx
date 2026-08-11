@@ -15,6 +15,7 @@ export interface AppSettings {
   showQuickTransfer: boolean;
   showCategoryAnalytics: boolean;
   showRecurringBills?: boolean;
+  showHealthScore?: boolean;
   hiddenAccounts?: Record<string, boolean>;
   removeZeroTransactionEntries: boolean;
   automaticallyPayUpcoming: boolean;
@@ -39,6 +40,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   showQuickTransfer: true,
   showCategoryAnalytics: true,
   showRecurringBills: true,
+  showHealthScore: true,
   hiddenAccounts: {},
   removeZeroTransactionEntries: false,
   automaticallyPayUpcoming: true,

@@ -13,6 +13,7 @@ import { CategoryAnalyticsWidget } from '@/components/ui/CategoryAnalyticsWidget
 import { AddTransactionModal } from '@/components/modals/AddTransactionModal';
 import { DateRangePicker } from '@/components/ui/DateRangePicker';
 import { RecurringBillsWidget } from '@/components/ui/RecurringBillsWidget';
+import { FinancialHealthWidget } from '@/components/ui/FinancialHealthWidget';
 import {
   Wallet,
   TrendingUp,
@@ -34,6 +35,7 @@ import {
   Building2,
   Banknote,
   CalendarClock,
+  BrainCircuit,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { usePrivacy } from '@/components/providers/PrivacyProvider';
@@ -53,6 +55,7 @@ export default function DashboardPage() {
     showQuickTransfer = true,
     showCategoryAnalytics = true,
     showRecurringBills = true,
+    showHealthScore = true,
     hiddenAccounts = {},
     removeZeroTransactionEntries = false,
   } = settings || {};
@@ -427,6 +430,7 @@ export default function DashboardPage() {
 
                   {[
                     { key: 'showNetWorth', label: 'Net Worth KPI Card', active: showNetWorth, icon: Wallet },
+                    { key: 'showHealthScore', label: 'AI Financial Health Score', active: showHealthScore, icon: BrainCircuit },
                     { key: 'showCreditDebt', label: 'Assets & Debt Breakdown', active: showCreditDebt, icon: Activity },
                     { key: 'showSpendingGraph', label: 'Cash Flow Analysis Chart', active: showSpendingGraph, icon: TrendingUp },
                     { key: 'showPieChart', label: 'Top Expenses Donut Chart', active: showPieChart, icon: PieChartIcon },
@@ -739,9 +743,12 @@ export default function DashboardPage() {
           </CollapsibleCard>
         </div>
 
-        {/* Right Column (1 Span): Top Expenses + Category Analytics + Monthly Budgets + Recurring Bills */}
+        {/* Right Column (1 Span): AI Health + Top Expenses + Category Analytics + Monthly Budgets + Recurring Bills */}
         <div className="space-y-6">
-          {/* 1. Overdue & Upcoming Bills Widget */}
+          {/* 1. AI Financial Health Score Widget */}
+          {showHealthScore && <FinancialHealthWidget />}
+
+          {/* 2. Overdue & Upcoming Bills Widget */}
           {showRecurringBills && <RecurringBillsWidget />}
 
           {/* 2. Top Expenses Donut Widget */}

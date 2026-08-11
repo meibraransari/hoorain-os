@@ -24,6 +24,8 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { User } from './database/entities/user.entity';
 import { SettingsModule } from './settings/settings.module';
 import { RecurringModule } from './recurring/recurring.module';
+import { DebtModule } from './debt/debt.module';
+import { InsightsModule } from './insights/insights.module';
 
 @Module({
   imports: [
@@ -52,6 +54,8 @@ import { RecurringModule } from './recurring/recurring.module';
     HealthModule,
     SettingsModule,
     RecurringModule,
+    DebtModule,
+    InsightsModule,
   ],
   providers: [
     AdminSeederService,

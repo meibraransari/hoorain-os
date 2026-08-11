@@ -225,10 +225,32 @@ users (1)───────────────────────�
   │
   ├──── (N) recurring_transactions ─── (1) accounts
   │
+  ├──── (N) debts (Snowball & Avalanche Amortization Planner)
+  │
   ├──── (N) notifications
   ├──── (N) cashew_import_logs
   └──── (N) app_settings
 ```
+
+---
+
+### `debts`
+
+Debt records for the Debt Payoff & Amortization Planner (Credit cards, Mortgages, Personal loans).
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | UUID | Primary key |
+| `user_id` | UUID | FK → users |
+| `title` | VARCHAR | Loan or debt title |
+| `balance` | NUMERIC(20,4) | Current owed balance |
+| `interest_rate` | NUMERIC(10,4) | Annual Percentage Rate (APR %) |
+| `minimum_payment` | NUMERIC(20,4) | Required minimum monthly payment |
+| `extra_payment` | NUMERIC(20,4) | Optional extra monthly payoff pool |
+| `category` | VARCHAR | Debt type (Credit Card, Home Loan, Car Loan) |
+| `notes` | TEXT | Lender reference or notes |
+
+---
 
 ---
 

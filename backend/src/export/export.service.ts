@@ -74,7 +74,7 @@ export class ExportService {
       const tables = [
         'users', 'accounts', 'categories', 'transactions', 'budgets', 'goals',
         'tags', 'account_types', 'app_settings', 'category_rules',
-        'cashew_import_logs', 'audit_logs', 'exchange_rates', 'recurring_transactions', 'notifications'
+        'cashew_import_logs', 'audit_logs', 'exchange_rates', 'recurring_transactions', 'debts', 'notifications'
       ];
 
       for (const t of tables) {
