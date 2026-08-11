@@ -8,7 +8,7 @@ export default (configService: ConfigService): TypeOrmModuleOptions => ({
   port: configService.get<number>('DATABASE_PORT', 5432),
   username: configService.get<string>('DATABASE_USER', 'postgres'),
   password: configService.get<string>('DATABASE_PASSWORD', 'postgres'),
-  database: configService.get<string>('DATABASE_NAME', 'financeos'),
+  database: configService.get<string>('DATABASE_NAME', 'hoorain'),
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   migrations: [__dirname + '/../database/migrations/*{.ts,.js}'],
   namingStrategy: new SnakeNamingStrategy(),

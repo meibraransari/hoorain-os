@@ -1,6 +1,12 @@
 {
-  "name": "finance-platform-frontend",
+  "name": "hoorain-os-frontend",
   "version": "0.1.0",
+  "description": "Hoorain OS Frontend",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/meibraransari/hoorain-os.git"
+  },
+  "author": "Md Ibrar Ansari",
   "private": true,
   "scripts": {
     "dev": "next dev",

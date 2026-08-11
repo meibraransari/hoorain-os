@@ -18,6 +18,7 @@ interface SmoothSelectProps {
   className?: string;
   disabled?: boolean;
   searchable?: boolean;
+  dropPosition?: 'auto' | 'top' | 'bottom';
 }
 
 export function SmoothSelect({
@@ -28,6 +29,7 @@ export function SmoothSelect({
   className = '',
   disabled = false,
   searchable = false,
+  dropPosition = 'auto',
 }: SmoothSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -52,6 +54,8 @@ export function SmoothSelect({
           (opt.description && opt.description.toLowerCase().includes(search.toLowerCase()))
       )
     : options;
+
+  const positionClass = dropPosition === 'top' ? 'bottom-full mb-2' : 'top-full mt-2';
 
   return (
     <div ref={containerRef} className={`relative w-full ${className}`}>
@@ -90,7 +94,7 @@ export function SmoothSelect({
 
       {/* Popover Dropdown Menu */}
       {isOpen && (
-        <div className="absolute z-50 mt-2 w-full bg-[#141422] border border-[#2b2b40] rounded-2xl shadow-2xl overflow-hidden ring-1 ring-white/10 animate-in fade-in-0 zoom-in-95 duration-150">
+        <div className={`absolute z-50 w-full bg-[#141422] border border-[#2b2b40] rounded-2xl shadow-2xl overflow-hidden ring-1 ring-white/10 animate-in fade-in-0 zoom-in-95 duration-150 ${positionClass}`}>
           {searchable && (
             <div className="p-2.5 border-b border-[#242436] bg-[#10101a]">
               <div className="relative flex items-center">

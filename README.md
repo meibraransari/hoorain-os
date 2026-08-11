@@ -1,9 +1,17 @@
-# 💎 Hoorain
+# 💎 Hoorain OS
 
 <div align="center">
  
 **A self-hosted, open-source personal finance platform**  
 _Track everything. Own your data. Never pay a subscription._
+
+[![GitHub Repository](https://img.shields.io/badge/GitHub-hoorain--os-blue?style=for-the-badge&logo=github)](https://github.com/meibraransari/hoorain-os.git)
+
+```bash
+git clone https://github.com/meibraransari/hoorain-os.git
+cd hoorain-os
+docker compose up -d
+```
 
 </div>
 

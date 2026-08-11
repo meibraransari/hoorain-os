@@ -3,9 +3,9 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
-  LayoutDashboard, Wallet, ArrowLeftRight, Tag, PieChart, 
+  LayoutDashboard, Wallet, Wallet as WalletIcon, ArrowLeftRight, Tag, PieChart, 
   Target, FileText, Settings, LogOut, ChevronLeft, ChevronRight,
-  Wallet as WalletIcon, User, HandCoins, CalendarClock, BrainCircuit, Calculator
+  User, HandCoins, CalendarClock, BrainCircuit, Calculator, Github
 } from 'lucide-react';
 import { useUIStore } from '@/store/ui.store';
 import { useAuth } from '@/components/providers/AuthProvider';
@@ -110,10 +110,24 @@ export function Sidebar() {
             {user?.name?.charAt(0) || 'U'}
           </Link>
         )}
+        <a
+          href="https://github.com/meibraransari/hoorain-os.git"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cn(
+            "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-[#8888a8] hover:text-white hover:bg-[#1a1a28] transition-colors mb-2 cursor-pointer font-medium",
+            sidebarCollapsed && "justify-center"
+          )}
+          title="GitHub Repository — hoorain-os"
+        >
+          <Github size={18} className="shrink-0 text-accent" />
+          {!sidebarCollapsed && <span>GitHub Repo</span>}
+        </a>
+
         <button 
           onClick={logout}
           className={cn(
-            "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-danger hover:bg-danger/10 transition-colors",
+            "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-danger hover:bg-danger/10 transition-colors cursor-pointer",
             sidebarCollapsed && "justify-center"
           )}
           title={sidebarCollapsed ? "Logout" : undefined}

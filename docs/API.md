@@ -1,5 +1,6 @@
-# 📡 FinanceOS API Reference
+# 📡 Hoorain OS API Reference
 
+**Repository:** `https://github.com/meibraransari/hoorain-os.git`  
 **Base URL:** `http://localhost:8080/api/v1`  
 **Interactive Docs:** `http://localhost:8080/api/docs` (Swagger UI)  
 **Content-Type:** `application/json` (unless uploading files)

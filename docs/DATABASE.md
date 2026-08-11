@@ -1,4 +1,6 @@
-# 🗄 FinanceOS Database Documentation
+# 🗄 Hoorain OS Database Documentation
+
+**Repository:** `https://github.com/meibraransari/hoorain-os.git`
 
 ## Table of Contents
 - [Schema Overview](#schema-overview)
@@ -12,7 +14,7 @@
 
 ## Schema Overview
 
-FinanceOS uses **PostgreSQL 17** with the following design principles:
+Hoorain OS uses **PostgreSQL 17** with the following design principles:
 
 - **UUID primary keys** everywhere (via `uuid-ossp`)
 - **Soft deletes** via `is_active` flags (no hard deletes for critical data)

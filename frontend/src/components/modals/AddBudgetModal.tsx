@@ -133,6 +133,7 @@ export function AddBudgetModal({ isOpen, onClose, budgetToEdit }: AddBudgetModal
               <SmoothSelect
                 value={period}
                 onChange={(val) => setPeriod(val)}
+                dropPosition="top"
                 options={[
                   { value: 'monthly', label: 'Monthly' },
                   { value: 'weekly', label: 'Weekly' },

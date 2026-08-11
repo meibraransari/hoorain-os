@@ -1,8 +1,12 @@
 {
-  "name": "finance-platform-backend",
+  "name": "hoorain-os-backend",
   "version": "1.0.0",
-  "description": "FinanceOS Backend",
-  "author": "",
+  "description": "Hoorain OS Backend",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/meibraransari/hoorain-os.git"
+  },
+  "author": "Md Ibrar Ansari",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
