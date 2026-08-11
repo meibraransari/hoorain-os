@@ -277,7 +277,12 @@ For a static reference, see [docs/API.md](docs/API.md).
 git pull origin main
 
 # 2. Rebuild images
+```bash
+# 1. Build and tag images locally
 docker compose build
+
+# 2. Push production images to Docker Hub repository (ibraransaridocker)
+docker compose push
 
 # 3. Apply any new migrations
 docker compose exec backend npm run migration:run
@@ -285,9 +290,13 @@ docker compose exec backend npm run migration:run
 # 4. Restart with new images
 docker compose up -d
 
-# 5. Verify health
+# 5. Verify container health
 docker compose ps
 ```
+
+### 🐳 Docker Hub Pre-Built Images:
+- **Backend:** `ibraransaridocker/hoorain-backend:latest`
+- **Frontend:** `ibraransaridocker/hoorain-frontend:latest`
 
 > Always back up before upgrading: `make backup`
 

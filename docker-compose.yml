@@ -38,6 +38,7 @@ services:
       - hoorain-network
 
   backend:
+    image: ibraransaridocker/hoorain-backend:latest
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -80,6 +81,7 @@ services:
       - hoorain-network
 
   frontend:
+    image: ibraransaridocker/hoorain-frontend:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile
