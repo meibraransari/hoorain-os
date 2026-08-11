@@ -15,7 +15,7 @@ export class ExportController {
   @Get('transactions')
   @ApiOperation({ summary: "Export user's transactions as CSV or JSON" })
   async exportTransactions(@Query() query: ExportQueryDto, @Req() req: any, @Res() res: Response) {
-    const transactions = await this.exportService.getTransactions(req.user.id);
+    const transactions = await this.exportService.getTransactions(req.user.id, query);
 
     if (query.format === 'csv') {
       const csv = this.exportService.toCsv(transactions);

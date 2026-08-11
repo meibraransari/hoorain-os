@@ -11,7 +11,10 @@ import { promisify } from 'util';
 import * as fs from 'fs';
 import * as path from 'path';
 
+import { ExportQueryDto } from './dto/export-query.dto';
+
 const execAsync = promisify(exec);
+
 
 const CSV_COLUMNS = [
   'id',
@@ -100,12 +103,40 @@ export class ExportService {
     }
   }
 
-  async getTransactions(userId: string): Promise<Transaction[]> {
-    return this.transactionRepo.find({
-      where: { userId },
-      relations: ['account', 'category'],
-      order: { date: 'DESC' },
-    });
+  async getTransactions(userId: string, query?: ExportQueryDto): Promise<Transaction[]> {
+    const qb = this.transactionRepo
+      .createQueryBuilder('transaction')
+      .leftJoinAndSelect('transaction.account', 'account')
+      .leftJoinAndSelect('transaction.category', 'category')
+      .where('transaction.userId = :userId', { userId });
+
+    if (query?.search && query.search.trim() !== '' && query.search !== 'undefined') {
+      qb.andWhere('(transaction.title ILIKE :search OR transaction.notes ILIKE :search)', { search: `%${query.search}%` });
+    }
+    if (query?.accountId && query.accountId !== 'undefined') {
+      qb.andWhere('transaction.accountId = :accountId', { accountId: query.accountId });
+    }
+    if (query?.type && query.type !== 'undefined') {
+      if (query.type === 'transfer') {
+        qb.andWhere('(transaction.type = \'transfer\' OR transaction.isTransfer = true)');
+      } else if (query.type === 'expense') {
+        qb.andWhere('transaction.type = \'expense\' AND (transaction.isTransfer IS NOT TRUE)');
+      } else if (query.type === 'income') {
+        qb.andWhere('transaction.type = \'income\' AND (transaction.isTransfer IS NOT TRUE)');
+      } else {
+        qb.andWhere('transaction.type = :type', { type: query.type });
+      }
+    }
+    if (query?.from) {
+      qb.andWhere('DATE(transaction.date) >= :from', { from: query.from });
+    }
+    if (query?.to) {
+      qb.andWhere('DATE(transaction.date) <= :to', { to: query.to });
+    }
+
+    qb.orderBy('transaction.date', 'DESC').addOrderBy('transaction.createdAt', 'DESC');
+
+    return qb.getMany();
   }
 
   async getFullBackup(userId: string) {

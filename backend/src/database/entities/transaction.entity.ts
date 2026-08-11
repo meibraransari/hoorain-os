@@ -1,6 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { Account } from './account.entity';
 import { Category } from './category.entity';
+import { Budget } from './budget.entity';
+import { Goal } from './goal.entity';
 import { User } from './user.entity';
 import { TransactionTag } from './transaction-tag.entity';
 import { TransactionSplit } from './transaction-split.entity';
@@ -31,8 +33,16 @@ export class Transaction {
   @Column({ name: 'category_id', nullable: true })
   categoryId: string;
 
+  @ManyToOne(() => Goal, { nullable: true })
+  @JoinColumn({ name: 'goal_id' })
+  goal: Goal;
+
   @Column({ name: 'goal_id', nullable: true })
   goalId: string;
+
+  @ManyToOne(() => Budget, { nullable: true })
+  @JoinColumn({ name: 'budget_id' })
+  budget: Budget;
 
   @Column({ name: 'budget_id', nullable: true })
   budgetId: string;

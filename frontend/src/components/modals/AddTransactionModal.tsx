@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
+import { X, ArrowRightLeft, TrendingDown, TrendingUp } from 'lucide-react';
 import { useTransactions, useAccounts, useCategories, useGoals, useBudgets } from '@/lib/hooks/useFinance';
 import { renderCategoryIcon, renderAccountIcon, formatCurrency } from '@/lib/utils';
 import { SmoothSelect } from '@/components/ui/SmoothSelect';
@@ -79,8 +79,10 @@ export function AddTransactionModal({ isOpen, onClose, transactionToEdit }: AddT
       const resolvedType = isTxTransfer ? 'transfer' : (transactionToEdit.type || 'expense');
       setType(resolvedType);
       setAmount(transactionToEdit.amount ? Math.abs(parseFloat(transactionToEdit.amount)).toString() : '');
-      
-      setTitle(transactionToEdit.title || transactionToEdit.notes || '');
+
+      // Decouple title and notes properly
+      setTitle(transactionToEdit.title || '');
+      setNotes(transactionToEdit.notes || transactionToEdit.description || '');
 
       const resolvedAccId = transactionToEdit.accountId || (typeof transactionToEdit.account === 'object' ? transactionToEdit.account?.id : '') || (accounts[0]?.id ?? '');
       setAccountId(resolvedAccId);
@@ -91,7 +93,6 @@ export function AddTransactionModal({ isOpen, onClose, transactionToEdit }: AddT
       setGoalId(transactionToEdit.goalId || '');
       setBudgetId(transactionToEdit.budgetId || '');
 
-      // Format date and time ISO string
       if (transactionToEdit.date) {
         try {
           const d = new Date(transactionToEdit.date);
@@ -107,7 +108,6 @@ export function AddTransactionModal({ isOpen, onClose, transactionToEdit }: AddT
         setDateTime(toLocalISOString(new Date()));
       }
 
-      setNotes(transactionToEdit.notes || '');
       setExcludeFromBalance(!!transactionToEdit.excludeFromBalance);
     } else {
       setType('expense');
@@ -179,79 +179,105 @@ export function AddTransactionModal({ isOpen, onClose, transactionToEdit }: AddT
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="card w-full max-w-lg bg-bg-card border border-border rounded-xl shadow-2xl overflow-hidden my-auto animate-fade-in">
-        <div className="flex items-center justify-between border-b border-border px-6 py-4">
-          <h2 className="text-xl font-bold text-text-primary">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto">
+      <div className="card w-full max-w-lg bg-[#141420] border border-[#2a2a3e] rounded-2xl shadow-2xl overflow-hidden my-auto ring-1 ring-white/10 animate-in fade-in-0 zoom-in-95 duration-200">
+        {/* Modal Header Bar */}
+        <div className="flex items-center justify-between border-b border-[#26263a] px-6 py-4 bg-[#181826]">
+          <h2 className="text-xl font-bold tracking-tight text-[#ffffff]">
             {transactionToEdit ? 'Edit Transaction' : 'Add New Transaction'}
           </h2>
-          <button onClick={onClose} className="text-text-muted hover:text-text-primary transition-colors">
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-xl text-[#8888a8] hover:text-[#ffffff] hover:bg-[#222234] transition-all cursor-pointer"
+          >
             <X size={20} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
-          {error && <div className="p-3 text-sm rounded-lg bg-expense/10 text-expense border border-expense/20">{error}</div>}
+        <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[82vh] overflow-y-auto scrollbar-thin">
+          {error && (
+            <div className="p-3.5 text-sm rounded-xl bg-rose-500/15 text-rose-300 border border-rose-500/30 font-medium">
+              {error}
+            </div>
+          )}
 
           {/* Type Selector Tabs */}
-          <div className="grid grid-cols-3 gap-2 p-1 bg-bg-hover rounded-xl border border-border">
+          <div className="grid grid-cols-3 gap-2 p-1.5 bg-[#0e0e17] rounded-2xl border border-[#242436]">
             <button
               type="button"
               onClick={() => setType('expense')}
-              className={`py-2 rounded-lg text-sm font-medium transition-all ${
-                type === 'expense' ? 'bg-expense text-white shadow-md font-bold' : 'text-text-muted hover:text-text-primary'
+              className={`py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                type === 'expense'
+                  ? 'bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-500/25 scale-[1.02]'
+                  : 'text-[#8888a8] hover:text-[#ffffff] hover:bg-[#1a1a28]'
               }`}
             >
-              Expense
+              <TrendingDown size={15} />
+              <span>Expense</span>
             </button>
             <button
               type="button"
               onClick={() => setType('income')}
-              className={`py-2 rounded-lg text-sm font-medium transition-all ${
-                type === 'income' ? 'bg-income text-white shadow-md font-bold' : 'text-text-muted hover:text-text-primary'
+              className={`py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                type === 'income'
+                  ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/25 scale-[1.02]'
+                  : 'text-[#8888a8] hover:text-[#ffffff] hover:bg-[#1a1a28]'
               }`}
             >
-              Income
+              <TrendingUp size={15} />
+              <span>Income</span>
             </button>
             <button
               type="button"
               onClick={() => setType('transfer')}
-              className={`py-2 rounded-lg text-sm font-medium transition-all ${
-                type === 'transfer' ? 'bg-accent text-white shadow-md font-bold' : 'text-text-muted hover:text-text-primary'
+              className={`py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                type === 'transfer'
+                  ? 'bg-gradient-to-r from-violet-500 to-indigo-600 text-white shadow-lg shadow-violet-500/25 scale-[1.02]'
+                  : 'text-[#8888a8] hover:text-[#ffffff] hover:bg-[#1a1a28]'
               }`}
             >
-              Transfer
+              <ArrowRightLeft size={15} />
+              <span>Transfer</span>
             </button>
           </div>
 
+          {/* Amount Input */}
           <div>
-            <label className="block text-xs font-semibold uppercase text-text-muted mb-1">Amount</label>
+            <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+              Amount
+            </label>
             <input
               type="number"
               step="any"
               placeholder="0.00"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full text-2xl font-bold rounded-lg border border-border bg-bg-hover px-4 py-3 text-text-primary focus:border-accent focus:outline-none"
+              className="w-full text-3xl font-extrabold rounded-2xl border border-[#2b2b40] bg-[#10101a] px-4 py-3.5 text-[#ffffff] focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/30 focus:outline-none transition-all"
               required
             />
           </div>
 
+          {/* Title Field */}
           <div>
-            <label className="block text-xs font-semibold uppercase text-text-muted mb-1">Title / Merchant / Description</label>
+            <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+              Title / Merchant / Description
+            </label>
             <input
               type="text"
               placeholder="e.g. Groceries, Salary, Rent"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full rounded-lg border border-border bg-bg-hover px-4 py-2.5 text-text-primary focus:border-accent focus:outline-none"
+              className="w-full rounded-xl border border-[#2b2b40] bg-[#10101a] px-4 py-2.5 text-sm text-[#ffffff] focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/30 focus:outline-none transition-all font-medium"
             />
           </div>
 
+          {/* Account & Category Pickers */}
           {type !== 'transfer' ? (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold uppercase text-text-muted mb-1">Account</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+                  Account
+                </label>
                 <SmoothSelect
                   value={accountId}
                   onChange={(val) => setAccountId(val)}
@@ -267,7 +293,9 @@ export function AddTransactionModal({ isOpen, onClose, transactionToEdit }: AddT
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase text-text-muted mb-1">Category</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+                  Category
+                </label>
                 <SmoothSelect
                   value={categoryId}
                   onChange={(val) => setCategoryId(val)}
@@ -286,105 +314,125 @@ export function AddTransactionModal({ isOpen, onClose, transactionToEdit }: AddT
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4 items-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold uppercase text-text-muted mb-1">From Account</label>
-                <select
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+                  From Account
+                </label>
+                <SmoothSelect
                   value={accountId}
-                  onChange={(e) => setAccountId(e.target.value)}
-                  className="w-full rounded-lg border border-border bg-bg-hover px-3 py-2.5 text-text-primary focus:border-accent focus:outline-none cursor-pointer font-medium"
-                >
-                  {accounts.map((acc: any) => (
-                    <option key={acc.id} value={acc.id} className="bg-bg-card text-text-primary py-1">
-                      {renderAccountIcon(acc.name, acc.type)} {acc.name} ({acc.currency})
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setAccountId(val)}
+                  searchable
+                  placeholder="Select From Account"
+                  options={accounts.map((acc: any) => ({
+                    value: acc.id,
+                    label: acc.name,
+                    icon: renderAccountIcon(acc.name, acc.type),
+                    description: `${acc.currency || 'INR'} • ${formatCurrency(acc.currentBalance ?? acc.balance ?? 0)}`,
+                  }))}
+                />
               </div>
               <div>
-                <label className="block text-xs font-semibold uppercase text-text-muted mb-1">To Account</label>
-                <select
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+                  To Account
+                </label>
+                <SmoothSelect
                   value={targetAccountId}
-                  onChange={(e) => setTargetAccountId(e.target.value)}
-                  className="w-full rounded-lg border border-border bg-bg-hover px-3 py-2.5 text-text-primary focus:border-accent focus:outline-none cursor-pointer font-medium"
-                >
-                  {accounts.filter((acc: any) => acc.id !== accountId).map((acc: any) => (
-                    <option key={acc.id} value={acc.id} className="bg-bg-card text-text-primary py-1">
-                      {renderAccountIcon(acc.name, acc.type)} {acc.name} ({acc.currency})
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setTargetAccountId(val)}
+                  searchable
+                  placeholder="Select To Account"
+                  options={accounts
+                    .filter((acc: any) => acc.id !== accountId)
+                    .map((acc: any) => ({
+                      value: acc.id,
+                      label: acc.name,
+                      icon: renderAccountIcon(acc.name, acc.type),
+                      description: `${acc.currency || 'INR'} • ${formatCurrency(acc.currentBalance ?? acc.balance ?? 0)}`,
+                    }))}
+                />
               </div>
             </div>
           )}
 
-          {/* Link to Monthly Budget & Link to Financial Goal */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Budget & Goal Pickers */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold uppercase text-text-muted mb-1">Link to Monthly Budget (Optional)</label>
-              <select
+              <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+                Link to Monthly Budget (Optional)
+              </label>
+              <SmoothSelect
                 value={budgetId}
-                onChange={(e) => setBudgetId(e.target.value)}
-                className="w-full rounded-lg border border-border bg-bg-hover px-3 py-2.5 text-text-primary focus:border-accent focus:outline-none cursor-pointer font-medium"
-              >
-                <option value="" className="bg-bg-card text-text-primary">🚫 No Linked Budget</option>
-                {budgets.map((b: any) => (
-                  <option key={b.id} value={b.id} className="bg-bg-card text-text-primary py-1">
-                    📊 {b.name} (Limit: {formatCurrency(b.amount)})
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setBudgetId(val)}
+                searchable
+                placeholder="🚫 No Linked Budget"
+                options={[
+                  { value: '', label: '🚫 No Linked Budget' },
+                  ...budgets.map((b: any) => ({
+                    value: b.id,
+                    label: b.name,
+                    icon: '📊',
+                    description: `Limit: ${formatCurrency(b.amount)}`,
+                  })),
+                ]}
+              />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase text-text-muted mb-1">Link to Financial Goal (Optional)</label>
-              <select
+              <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+                Link to Financial Goal (Optional)
+              </label>
+              <SmoothSelect
                 value={goalId}
-                onChange={(e) => setGoalId(e.target.value)}
-                className="w-full rounded-lg border border-border bg-bg-hover px-3 py-2.5 text-text-primary focus:border-accent focus:outline-none cursor-pointer font-medium"
-              >
-                <option value="" className="bg-bg-card text-text-primary">🚫 No Linked Goal</option>
-                {goals.map((g: any) => (
-                  <option key={g.id} value={g.id} className="bg-bg-card text-text-primary py-1">
-                    {g.type === 'expense' ? '🔴' : '💚'} {g.name} (Target: {formatCurrency(g.targetAmount)})
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setGoalId(val)}
+                searchable
+                placeholder="🚫 No Linked Goal"
+                options={[
+                  { value: '', label: '🚫 No Linked Goal' },
+                  ...goals.map((g: any) => ({
+                    value: g.id,
+                    label: g.name,
+                    icon: g.type === 'expense' ? '🔴' : '💚',
+                    description: `Target: ${formatCurrency(g.targetAmount)}`,
+                  })),
+                ]}
+              />
             </div>
           </div>
 
-          {/* Fancy Date & Time Selection Picker */}
+          {/* Date & Time Selection Picker */}
           <FancyDateTimePicker
             value={dateTime}
             onChange={(val) => setDateTime(val)}
             label="Date & Time Selection"
           />
 
-          {/* Bigger Notes / Description Textarea Box at Below Side */}
+          {/* Notes / Description Textarea Field */}
           <div>
-            <label className="block text-xs font-semibold uppercase text-text-muted mb-1">Notes / Description</label>
+            <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+              Notes / Description
+            </label>
             <textarea
-              rows={4}
-              placeholder="Enter additional notes, details, or transaction memo..."
+              rows={3}
+              placeholder="Enter additional notes, memo, or transaction details..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full rounded-lg border border-border bg-bg-hover p-3 text-sm text-text-primary focus:border-accent focus:outline-none resize-y min-h-[90px]"
+              className="w-full rounded-xl border border-[#2b2b40] bg-[#10101a] p-3.5 text-sm text-[#ffffff] focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/30 focus:outline-none transition-all resize-y min-h-[85px] font-medium"
             />
           </div>
 
-          {/* Exclude Amount Toggle Switch Button (below Notes / Description) */}
-          <div className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-bg-hover/60">
+          {/* Exclude Amount Switch */}
+          <div className="flex items-center justify-between p-3.5 rounded-2xl border border-[#26263a] bg-[#181826]">
             <div>
-              <span className="text-sm font-semibold text-text-primary block">Exclude Amount</span>
-              <span className="text-xs text-text-muted">
-                Creates a transaction entry without adding or subtracting from account balance.
+              <span className="text-sm font-bold text-[#ffffff] block">Exclude Amount</span>
+              <span className="text-xs text-[#8888a8]">
+                Creates an entry without adding or subtracting from account balance.
               </span>
             </div>
             <button
               type="button"
               onClick={() => setExcludeFromBalance(!excludeFromBalance)}
               className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                excludeFromBalance ? 'bg-accent' : 'bg-bg-card border-border'
+                excludeFromBalance ? 'bg-[#6c63ff]' : 'bg-[#10101a] border-[#2b2b40]'
               }`}
             >
               <span
@@ -395,18 +443,19 @@ export function AddTransactionModal({ isOpen, onClose, transactionToEdit }: AddT
             </button>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-border">
+          {/* Footer Buttons */}
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#26263a]">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg text-sm text-text-muted hover:text-text-primary transition-colors"
+              className="px-4 py-2.5 rounded-xl text-sm font-semibold text-[#8888a8] hover:text-[#ffffff] hover:bg-[#1f1f2e] transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2 rounded-lg text-sm font-semibold bg-accent text-white hover:bg-accent-light transition-colors disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl text-sm font-bold bg-[#6c63ff] text-white shadow-lg shadow-[#6c63ff]/30 hover:bg-[#8b85ff] hover:scale-[1.02] transition-all cursor-pointer disabled:opacity-50"
             >
               {loading ? 'Saving...' : transactionToEdit ? 'Update Transaction' : 'Add Transaction'}
             </button>

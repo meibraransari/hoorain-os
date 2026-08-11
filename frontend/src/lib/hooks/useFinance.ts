@@ -114,6 +114,7 @@ export function useTransactions(filters?: Record<string, any>) {
   return {
     transactions: (data as any)?.items ?? (data as any)?.data ?? (Array.isArray(data) ? data : []),
     total: (data as any)?.meta?.total ?? 0,
+    summary: (data as any)?.summary ?? null,
     isLoading,
     error,
     createTransaction,

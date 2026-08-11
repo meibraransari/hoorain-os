@@ -46,62 +46,72 @@ export function SmoothSelect({
   }, []);
 
   const filteredOptions = searchable && search
-    ? options.filter((opt) => opt.label.toLowerCase().includes(search.toLowerCase()))
+    ? options.filter(
+        (opt) =>
+          opt.label.toLowerCase().includes(search.toLowerCase()) ||
+          (opt.description && opt.description.toLowerCase().includes(search.toLowerCase()))
+      )
     : options;
 
   return (
     <div ref={containerRef} className={`relative w-full ${className}`}>
-      {/* Select Trigger */}
+      {/* Trigger Button */}
       <button
         type="button"
         disabled={disabled}
         onClick={() => setIsOpen((prev) => !prev)}
-        className={`w-full px-3.5 py-2.5 bg-bg-card border rounded-xl text-sm flex items-center justify-between transition-all duration-200 focus:outline-none ${
+        className={`w-full px-4 py-2.5 bg-[#10101a] border rounded-xl text-sm flex items-center justify-between transition-all duration-200 focus:outline-none shadow-xs ${
           isOpen
-            ? 'border-accent ring-2 ring-accent/20 shadow-md'
-            : 'border-border hover:border-accent/50'
+            ? 'border-[#6c63ff] ring-2 ring-[#6c63ff]/30 bg-[#141420] shadow-lg shadow-[#6c63ff]/10'
+            : 'border-[#2b2b40] hover:border-[#6c63ff]/60 hover:bg-[#161624]'
         } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
       >
-        <span className="flex items-center gap-2 truncate text-text-primary font-medium">
+        <span className="flex items-center gap-2.5 truncate text-[#ffffff] font-medium">
           {selectedOption ? (
             <>
-              {selectedOption.icon && <span className="shrink-0">{selectedOption.icon}</span>}
-              <span>{selectedOption.label}</span>
+              {selectedOption.icon && (
+                <span className="shrink-0 flex items-center justify-center text-sm">
+                  {selectedOption.icon}
+                </span>
+              )}
+              <span className="truncate">{selectedOption.label}</span>
             </>
           ) : (
-            <span className="text-text-muted">{placeholder}</span>
+            <span className="text-[#8888a8]">{placeholder}</span>
           )}
         </span>
         <ChevronDown
           size={16}
-          className={`text-text-muted shrink-0 transition-transform duration-200 ${
-            isOpen ? 'rotate-180 text-accent' : ''
+          className={`text-[#8888a8] shrink-0 transition-transform duration-200 ${
+            isOpen ? 'rotate-180 text-[#6c63ff]' : ''
           }`}
         />
       </button>
 
-      {/* Smooth Animated Dropdown Menu */}
+      {/* Popover Dropdown Menu */}
       {isOpen && (
-        <div className="absolute z-50 mt-1.5 w-full bg-bg-card border border-border/80 rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute z-50 mt-2 w-full bg-[#141422] border border-[#2b2b40] rounded-2xl shadow-2xl overflow-hidden ring-1 ring-white/10 animate-in fade-in-0 zoom-in-95 duration-150">
           {searchable && (
-            <div className="p-2 border-b border-border bg-bg-hover/30">
+            <div className="p-2.5 border-b border-[#242436] bg-[#10101a]">
               <div className="relative flex items-center">
-                <Search size={14} className="absolute left-2.5 text-text-muted" />
+                <Search size={14} className="absolute left-3 text-[#8888a8]" />
                 <input
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search options..."
-                  className="w-full pl-8 pr-3 py-1.5 text-xs bg-bg-card border border-border rounded-lg text-text-primary focus:outline-none focus:border-accent"
+                  placeholder="Search..."
+                  className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#181826] border border-[#2d2d44] rounded-lg text-[#ffffff] focus:outline-none focus:border-[#6c63ff] focus:ring-1 focus:ring-[#6c63ff]/30 font-medium"
                   autoFocus
                 />
               </div>
             </div>
           )}
 
-          <div className="max-h-56 overflow-y-auto p-1.5 space-y-0.5 scrollbar-thin">
+          <div className="max-h-60 overflow-y-auto p-1.5 space-y-1 scrollbar-thin">
             {filteredOptions.length === 0 ? (
-              <div className="px-3 py-2 text-xs text-text-muted text-center">No options found</div>
+              <div className="px-3 py-3 text-xs text-[#8888a8] text-center italic">
+                No matching options
+              </div>
             ) : (
               filteredOptions.map((opt) => {
                 const isSelected = opt.value === value;
@@ -114,22 +124,30 @@ export function SmoothSelect({
                       setIsOpen(false);
                       setSearch('');
                     }}
-                    className={`w-full px-3 py-2 text-left text-xs font-medium rounded-lg flex items-center justify-between transition-all duration-150 ${
+                    className={`w-full px-3 py-2 text-left rounded-xl flex items-center justify-between transition-all duration-150 cursor-pointer ${
                       isSelected
-                        ? 'bg-accent/15 text-accent font-semibold'
-                        : 'text-text-primary hover:bg-bg-hover hover:text-text-primary'
+                        ? 'bg-[#6c63ff]/20 text-[#6c63ff] font-bold ring-1 ring-[#6c63ff]/40 shadow-xs'
+                        : 'text-[#ffffff] hover:bg-[#1f1f30]'
                     }`}
                   >
-                    <div className="flex items-center gap-2 truncate">
-                      {opt.icon && <span className="shrink-0 text-sm">{opt.icon}</span>}
-                      <div>
-                        <div>{opt.label}</div>
+                    <div className="flex items-center gap-2.5 truncate min-w-0 pr-2">
+                      {opt.icon && (
+                        <span className="shrink-0 text-base flex items-center justify-center">
+                          {opt.icon}
+                        </span>
+                      )}
+                      <div className="flex flex-col truncate">
+                        <span className="text-xs font-semibold truncate leading-snug">
+                          {opt.label}
+                        </span>
                         {opt.description && (
-                          <div className="text-[10px] text-text-muted">{opt.description}</div>
+                          <span className="text-[10px] text-[#8888a8] font-medium truncate mt-0.5">
+                            {opt.description}
+                          </span>
                         )}
                       </div>
                     </div>
-                    {isSelected && <Check size={14} className="text-accent shrink-0" />}
+                    {isSelected && <Check size={14} className="text-[#6c63ff] shrink-0 font-bold" />}
                   </button>
                 );
               })

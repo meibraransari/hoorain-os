@@ -83,6 +83,8 @@ export class TransactionsService implements OnModuleInit {
       .createQueryBuilder('transaction')
       .leftJoinAndSelect('transaction.account', 'account')
       .leftJoinAndSelect('transaction.category', 'category')
+      .leftJoinAndSelect('transaction.budget', 'budget')
+      .leftJoinAndSelect('transaction.goal', 'goal')
       .where('transaction.userId = :userId', { userId });
 
     if (query.search && query.search.trim() !== '' && query.search !== 'undefined') {
@@ -106,21 +108,77 @@ export class TransactionsService implements OnModuleInit {
       }
     }
     if (query.from) {
-      qb.andWhere('transaction.date >= :from', { from: query.from });
+      qb.andWhere('DATE(transaction.date) >= :from', { from: query.from });
     }
     if (query.to) {
-      qb.andWhere('transaction.date <= :to', { to: query.to });
+      qb.andWhere('DATE(transaction.date) <= :to', { to: query.to });
     }
 
-    qb.orderBy('transaction.date', 'DESC')
+    // Compute period summary totals for all matching transactions (unpaginated)
+    let periodIncome = 0;
+    let periodExpense = 0;
+
+    try {
+      const summaryQb = this.transactionRepo
+        .createQueryBuilder('transaction')
+        .select(
+          "SUM(CASE WHEN transaction.type = 'income' AND (transaction.isTransfer IS NOT TRUE OR transaction.isTransfer IS NULL) THEN transaction.amount ELSE 0 END)",
+          'income'
+        )
+        .addSelect(
+          "SUM(CASE WHEN transaction.type = 'expense' AND (transaction.isTransfer IS NOT TRUE OR transaction.isTransfer IS NULL) THEN transaction.amount ELSE 0 END)",
+          'expense'
+        )
+        .where('transaction.userId = :userId', { userId });
+
+      if (query.search && query.search.trim() !== '' && query.search !== 'undefined') {
+        summaryQb.andWhere('(transaction.title ILIKE :search OR transaction.notes ILIKE :search)', { search: `%${query.search}%` });
+      }
+      if (query.accountId && query.accountId !== 'undefined') {
+        summaryQb.andWhere('transaction.accountId = :accountId', { accountId: query.accountId });
+      }
+      if (query.categoryId && query.categoryId !== 'undefined') {
+        summaryQb.andWhere('transaction.categoryId = :categoryId', { categoryId: query.categoryId });
+      }
+      if (query.type && query.type !== 'undefined') {
+        if ((query.type as string) === 'transfer') {
+          summaryQb.andWhere('(transaction.type = \'transfer\' OR transaction.isTransfer = true)');
+        } else if ((query.type as string) === 'expense') {
+          summaryQb.andWhere('transaction.type = \'expense\' AND (transaction.isTransfer IS NOT TRUE)');
+        } else if ((query.type as string) === 'income') {
+          summaryQb.andWhere('transaction.type = \'income\' AND (transaction.isTransfer IS NOT TRUE)');
+        } else {
+          summaryQb.andWhere('transaction.type = :type', { type: query.type });
+        }
+      }
+      if (query.from) {
+        summaryQb.andWhere('DATE(transaction.date) >= :from', { from: query.from });
+      }
+      if (query.to) {
+        summaryQb.andWhere('DATE(transaction.date) <= :to', { to: query.to });
+      }
+
+      const summaryRaw = await summaryQb.getRawOne();
+      periodIncome = parseFloat(summaryRaw?.income || '0') || 0;
+      periodExpense = parseFloat(summaryRaw?.expense || '0') || 0;
+    } catch (summaryErr) {
+      console.error('Error calculating period summary in TransactionsService:', summaryErr);
+    }
+
+    const [items, total] = await qb
+      .orderBy('transaction.date', 'DESC')
       .addOrderBy('transaction.createdAt', 'DESC')
       .skip((page - 1) * limit)
-      .take(limit);
-
-    const [items, total] = await qb.getManyAndCount();
+      .take(limit)
+      .getManyAndCount();
 
     return {
       items,
+      summary: {
+        income: periodIncome,
+        expense: periodExpense,
+        net: periodIncome - periodExpense,
+      },
       meta: {
         total,
         page,
