@@ -11,13 +11,27 @@ _Track everything. Own your data. Never pay a subscription._
 
 ## 🔑 First-Time Admin Setup & Login
 
-When you launch **Hoorain** for the first time via `docker compose up -d`, an initial administrator account is automatically seeded into the database:
+When you launch **Hoorain** for the first time via `docker compose up -d`, an initial administrator account is automatically generated during backend startup by the `AdminSeederService` ([admin.seeder.ts](file:///d:/Anti_Gravity_RAW/finance-platform/backend/src/database/seeders/admin.seeder.ts)):
 
-- **Username:** `admin`
-- **Email:** `admin@hoorain.app`
-- **Default Password:** `AdminPass123!`
+### 🤖 How Admin Creation Works on Startup:
+1. **Startup Check**: Upon NestJS container boot, `AdminSeederService.seed()` checks if an administrator record with `username = 'admin'` exists in PostgreSQL.
+2. **Automatic Creation**: If no admin is found, it automatically creates the default administrator account using a bcrypt-hashed password and logs the setup banner to container stdout:
+   ```
+   ╔══════════════════════════════════════╗
+   ║     Hoorain — First Boot Setup       ║
+   ╠══════════════════════════════════════╣
+   ║  Admin Account Created               ║
+   ║  Username: admin                     ║
+   ║  Password: AdminPass123!             ║
+   ╚══════════════════════════════════════╝
+   ```
+3. **Default Credentials**:
+   - **Username:** `admin`
+   - **Email:** `admin@hoorain.app`
+   - **Default Password:** `AdminPass123!`
+   - **Role:** `ADMIN`
 
-> ⚠️ **Security Tip:** After logging in for the first time, update your admin password from the Settings page.
+> ⚠️ **Security Tip:** After logging in for the first time at `http://localhost:8080`, navigate to **Profile** or **Settings** to update your admin password.
 
 ### Creating Additional Admin Users
 You can create new users or secondary administrator accounts via the API:
