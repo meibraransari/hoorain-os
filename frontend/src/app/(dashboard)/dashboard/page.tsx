@@ -11,6 +11,7 @@ import { CollapsibleCard } from '@/components/ui/CollapsibleCard';
 import { QuickTransferWidget } from '@/components/ui/QuickTransferWidget';
 import { CategoryAnalyticsWidget } from '@/components/ui/CategoryAnalyticsWidget';
 import { AddTransactionModal } from '@/components/modals/AddTransactionModal';
+import { DateRangePicker } from '@/components/ui/DateRangePicker';
 import {
   Wallet,
   TrendingUp,
@@ -59,7 +60,10 @@ export default function DashboardPage() {
 
   const [isAddTxOpen, setIsAddTxOpen] = useState(false);
   const [isAddWidgetOpen, setIsAddWidgetOpen] = useState(false);
-  const [chartTimeframe, setChartTimeframe] = useState<'thisMonth' | 'monthlyTrend'>('thisMonth');
+  const [chartTimeframe, setChartTimeframe] = useState<'thisMonth' | 'monthlyTrend' | 'customRange'>('thisMonth');
+  const [customStartDate, setCustomStartDate] = useState<string>('');
+  const [customEndDate, setCustomEndDate] = useState<string>('');
+  const [customPresetKey, setCustomPresetKey] = useState<string>('all');
 
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -181,6 +185,17 @@ export default function DashboardPage() {
     return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   }, [currentMonthKey]);
 
+  const handleSelectCustomRange = (start: string, end: string, presetKey: string) => {
+    setCustomStartDate(start);
+    setCustomEndDate(end);
+    setCustomPresetKey(presetKey);
+    if (start || end || (presetKey && presetKey !== 'all')) {
+      setChartTimeframe('customRange');
+    } else {
+      setChartTimeframe('thisMonth');
+    }
+  };
+
   // Compute Cash Flow Chart Data (Formatted for AreaChart with lowercase income & expense keys)
   const chartData = useMemo(() => {
     if (chartTimeframe === 'thisMonth') {
@@ -213,7 +228,7 @@ export default function DashboardPage() {
         income: Math.round(val.income),
         expense: Math.round(val.expense),
       }));
-    } else {
+    } else if (chartTimeframe === 'monthlyTrend') {
       // 12-Month Trend for current year
       const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       const yrShort = String(currentYear).slice(-2);
@@ -244,8 +259,71 @@ export default function DashboardPage() {
         income: Math.round(val.income),
         expense: Math.round(val.expense),
       }));
+    } else {
+      // Custom Range Trend Analysis
+      const startMs = customStartDate ? new Date(customStartDate + 'T00:00:00').getTime() : 0;
+      const endMs = customEndDate ? new Date(customEndDate + 'T23:59:59').getTime() : Date.now();
+
+      const diffDays = Math.max(1, Math.ceil((endMs - startMs) / (1000 * 60 * 60 * 24)));
+
+      if (diffDays <= 60 && startMs > 0) {
+        // Daily intervals for ranges <= 60 days
+        const sDate = new Date(customStartDate + 'T00:00:00');
+        const eDate = customEndDate ? new Date(customEndDate + 'T23:59:59') : new Date();
+
+        const dayMap: Record<string, { label: string; income: number; expense: number }> = {};
+        for (let d = new Date(sDate); d <= eDate; d.setDate(d.getDate() + 1)) {
+          const iso = d.toISOString().substring(0, 10);
+          const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          dayMap[iso] = { label, income: 0, expense: 0 };
+        }
+
+        transactions.forEach((tx: any) => {
+          if (tx.isTransfer || tx.excludeFromBalance || !tx.date) return;
+          const tMs = new Date(tx.date).getTime();
+          if (tMs >= startMs && tMs <= endMs) {
+            const iso = new Date(tx.date).toISOString().substring(0, 10);
+            const amt = Math.abs(parseFloat(tx.amount) || 0);
+            if (dayMap[iso]) {
+              if (tx.type === 'income' || tx.income === 1) dayMap[iso].income += amt;
+              else dayMap[iso].expense += amt;
+            }
+          }
+        });
+
+        return Object.values(dayMap).map((v) => ({
+          name: v.label,
+          income: Math.round(v.income),
+          expense: Math.round(v.expense),
+        }));
+      } else {
+        // Monthly intervals for larger custom ranges or All Time
+        const monthMap: Record<string, { label: string; income: number; expense: number }> = {};
+
+        transactions.forEach((tx: any) => {
+          if (tx.isTransfer || tx.excludeFromBalance || !tx.date) return;
+          const tMs = new Date(tx.date).getTime();
+          if ((startMs === 0 || tMs >= startMs) && tMs <= endMs) {
+            const d = new Date(tx.date);
+            const mKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            const mLabel = d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+            if (!monthMap[mKey]) monthMap[mKey] = { label: mLabel, income: 0, expense: 0 };
+            const amt = Math.abs(parseFloat(tx.amount) || 0);
+            if (tx.type === 'income' || tx.income === 1) monthMap[mKey].income += amt;
+            else monthMap[mKey].expense += amt;
+          }
+        });
+
+        return Object.entries(monthMap)
+          .sort((a, b) => a[0].localeCompare(b[0]))
+          .map(([, v]) => ({
+            name: v.label,
+            income: Math.round(v.income),
+            expense: Math.round(v.expense),
+          }));
+      }
     }
-  }, [transactions, currentMonthKey, currentYear, chartTimeframe]);
+  }, [transactions, currentMonthKey, currentYear, chartTimeframe, customStartDate, customEndDate]);
 
   // Compute Top Expenses Category Breakdown Data
   const categoryData = useMemo(() => {
@@ -581,30 +659,45 @@ export default function DashboardPage() {
           {showSpendingGraph && (
             <AreaChart
               data={chartData}
-              title={chartTimeframe === 'thisMonth' ? `Daily Cash Flow (${currentMonthLabel})` : '12-Month Cash Flow Trend'}
+              title={
+                chartTimeframe === 'thisMonth'
+                  ? `Daily Cash Flow (${currentMonthLabel})`
+                  : chartTimeframe === 'monthlyTrend'
+                  ? `12-Month Cash Flow Trend (${currentYear})`
+                  : `Cash Flow Trend (${customStartDate && customEndDate ? `${customStartDate} → ${customEndDate}` : 'Custom Range'})`
+              }
               height={320}
               action={
-                <div className="flex items-center gap-1 bg-bg-card p-1 rounded-lg border border-border">
-                  <button
-                    onClick={() => setChartTimeframe('thisMonth')}
-                    className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${
-                      chartTimeframe === 'thisMonth'
-                        ? 'bg-accent text-white shadow'
-                        : 'text-text-secondary hover:text-text-primary'
-                    }`}
-                  >
-                    This Month (Daily)
-                  </button>
-                  <button
-                    onClick={() => setChartTimeframe('monthlyTrend')}
-                    className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${
-                      chartTimeframe === 'monthlyTrend'
-                        ? 'bg-accent text-white shadow'
-                        : 'text-text-secondary hover:text-text-primary'
-                    }`}
-                  >
-                    12-Month Trend
-                  </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex items-center gap-1 bg-bg-card p-1 rounded-xl border border-border shadow-sm">
+                    <button
+                      onClick={() => setChartTimeframe('thisMonth')}
+                      className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                        chartTimeframe === 'thisMonth'
+                          ? 'bg-accent text-white shadow-sm font-bold'
+                          : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
+                      }`}
+                    >
+                      This Month (Daily)
+                    </button>
+                    <button
+                      onClick={() => setChartTimeframe('monthlyTrend')}
+                      className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                        chartTimeframe === 'monthlyTrend'
+                          ? 'bg-accent text-white shadow-sm font-bold'
+                          : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
+                      }`}
+                    >
+                      12-Month Trend
+                    </button>
+                  </div>
+
+                  <DateRangePicker
+                    startDate={customStartDate}
+                    endDate={customEndDate}
+                    datePreset={customPresetKey}
+                    onSelectRange={handleSelectCustomRange}
+                  />
                 </div>
               }
             />
