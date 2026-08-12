@@ -209,16 +209,16 @@ export function DateRangePicker({
           type="button"
           className={`flex items-center gap-2.5 px-4 py-2 rounded-xl border text-sm font-semibold transition-all duration-200 cursor-pointer shadow-md ${
             startDate || endDate || (datePreset && datePreset !== 'all')
-              ? 'border-[#6c63ff] bg-[#6c63ff]/20 text-[#6c63ff] font-bold ring-2 ring-[#6c63ff]/30 shadow-[#6c63ff]/10'
-              : 'border-[#2b2b40] bg-[#141420] hover:bg-[#1a1a2b] hover:border-[#6c63ff]/50 text-[#ffffff]'
+              ? 'border-accent bg-accent/20 text-accent font-bold ring-2 ring-accent/30 shadow-accent/10'
+              : 'border-border bg-bg-card hover:bg-bg-hover hover:border-accent/50 text-text-primary'
           }`}
         >
-          <CalendarIcon size={16} className="text-[#6c63ff] shrink-0" />
+          <CalendarIcon size={16} className="text-accent shrink-0" />
           <span>{displayLabel}</span>
           <ChevronDown
             size={14}
-            className={`text-[#8888a8] shrink-0 transition-transform duration-200 ${
-              isOpen ? 'rotate-180 text-[#6c63ff]' : ''
+            className={`text-text-secondary shrink-0 transition-transform duration-200 ${
+              isOpen ? 'rotate-180 text-accent' : ''
             }`}
           />
         </button>
@@ -228,23 +228,23 @@ export function DateRangePicker({
         <Popover.Content
           align="start"
           sideOffset={8}
-          className="z-50 w-[380px] sm:w-[420px] rounded-2xl border border-[#2b2b40] bg-[#141422] p-5 shadow-2xl ring-1 ring-white/10 animate-in fade-in-0 zoom-in-95"
+          className="z-50 w-[380px] sm:w-[420px] rounded-2xl border border-border bg-bg-card p-5 shadow-2xl ring-1 ring-white/10 animate-in fade-in-0 zoom-in-95"
         >
           {/* Header Bar */}
-          <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#242436]">
+          <div className="flex items-center justify-between pb-3 mb-3 border-b border-border-subtle">
             <div className="flex items-center gap-2">
-              <Sparkles size={16} className="text-[#6c63ff]" />
-              <span className="text-xs font-bold uppercase tracking-wider text-[#ffffff]">
+              <Sparkles size={16} className="text-accent" />
+              <span className="text-xs font-bold uppercase tracking-wider text-text-primary">
                 Custom Date Filter
               </span>
             </div>
-            <span className="text-xs text-[#a0a0cc] font-medium bg-[#1c1c2c] px-2.5 py-0.5 rounded-md border border-[#2b2b40]">
+            <span className="text-xs text-text-secondary font-medium bg-bg-secondary px-2.5 py-0.5 rounded-md border border-border">
               {tempStart && tempEnd ? `${tempStart} → ${tempEnd}` : tempStart ? 'Select End Date' : 'Select Start Date'}
             </span>
           </div>
 
           {/* Preset Chips */}
-          <div className="flex flex-wrap items-center gap-1.5 pb-3.5 border-b border-[#242436]">
+          <div className="flex flex-wrap items-center gap-1.5 pb-3.5 border-b border-border-subtle">
             {[
               { key: 'all', label: 'All Time' },
               { key: 'this_week', label: 'This Week' },
@@ -259,8 +259,8 @@ export function DateRangePicker({
                 onClick={() => handlePresetClick(p.key)}
                 className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   tempPreset === p.key
-                    ? 'bg-[#6c63ff] text-white shadow-md shadow-[#6c63ff]/30 scale-[1.02]'
-                    : 'bg-[#1a1a28] text-[#8888a8] hover:text-[#ffffff] hover:bg-[#222234]'
+                    ? 'bg-accent text-white shadow-md shadow-accent/30 scale-[1.02]'
+                    : 'bg-bg-secondary text-text-secondary hover:text-text-primary hover:bg-bg-hover'
                 }`}
               >
                 {p.label}
@@ -273,19 +273,19 @@ export function DateRangePicker({
             <button
               type="button"
               onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-              className="p-1.5 rounded-xl border border-[#2b2b40] bg-[#1a1a28] text-[#8888a8] hover:text-[#ffffff] hover:bg-[#222234] transition-colors cursor-pointer"
+              className="p-1.5 rounded-xl border border-border bg-bg-secondary text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
             >
               <ChevronLeft size={16} />
             </button>
 
-            <span className="text-sm font-extrabold text-[#ffffff] tracking-tight">
+            <span className="text-sm font-extrabold text-text-primary tracking-tight">
               {format(currentMonth, 'MMMM yyyy')}
             </span>
 
             <button
               type="button"
               onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-              className="p-1.5 rounded-xl border border-[#2b2b40] bg-[#1a1a28] text-[#8888a8] hover:text-[#ffffff] hover:bg-[#222234] transition-colors cursor-pointer"
+              className="p-1.5 rounded-xl border border-border bg-bg-secondary text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
             >
               <ChevronRight size={16} />
             </button>
@@ -294,7 +294,7 @@ export function DateRangePicker({
           {/* Weekday Headers */}
           <div className="grid grid-cols-7 gap-1 text-center mb-1">
             {['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map((d) => (
-              <span key={d} className="text-[11px] font-bold uppercase text-[#8888a8] py-1">
+              <span key={d} className="text-[11px] font-bold uppercase text-text-secondary py-1">
                 {d}
               </span>
             ))}
@@ -326,13 +326,13 @@ export function DateRangePicker({
                   onMouseLeave={() => setHoverDate(null)}
                   className={`h-9 w-full rounded-xl text-xs font-semibold transition-all relative flex items-center justify-center cursor-pointer ${
                     !isCurrentMonth
-                      ? 'text-[#444466] hover:text-[#8888a8]'
+                      ? 'text-text-muted hover:text-text-secondary'
                       : isStart || isEnd
-                      ? 'bg-[#6c63ff] text-white font-extrabold shadow-lg shadow-[#6c63ff]/40 scale-105 z-10'
+                      ? 'bg-accent text-white font-extrabold shadow-lg shadow-accent/40 scale-105 z-10'
                       : isInRange
-                      ? 'bg-[#6c63ff]/25 text-[#6c63ff] font-bold rounded-none first:rounded-l-xl last:rounded-r-xl'
-                      : 'text-[#ffffff] hover:bg-[#222234]'
-                  } ${isToday && !isStart && !isEnd ? 'ring-1 ring-[#6c63ff] font-bold' : ''}`}
+                      ? 'bg-accent/25 text-accent font-bold rounded-none first:rounded-l-xl last:rounded-r-xl'
+                      : 'text-text-primary hover:bg-bg-hover'
+                  } ${isToday && !isStart && !isEnd ? 'ring-1 ring-accent font-bold' : ''}`}
                 >
                   {format(day, 'd')}
                 </button>
@@ -341,10 +341,10 @@ export function DateRangePicker({
           </div>
 
           {/* Footer Bar */}
-          <div className="mt-4 pt-3.5 border-t border-[#242436] flex flex-col gap-3">
+          <div className="mt-4 pt-3.5 border-t border-border-subtle flex flex-col gap-3">
             <div className="flex items-center gap-2">
-              <div className="flex-1 flex items-center gap-1.5 bg-[#10101a] px-3 py-1.5 rounded-xl border border-[#2b2b40]">
-                <span className="text-[11px] font-bold uppercase text-[#8888a8]">From:</span>
+              <div className="flex-1 flex items-center gap-1.5 bg-bg-secondary px-3 py-1.5 rounded-xl border border-border">
+                <span className="text-[11px] font-bold uppercase text-text-secondary">From:</span>
                 <input
                   type="date"
                   value={tempStart}
@@ -352,11 +352,11 @@ export function DateRangePicker({
                     setTempStart(e.target.value);
                     setTempPreset('custom');
                   }}
-                  className="w-full bg-transparent text-xs text-[#ffffff] focus:outline-none font-medium"
+                  className="w-full bg-transparent text-xs text-text-primary focus:outline-none font-medium"
                 />
               </div>
-              <div className="flex-1 flex items-center gap-1.5 bg-[#10101a] px-3 py-1.5 rounded-xl border border-[#2b2b40]">
-                <span className="text-[11px] font-bold uppercase text-[#8888a8]">To:</span>
+              <div className="flex-1 flex items-center gap-1.5 bg-bg-secondary px-3 py-1.5 rounded-xl border border-border">
+                <span className="text-[11px] font-bold uppercase text-text-secondary">To:</span>
                 <input
                   type="date"
                   value={tempEnd}
@@ -364,7 +364,7 @@ export function DateRangePicker({
                     setTempEnd(e.target.value);
                     setTempPreset('custom');
                   }}
-                  className="w-full bg-transparent text-xs text-[#ffffff] focus:outline-none font-medium"
+                  className="w-full bg-transparent text-xs text-text-primary focus:outline-none font-medium"
                 />
               </div>
             </div>
@@ -373,7 +373,7 @@ export function DateRangePicker({
               <button
                 type="button"
                 onClick={handleClear}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#2b2b40] bg-[#1a1a28] text-xs font-semibold text-[#8888a8] hover:text-[#ff5572] hover:border-[#ff5572]/50 transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-border bg-bg-secondary text-xs font-semibold text-text-secondary hover:text-danger hover:border-danger/50 transition-colors cursor-pointer"
               >
                 <RotateCcw size={13} />
                 <span>Reset</span>
@@ -382,7 +382,7 @@ export function DateRangePicker({
               <button
                 type="button"
                 onClick={handleApply}
-                className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-[#6c63ff] text-white text-xs font-bold shadow-lg shadow-[#6c63ff]/30 hover:bg-[#8b85ff] transition-all cursor-pointer hover:scale-[1.02]"
+                className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-accent text-white text-xs font-bold shadow-lg shadow-accent/30 hover:bg-accent-light transition-all cursor-pointer hover:scale-[1.02]"
               >
                 <Check size={14} />
                 <span>Apply Filter</span>

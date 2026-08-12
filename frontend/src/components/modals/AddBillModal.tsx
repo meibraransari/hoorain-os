@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
@@ -141,18 +141,18 @@ export function AddBillModal({ isOpen, onClose, ruleToEdit }: AddBillModalProps)
 
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto">
-      <div className="card w-full max-w-lg bg-[#141420] border border-[#2a2a3e] rounded-2xl shadow-2xl overflow-hidden my-auto ring-1 ring-white/10 animate-in fade-in-0 zoom-in-95 duration-200">
+      <div className="card w-full max-w-lg bg-bg-card border border-border rounded-2xl shadow-2xl overflow-hidden my-auto ring-1 ring-white/10 animate-in fade-in-0 zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#26263a] px-6 py-4 bg-[#181826]">
+        <div className="flex items-center justify-between border-b border-border px-6 py-4 bg-bg-secondary">
           <div className="flex items-center gap-2">
-            <CalendarClock size={20} className="text-[#6c63ff]" />
-            <h2 className="text-xl font-bold tracking-tight text-[#ffffff]">
+            <CalendarClock size={20} className="text-accent" />
+            <h2 className="text-xl font-bold tracking-tight text-text-primary">
               {ruleToEdit ? 'Edit Bill / Subscription Rule' : 'Add Bill, Rent or Subscription'}
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-[#8888a8] hover:text-[#ffffff] hover:bg-[#222234] transition-all cursor-pointer"
+            className="p-1.5 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-hover transition-all cursor-pointer"
           >
             <X size={20} />
           </button>
@@ -160,14 +160,14 @@ export function AddBillModal({ isOpen, onClose, ruleToEdit }: AddBillModalProps)
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[82vh] overflow-y-auto scrollbar-thin">
           {error && (
-            <div className="p-3.5 text-sm rounded-xl bg-rose-500/15 text-rose-300 border border-rose-500/30 font-medium">
+            <div className="p-3.5 text-sm rounded-xl bg-expense/15 text-expense border border-expense/30 font-medium">
               {error}
             </div>
           )}
 
           {/* Title / Name */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
               Bill / Subscription Name
             </label>
             <input
@@ -175,14 +175,14 @@ export function AddBillModal({ isOpen, onClose, ruleToEdit }: AddBillModalProps)
               placeholder="e.g. Home Rent, Netflix, Electricity Bill, Salary"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full rounded-xl border border-[#2b2b40] bg-[#10101a] px-4 py-2.5 text-sm text-[#ffffff] font-medium focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/30 focus:outline-none transition-all"
+              className="w-full rounded-xl border border-border bg-bg-primary px-4 py-2.5 text-sm text-text-primary font-medium focus:border-accent focus:ring-2 focus:ring-accent/30 focus:outline-none transition-all"
               required
             />
           </div>
 
           {/* Amount Field */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
               Amount
             </label>
             <input
@@ -191,7 +191,7 @@ export function AddBillModal({ isOpen, onClose, ruleToEdit }: AddBillModalProps)
               placeholder="0.00"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full text-3xl font-extrabold rounded-2xl border border-[#2b2b40] bg-[#10101a] px-4 py-3 text-[#ffffff] focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/30 focus:outline-none transition-all"
+              className="w-full text-3xl font-extrabold rounded-2xl border border-border bg-bg-primary px-4 py-3 text-text-primary focus:border-accent focus:ring-2 focus:ring-accent/30 focus:outline-none transition-all"
               required
             />
           </div>
@@ -199,7 +199,7 @@ export function AddBillModal({ isOpen, onClose, ruleToEdit }: AddBillModalProps)
           {/* Frequency & Next Due Date Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
                 Frequency
               </label>
               <SmoothSelect
@@ -210,14 +210,14 @@ export function AddBillModal({ isOpen, onClose, ruleToEdit }: AddBillModalProps)
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
                 Next Due Date
               </label>
               <input
                 type="date"
                 value={nextDate}
                 onChange={(e) => setNextDate(e.target.value)}
-                className="w-full rounded-xl border border-[#2b2b40] bg-[#10101a] px-4 py-2.5 text-sm text-[#ffffff] font-medium focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/30 focus:outline-none transition-all"
+                className="w-full rounded-xl border border-border bg-bg-primary px-4 py-2.5 text-sm text-text-primary font-medium focus:border-accent focus:ring-2 focus:ring-accent/30 focus:outline-none transition-all"
                 required
               />
             </div>
@@ -225,7 +225,7 @@ export function AddBillModal({ isOpen, onClose, ruleToEdit }: AddBillModalProps)
 
           {/* Account Selector */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
               Account
             </label>
             <SmoothSelect
@@ -244,7 +244,7 @@ export function AddBillModal({ isOpen, onClose, ruleToEdit }: AddBillModalProps)
 
           {/* Category Selector */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
               Category (Optional)
             </label>
             <SmoothSelect
@@ -262,7 +262,7 @@ export function AddBillModal({ isOpen, onClose, ruleToEdit }: AddBillModalProps)
 
           {/* Notes / Details */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
               Notes / Provider Details
             </label>
             <textarea
@@ -270,15 +270,15 @@ export function AddBillModal({ isOpen, onClose, ruleToEdit }: AddBillModalProps)
               placeholder="Enter provider details, policy numbers, or account references..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full rounded-xl border border-[#2b2b40] bg-[#10101a] p-3 text-sm text-[#ffffff] focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/30 focus:outline-none transition-all resize-y min-h-[70px] font-medium"
+              className="w-full rounded-xl border border-border bg-bg-primary p-3 text-sm text-text-primary focus:border-accent focus:ring-2 focus:ring-accent/30 focus:outline-none transition-all resize-y min-h-[70px] font-medium"
             />
           </div>
 
           {/* Active Status Toggle */}
-          <div className="flex items-center justify-between p-3.5 rounded-2xl border border-[#26263a] bg-[#181826]">
+          <div className="flex items-center justify-between p-3.5 rounded-2xl border border-border bg-bg-secondary">
             <div>
-              <span className="text-sm font-bold text-[#ffffff] block">Active Rule Status</span>
-              <span className="text-xs text-[#8888a8]">
+              <span className="text-sm font-bold text-text-primary block">Active Rule Status</span>
+              <span className="text-xs text-text-muted">
                 Inactive rules are paused and don't trigger overdue/upcoming alerts.
               </span>
             </div>
@@ -286,7 +286,7 @@ export function AddBillModal({ isOpen, onClose, ruleToEdit }: AddBillModalProps)
               type="button"
               onClick={() => setIsActive(!isActive)}
               className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                isActive ? 'bg-[#10d88a]' : 'bg-[#10101a] border-[#2b2b40]'
+                isActive ? 'bg-income' : 'bg-bg-primary border-border'
               }`}
             >
               <span
@@ -298,18 +298,18 @@ export function AddBillModal({ isOpen, onClose, ruleToEdit }: AddBillModalProps)
           </div>
 
           {/* Footer Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#26263a]">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl text-sm font-semibold text-[#8888a8] hover:text-[#ffffff] hover:bg-[#1f1f2e] transition-colors cursor-pointer"
+              className="px-4 py-2.5 rounded-xl text-sm font-semibold text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2.5 rounded-xl text-sm font-bold bg-[#6c63ff] text-white shadow-lg shadow-[#6c63ff]/30 hover:bg-[#8b85ff] hover:scale-[1.02] transition-all cursor-pointer disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl text-sm font-bold bg-accent text-white shadow-lg shadow-accent/30 hover:bg-accent-light hover:scale-[1.02] transition-all cursor-pointer disabled:opacity-50"
             >
               {loading ? 'Saving...' : ruleToEdit ? 'Update Rule' : 'Create Rule'}
             </button>

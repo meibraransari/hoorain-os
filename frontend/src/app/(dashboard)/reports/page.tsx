@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useMemo, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -596,7 +596,7 @@ function ReportsContent() {
                 Multi-Dimensional Custom Report Filters
               </span>
               {isDirty && (
-                <span className="px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider bg-amber-500/15 text-amber-300 rounded-full border border-amber-500/30">
+                <span className="px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider bg-warning/15 text-warning rounded-full border border-warning/30">
                   Unapplied Changes
                 </span>
               )}
@@ -618,7 +618,7 @@ function ReportsContent() {
                 onClick={handleApplyFilters}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-lg ${
                   isDirty
-                    ? 'bg-[#6c63ff] text-white shadow-[#6c63ff]/40 hover:bg-[#8b85ff] scale-[1.03] ring-2 ring-[#6c63ff]/50'
+                    ? 'bg-accent text-white shadow-accent/40 hover:bg-accent-light scale-[1.03] ring-2 ring-accent/50'
                     : 'bg-accent/20 text-accent border border-accent/40 hover:bg-accent hover:text-white'
                 }`}
               >
@@ -743,7 +743,7 @@ function ReportsContent() {
               onClick={handleApplyFilters}
               className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-lg ${
                 isDirty
-                  ? 'bg-[#6c63ff] text-white shadow-[#6c63ff]/40 hover:bg-[#8b85ff] scale-[1.02] ring-2 ring-[#6c63ff]/50'
+                  ? 'bg-accent text-white shadow-accent/40 hover:bg-accent-light scale-[1.02] ring-2 ring-accent/50'
                   : 'bg-accent/20 text-accent border border-accent/40 hover:bg-accent hover:text-white'
               }`}
             >

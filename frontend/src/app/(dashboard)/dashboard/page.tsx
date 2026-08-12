@@ -44,7 +44,6 @@ import {
 import { formatCurrency } from '@/lib/utils';
 import { usePrivacy } from '@/components/providers/PrivacyProvider';
 import { useSettings, AppSettings } from '@/components/providers/SettingsProvider';
-import { PrivacyToggle } from '@/components/ui/PrivacyToggle';
 import Link from 'next/link';
 
 export default function DashboardPage() {
@@ -404,7 +403,6 @@ export default function DashboardPage() {
           </div>
           <div className="flex items-center gap-3 mt-1 flex-wrap">
             <p className="text-text-secondary text-sm">Here is your financial performance for {currentMonthLabel}.</p>
-            <PrivacyToggle />
           </div>
         </div>
 

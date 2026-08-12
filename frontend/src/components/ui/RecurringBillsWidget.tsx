@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { useRecurring } from '@/lib/hooks/useRecurring';
@@ -29,7 +29,7 @@ export function RecurringBillsWidget() {
         action={
           <Link
             href="/bills-recurring"
-            className="text-xs font-semibold text-[#6c63ff] hover:underline flex items-center gap-1"
+            className="text-xs font-semibold text-accent hover:underline flex items-center gap-1"
           >
             <span>View All</span>
             <ArrowRight size={13} />
@@ -43,12 +43,12 @@ export function RecurringBillsWidget() {
             ))}
           </div>
         ) : activeBills.length === 0 ? (
-          <div className="p-6 text-center text-[#8888a8] text-sm space-y-2">
-            <CalendarClock size={28} className="mx-auto text-[#6c63ff]/40" />
+          <div className="p-6 text-center text-text-muted text-sm space-y-2">
+            <CalendarClock size={28} className="mx-auto text-accent/40" />
             <p>No active recurring bills or subscriptions scheduled.</p>
             <Link
               href="/bills-recurring"
-              className="text-xs font-bold text-[#6c63ff] hover:underline inline-block"
+              className="text-xs font-bold text-accent hover:underline inline-block"
             >
               + Add Bill or Subscription Rule
             </Link>
@@ -66,37 +66,37 @@ export function RecurringBillsWidget() {
                   key={rule.id}
                   className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
                     rule.isOverdue
-                      ? 'border-rose-500/40 bg-rose-500/5'
+                      ? 'border-expense/40 bg-expense/5'
                       : rule.isUpcoming
-                      ? 'border-amber-500/30 bg-amber-500/5'
-                      : 'border-[#26263a] bg-[#10101a]'
+                      ? 'border-warning/30 bg-warning/5'
+                      : 'border-border bg-bg-primary'
                   }`}
                 >
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-[#ffffff]">{rule.title}</span>
+                      <span className="font-bold text-sm text-text-primary">{rule.title}</span>
                       {rule.isOverdue ? (
-                        <span className="px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 text-[10px] font-extrabold border border-rose-500/30">
+                        <span className="px-1.5 py-0.2 rounded bg-expense/20 text-expense text-[10px] font-extrabold border border-expense/30">
                           Overdue ({Math.abs(rule.dueDays)}d)
                         </span>
                       ) : rule.isUpcoming ? (
-                        <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 text-[10px] font-extrabold border border-amber-500/30">
+                        <span className="px-1.5 py-0.2 rounded bg-warning/20 text-warning text-[10px] font-extrabold border border-warning/30">
                           Due in {rule.dueDays}d
                         </span>
                       ) : null}
                     </div>
-                    <div className="text-xs text-[#8888a8] font-medium">
+                    <div className="text-xs text-text-muted font-medium">
                       📅 {nextDateStr} • <span className="capitalize">{rule.frequency}</span>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <span className="font-bold text-sm text-[#ffffff]">
+                    <span className="font-bold text-sm text-text-primary">
                       {formatPrivateCurrency(amountVal)}
                     </span>
                     <button
                       onClick={() => handlePay(rule)}
-                      className="px-2.5 py-1 rounded-lg bg-[#10d88a] text-black text-xs font-bold shadow hover:bg-[#34d399] transition-all cursor-pointer flex items-center gap-1"
+                      className="px-2.5 py-1 rounded-lg bg-income text-white text-xs font-bold shadow hover:bg-income transition-all cursor-pointer flex items-center gap-1"
                     >
                       <CheckCircle2 size={12} />
                       <span>Pay</span>

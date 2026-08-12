@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
@@ -94,10 +94,10 @@ export function DbRestoreModal({ isOpen, onClose }: DbRestoreModalProps) {
 
         <div className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
           {/* Warning Banner */}
-          <div className="flex gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-500 text-xs">
+          <div className="flex gap-3 p-4 rounded-xl bg-warning/10 border border-warning/30 text-warning text-xs">
             <AlertTriangle size={20} className="shrink-0 mt-0.5" />
             <div>
-              <span className="font-bold text-sm block text-amber-500 mb-0.5">Important Safety Warning</span>
+              <span className="font-bold text-sm block text-warning mb-0.5">Important Safety Warning</span>
               Restoring a PostgreSQL database dump will update and restore existing tables, schema, and records with data from the backup dump file.
             </div>
           </div>

@@ -1,0 +1,164 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1. Write bug condition exploration test": [
+      {
+        "executionId": "12f6800a-7aee-4868-a9b3-dba9a61daf2d",
+        "chatSessionId": "sess_97a2fcc9-094c-4dcd-ae0a-da4a407186ed",
+        "timestamp": 1786531351612
+      },
+      {
+        "executionId": "12f6800a-7aee-4868-a9b3-dba9a61daf2d",
+        "chatSessionId": "sess_97a2fcc9-094c-4dcd-ae0a-da4a407186ed",
+        "timestamp": 1786531362047
+      }
+    ],
+    "2. Write preservation property tests (BEFORE implementing fix)": [
+      {
+        "executionId": "12f6800a-7aee-4868-a9b3-dba9a61daf2d",
+        "chatSessionId": "sess_97a2fcc9-094c-4dcd-ae0a-da4a407186ed",
+        "timestamp": 1786531351685
+      }
+    ],
+    "3.1 Update Tailwind configuration": [
+      {
+        "executionId": "12f6800a-7aee-4868-a9b3-dba9a61daf2d",
+        "chatSessionId": "sess_97a2fcc9-094c-4dcd-ae0a-da4a407186ed",
+        "timestamp": 1786531351738
+      }
+    ],
+    "3.2 Add new theme definitions to globals.css": [
+      {
+        "executionId": "12f6800a-7aee-4868-a9b3-dba9a61daf2d",
+        "chatSessionId": "sess_97a2fcc9-094c-4dcd-ae0a-da4a407186ed",
+        "timestamp": 1786531351764
+      }
+    ],
+    "3.3 Update ThemeProvider type definition": [
+      {
+        "executionId": "12f6800a-7aee-4868-a9b3-dba9a61daf2d",
+        "chatSessionId": "sess_97a2fcc9-094c-4dcd-ae0a-da4a407186ed",
+        "timestamp": 1786531351810
+      }
+    ],
+    "3.4 Refactor TransactionItem component (Critical Priority)": [
+      {
+        "executionId": "12f6800a-7aee-4868-a9b3-dba9a61daf2d",
+        "chatSessionId": "sess_97a2fcc9-094c-4dcd-ae0a-da4a407186ed",
+        "timestamp": 1786531351840
+      }
+    ],
+    "3.5 Refactor SmoothSelect component (Critical Priority)": [
+      {
+        "executionId": "12f6800a-7aee-4868-a9b3-dba9a61daf2d",
+        "chatSessionId": "sess_97a2fcc9-094c-4dcd-ae0a-da4a407186ed",
+        "timestamp": 1786531351878
+      }
+    ],
+    "3.6 Refactor DateRangePicker component (Critical Priority)": [
+      {
+        "executionId": "12f6800a-7aee-4868-a9b3-dba9a61daf2d",
+        "chatSessionId": "sess_97a2fcc9-094c-4dcd-ae0a-da4a407186ed",
+        "timestamp": 1786531351901
+      }
+    ],
+    "3.7 Refactor chart components (High Priority)": [
+      {
+        "executionId": "12f6800a-7aee-4868-a9b3-dba9a61daf2d",
+        "chatSessionId": "sess_97a2fcc9-094c-4dcd-ae0a-da4a407186ed",
+        "timestamp": 1786531351924
+      }
+    ],
+    "3.8 Refactor modal components (High Priority)": [
+      {
+        "executionId": "12f6800a-7aee-4868-a9b3-dba9a61daf2d",
+        "chatSessionId": "sess_97a2fcc9-094c-4dcd-ae0a-da4a407186ed",
+        "timestamp": 1786531351947
+      }
+    ],
+    "3.9 Refactor widget components (Medium Priority)": [
+      {
+        "executionId": "12f6800a-7aee-4868-a9b3-dba9a61daf2d",
+        "chatSessionId": "sess_97a2fcc9-094c-4dcd-ae0a-da4a407186ed",
+        "timestamp": 1786531351970
+      }
+    ],
+    "3.10 Search and refactor remaining components": [
+      {
+        "executionId": "12f6800a-7aee-4868-a9b3-dba9a61daf2d",
+        "chatSessionId": "sess_97a2fcc9-094c-4dcd-ae0a-da4a407186ed",
+        "timestamp": 1786531351990
+      }
+    ],
+    "3.11 Update theme selector UI": [
+      {
+        "executionId": "12f6800a-7aee-4868-a9b3-dba9a61daf2d",
+        "chatSessionId": "sess_97a2fcc9-094c-4dcd-ae0a-da4a407186ed",
+        "timestamp": 1786531352037
+      }
+    ],
+    "3.12 Verify bug condition exploration test now passes": [
+      {
+        "executionId": "12f6800a-7aee-4868-a9b3-dba9a61daf2d",
+        "chatSessionId": "sess_97a2fcc9-094c-4dcd-ae0a-da4a407186ed",
+        "timestamp": 1786531352060
+      }
+    ],
+    "3.13 Verify preservation tests still pass": [
+      {
+        "executionId": "12f6800a-7aee-4868-a9b3-dba9a61daf2d",
+        "chatSessionId": "sess_97a2fcc9-094c-4dcd-ae0a-da4a407186ed",
+        "timestamp": 1786531352081
+      }
+    ],
+    "4.1 Run production build": [
+      {
+        "executionId": "12f6800a-7aee-4868-a9b3-dba9a61daf2d",
+        "chatSessionId": "sess_97a2fcc9-094c-4dcd-ae0a-da4a407186ed",
+        "timestamp": 1786531352102
+      }
+    ],
+    "4.2 Run type checking and linting": [
+      {
+        "executionId": "12f6800a-7aee-4868-a9b3-dba9a61daf2d",
+        "chatSessionId": "sess_97a2fcc9-094c-4dcd-ae0a-da4a407186ed",
+        "timestamp": 1786531352123
+      }
+    ],
+    "4.3 Test all themes across all pages": [
+      {
+        "executionId": "12f6800a-7aee-4868-a9b3-dba9a61daf2d",
+        "chatSessionId": "sess_97a2fcc9-094c-4dcd-ae0a-da4a407186ed",
+        "timestamp": 1786531352144
+      }
+    ],
+    "4.4 Test component interactions in all themes": [
+      {
+        "executionId": "12f6800a-7aee-4868-a9b3-dba9a61daf2d",
+        "chatSessionId": "sess_97a2fcc9-094c-4dcd-ae0a-da4a407186ed",
+        "timestamp": 1786531352169
+      }
+    ],
+    "4.5 Rebuild with Docker Compose": [
+      {
+        "executionId": "12f6800a-7aee-4868-a9b3-dba9a61daf2d",
+        "chatSessionId": "sess_97a2fcc9-094c-4dcd-ae0a-da4a407186ed",
+        "timestamp": 1786531352205
+      }
+    ],
+    "4.6 Manual user acceptance testing": [
+      {
+        "executionId": "12f6800a-7aee-4868-a9b3-dba9a61daf2d",
+        "chatSessionId": "sess_97a2fcc9-094c-4dcd-ae0a-da4a407186ed",
+        "timestamp": 1786531352227
+      }
+    ],
+    "5. Checkpoint - Ensure all tests pass and fixes are complete": [
+      {
+        "executionId": "12f6800a-7aee-4868-a9b3-dba9a61daf2d",
+        "chatSessionId": "sess_97a2fcc9-094c-4dcd-ae0a-da4a407186ed",
+        "timestamp": 1786531352248
+      }
+    ]
+  }
+}

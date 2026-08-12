@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useMemo } from 'react';
 import {
@@ -163,14 +163,14 @@ export default function BillsRecurringPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#6c63ff]/15 text-[#6c63ff] border border-[#6c63ff]/30">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent/15 text-accent border border-accent/30">
               <CalendarClock size={22} />
             </div>
             <div>
-              <h1 className="text-2xl font-display font-extrabold text-[#ffffff] tracking-tight">
+              <h1 className="text-2xl font-display font-extrabold text-text-primary tracking-tight">
                 Overdue & Upcoming Payments
               </h1>
-              <p className="text-xs font-medium text-[#8888a8]">
+              <p className="text-xs font-medium text-text-muted">
                 Manage recurring home rent, utility bills, subscriptions, and automatic commitments
               </p>
             </div>
@@ -179,7 +179,7 @@ export default function BillsRecurringPage() {
 
         <button
           onClick={handleOpenNew}
-          className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#6c63ff] text-white text-xs font-bold shadow-lg shadow-[#6c63ff]/30 hover:bg-[#8b85ff] hover:scale-[1.02] transition-all cursor-pointer"
+          className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-white text-xs font-bold shadow-lg shadow-accent/30 hover:bg-accent-light hover:scale-[1.02] transition-all cursor-pointer"
         >
           <Plus size={16} />
           <span>Add Bill or Subscription</span>
@@ -189,77 +189,77 @@ export default function BillsRecurringPage() {
       {/* Summary Metric Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Overdue Card */}
-        <div className="card relative overflow-hidden p-5 border border-rose-500/30 rounded-2xl bg-[#141420]/90 backdrop-blur-md shadow-xl before:absolute before:top-0 before:left-0 before:w-full before:h-[2px] before:bg-gradient-to-r before:from-rose-500 before:to-transparent">
+        <div className="card relative overflow-hidden p-5 border border-expense/30 rounded-2xl bg-bg-card/90 backdrop-blur-md shadow-xl before:absolute before:top-0 before:left-0 before:w-full before:h-[2px] before:bg-gradient-to-r before:from-rose-500 before:to-transparent">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-rose-300 flex items-center gap-1.5">
-              <AlertTriangle size={14} className="text-rose-400" /> Overdue Alert
+            <span className="text-xs font-bold uppercase tracking-wider text-expense flex items-center gap-1.5">
+              <AlertTriangle size={14} className="text-expense" /> Overdue Alert
             </span>
-            <span className="px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 text-[11px] font-bold border border-rose-500/30">
+            <span className="px-2 py-0.5 rounded-md bg-expense/20 text-expense text-[11px] font-bold border border-expense/30">
               {metrics.overdueCount} Pending
             </span>
           </div>
-          <div className="mt-3 text-2xl font-bold text-rose-400">
+          <div className="mt-3 text-2xl font-bold text-expense">
             {formatPrivateCurrency(metrics.overdueSum)}
           </div>
-          <div className="mt-1 text-xs text-[#8888a8] font-medium">
+          <div className="mt-1 text-xs text-text-muted font-medium">
             Requires immediate payment attention
           </div>
         </div>
 
         {/* Upcoming Card */}
-        <div className="card relative overflow-hidden p-5 border border-amber-500/30 rounded-2xl bg-[#141420]/90 backdrop-blur-md shadow-xl before:absolute before:top-0 before:left-0 before:w-full before:h-[2px] before:bg-gradient-to-r before:from-amber-500 before:to-transparent">
+        <div className="card relative overflow-hidden p-5 border border-warning/30 rounded-2xl bg-bg-card/90 backdrop-blur-md shadow-xl before:absolute before:top-0 before:left-0 before:w-full before:h-[2px] before:bg-gradient-to-r before:from-amber-500 before:to-transparent">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
-              <Calendar size={14} className="text-amber-400" /> Upcoming (Next 30 Days)
+            <span className="text-xs font-bold uppercase tracking-wider text-warning flex items-center gap-1.5">
+              <Calendar size={14} className="text-warning" /> Upcoming (Next 30 Days)
             </span>
-            <span className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 text-[11px] font-bold border border-amber-500/30">
+            <span className="px-2 py-0.5 rounded-md bg-warning/20 text-warning text-[11px] font-bold border border-warning/30">
               {metrics.upcomingCount} Due Soon
             </span>
           </div>
-          <div className="mt-3 text-2xl font-bold text-amber-400">
+          <div className="mt-3 text-2xl font-bold text-warning">
             {formatPrivateCurrency(metrics.upcomingSum)}
           </div>
-          <div className="mt-1 text-xs text-[#8888a8] font-medium">
+          <div className="mt-1 text-xs text-text-muted font-medium">
             Upcoming due dates scheduled soon
           </div>
         </div>
 
         {/* Monthly Commitment */}
-        <div className="card relative overflow-hidden p-5 border border-[#6c63ff]/30 rounded-2xl bg-[#141420]/90 backdrop-blur-md shadow-xl before:absolute before:top-0 before:left-0 before:w-full before:h-[2px] before:bg-gradient-to-r before:from-[#6c63ff] before:to-transparent">
+        <div className="card relative overflow-hidden p-5 border border-accent/30 rounded-2xl bg-bg-card/90 backdrop-blur-md shadow-xl before:absolute before:top-0 before:left-0 before:w-full before:h-[2px] before:bg-gradient-to-r before:from-[#6c63ff] before:to-transparent">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#a0a0cc] flex items-center gap-1.5">
-              <RefreshCw size={14} className="text-[#6c63ff]" /> Monthly Commitment
+            <span className="text-xs font-bold uppercase tracking-wider text-text-secondary flex items-center gap-1.5">
+              <RefreshCw size={14} className="text-accent" /> Monthly Commitment
             </span>
           </div>
-          <div className="mt-3 text-2xl font-bold text-[#ffffff]">
+          <div className="mt-3 text-2xl font-bold text-text-primary">
             {formatPrivateCurrency(metrics.monthlyCommitment)}
           </div>
-          <div className="mt-1 text-xs text-[#8888a8] font-medium">
+          <div className="mt-1 text-xs text-text-muted font-medium">
             Total recurring commitment per month
           </div>
         </div>
 
         {/* Active Rules */}
-        <div className="card relative overflow-hidden p-5 border border-[#2b2b40] rounded-2xl bg-[#141420]/90 backdrop-blur-md shadow-xl before:absolute before:top-0 before:left-0 before:w-full before:h-[2px] before:bg-gradient-to-r before:from-teal-500 before:to-transparent">
+        <div className="card relative overflow-hidden p-5 border border-border rounded-2xl bg-bg-card/90 backdrop-blur-md shadow-xl before:absolute before:top-0 before:left-0 before:w-full before:h-[2px] before:bg-gradient-to-r before:from-teal-500 before:to-transparent">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#a0a0cc] flex items-center gap-1.5">
-              <Sparkles size={14} className="text-teal-400" /> Active Subscriptions
+            <span className="text-xs font-bold uppercase tracking-wider text-text-secondary flex items-center gap-1.5">
+              <Sparkles size={14} className="text-info" /> Active Subscriptions
             </span>
           </div>
-          <div className="mt-3 text-2xl font-bold text-[#ffffff]">
+          <div className="mt-3 text-2xl font-bold text-text-primary">
             {metrics.activeSubscriptionsCount} Rules
           </div>
-          <div className="mt-1 text-xs text-[#8888a8] font-medium">
+          <div className="mt-1 text-xs text-text-muted font-medium">
             Configured recurring rules active
           </div>
         </div>
       </div>
 
       {/* Filter Toolbar */}
-      <div className="card p-4 border border-[#2b2b40] rounded-2xl bg-[#141420] space-y-3">
+      <div className="card p-4 border border-border rounded-2xl bg-bg-card space-y-3">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           {/* Quick Filter Tabs */}
-          <div className="flex flex-wrap items-center gap-1.5 bg-[#10101a] p-1.5 rounded-xl border border-[#2b2b40]">
+          <div className="flex flex-wrap items-center gap-1.5 bg-bg-primary p-1.5 rounded-xl border border-border">
             {[
               { id: 'all', label: 'All Payments' },
               { id: 'overdue', label: '⚠️ Overdue' },
@@ -272,8 +272,8 @@ export default function BillsRecurringPage() {
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                   activeTab === tab.id
-                    ? 'bg-[#6c63ff] text-white shadow-md shadow-[#6c63ff]/20'
-                    : 'text-[#8888a8] hover:text-[#ffffff] hover:bg-[#1a1a28]'
+                    ? 'bg-accent text-white shadow-md shadow-accent/20'
+                    : 'text-text-muted hover:text-text-primary hover:bg-bg-hover'
                 }`}
               >
                 {tab.label}
@@ -284,13 +284,13 @@ export default function BillsRecurringPage() {
           {/* Controls: Search & Date Picker */}
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative flex-1 sm:w-64">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8888a8]" />
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
               <input
                 type="text"
                 placeholder="Search bills, rent, services..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full rounded-xl border border-[#2b2b40] bg-[#10101a] pl-9 pr-4 py-2 text-xs text-[#ffffff] placeholder-[#666688] focus:border-[#6c63ff] focus:outline-none font-medium"
+                className="w-full rounded-xl border border-border bg-bg-primary pl-9 pr-4 py-2 text-xs text-text-primary placeholder-[#666688] focus:border-accent focus:outline-none font-medium"
               />
             </div>
 
@@ -305,11 +305,11 @@ export default function BillsRecurringPage() {
       </div>
 
       {/* Main Recurring List */}
-      <div className="card p-6 border border-[#2b2b40] rounded-2xl bg-[#141420] space-y-4">
+      <div className="card p-6 border border-border rounded-2xl bg-bg-card space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-extrabold text-lg text-[#ffffff] flex items-center gap-2">
+          <h3 className="font-extrabold text-lg text-text-primary flex items-center gap-2">
             <span>Configured Bills & Subscriptions</span>
-            <span className="text-xs font-bold text-[#6c63ff] bg-[#6c63ff]/15 px-2.5 py-0.5 rounded-full border border-[#6c63ff]/30">
+            <span className="text-xs font-bold text-accent bg-accent/15 px-2.5 py-0.5 rounded-full border border-accent/30">
               {filteredRules.length} Entries
             </span>
           </h3>
@@ -322,12 +322,12 @@ export default function BillsRecurringPage() {
             ))}
           </div>
         ) : filteredRules.length === 0 ? (
-          <div className="p-12 text-center text-[#8888a8] text-sm space-y-3">
-            <CalendarClock size={36} className="mx-auto text-[#6c63ff]/40" />
+          <div className="p-12 text-center text-text-muted text-sm space-y-3">
+            <CalendarClock size={36} className="mx-auto text-accent/40" />
             <p className="font-semibold">No bills or subscriptions found matching filter criteria.</p>
             <button
               onClick={handleOpenNew}
-              className="px-4 py-2 rounded-xl bg-[#6c63ff]/20 text-[#6c63ff] text-xs font-bold border border-[#6c63ff]/40 hover:bg-[#6c63ff] hover:text-white transition-all cursor-pointer inline-block"
+              className="px-4 py-2 rounded-xl bg-accent/20 text-accent text-xs font-bold border border-accent/40 hover:bg-accent hover:text-white transition-all cursor-pointer inline-block"
             >
               + Create First Recurring Payment Rule
             </button>
@@ -347,48 +347,48 @@ export default function BillsRecurringPage() {
                   key={rule.id}
                   className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border transition-all duration-200 gap-4 ${
                     rule.isOverdue
-                      ? 'border-rose-500/40 bg-rose-500/5 hover:border-rose-500/70'
+                      ? 'border-expense/40 bg-expense/5 hover:border-rose-500/70'
                       : rule.isUpcoming
-                      ? 'border-amber-500/30 bg-amber-500/5 hover:border-amber-500/60'
-                      : 'border-[#26263a] bg-[#10101a] hover:border-[#6c63ff]/40'
+                      ? 'border-warning/30 bg-warning/5 hover:border-amber-500/60'
+                      : 'border-border bg-bg-primary hover:border-accent/40'
                   }`}
                 >
                   {/* Left: Info */}
                   <div className="flex items-start gap-3.5">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#181826] border border-[#2b2b40] text-[#6c63ff]">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-bg-secondary border border-border text-accent">
                       {renderAccountIcon(accName, accType)}
                     </div>
 
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-extrabold text-base text-[#ffffff]">
+                        <span className="font-extrabold text-base text-text-primary">
                           {rule.title}
                         </span>
 
                         {/* Status Badges */}
                         {rule.isOverdue ? (
-                          <span className="px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 text-[11px] font-extrabold border border-rose-500/40 flex items-center gap-1">
+                          <span className="px-2 py-0.5 rounded-md bg-expense/20 text-expense text-[11px] font-extrabold border border-expense/40 flex items-center gap-1">
                             <AlertTriangle size={11} /> Overdue ({Math.abs(rule.dueDays)} days)
                           </span>
                         ) : rule.isUpcoming ? (
-                          <span className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 text-[11px] font-extrabold border border-amber-500/40 flex items-center gap-1">
+                          <span className="px-2 py-0.5 rounded-md bg-warning/20 text-warning text-[11px] font-extrabold border border-warning/40 flex items-center gap-1">
                             <Calendar size={11} /> Due in {rule.dueDays} days
                           </span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded-md bg-teal-500/15 text-teal-300 text-[11px] font-bold border border-teal-500/30">
+                          <span className="px-2 py-0.5 rounded-md bg-teal-500/15 text-info text-[11px] font-bold border border-teal-500/30">
                             Active 🔄
                           </span>
                         )}
                       </div>
 
-                      <div className="flex items-center gap-3 text-xs text-[#8888a8] flex-wrap font-medium">
-                        <span className="flex items-center gap-1 text-[#ffffff]">
+                      <div className="flex items-center gap-3 text-xs text-text-muted flex-wrap font-medium">
+                        <span className="flex items-center gap-1 text-text-primary">
                           💳 {accName}
                         </span>
                         <span>•</span>
                         <span>🏷️ {catName}</span>
                         <span>•</span>
-                        <span className="capitalize font-bold text-[#6c63ff]">
+                        <span className="capitalize font-bold text-accent">
                           🔄 {rule.frequency}
                         </span>
                         <span>•</span>
@@ -396,7 +396,7 @@ export default function BillsRecurringPage() {
                       </div>
 
                       {rule.notes && (
-                        <p className="text-xs text-[#8888a8] italic pt-0.5 font-medium">
+                        <p className="text-xs text-text-muted italic pt-0.5 font-medium">
                           "{rule.notes}"
                         </p>
                       )}
@@ -406,7 +406,7 @@ export default function BillsRecurringPage() {
                   {/* Right: Amount & Actions */}
                   <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0">
                     <div className="text-right">
-                      <div className="text-xl font-extrabold text-[#ffffff]">
+                      <div className="text-xl font-extrabold text-text-primary">
                         {formatPrivateCurrency(rule.rawAmount || Math.abs(parseFloat(rule.amount || 0)))}
                       </div>
                     </div>
@@ -414,7 +414,7 @@ export default function BillsRecurringPage() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleOpenPay(rule)}
-                        className="px-3.5 py-2 rounded-xl bg-[#10d88a] text-black text-xs font-bold shadow-md shadow-[#10d88a]/20 hover:bg-[#34d399] transition-all cursor-pointer flex items-center gap-1.5"
+                        className="px-3.5 py-2 rounded-xl bg-income text-white text-xs font-bold shadow-md shadow-income/20 hover:bg-income transition-all cursor-pointer flex items-center gap-1.5"
                       >
                         <CheckCircle2 size={14} />
                         <span>Pay Now</span>
@@ -422,7 +422,7 @@ export default function BillsRecurringPage() {
 
                       <button
                         onClick={() => handleOpenEdit(rule)}
-                        className="p-2 rounded-xl border border-[#2b2b40] bg-[#1a1a28] text-[#8888a8] hover:text-[#ffffff] hover:bg-[#222234] transition-colors cursor-pointer"
+                        className="p-2 rounded-xl border border-border bg-bg-hover text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
                         title="Edit Rule"
                       >
                         <Edit2 size={15} />
@@ -430,7 +430,7 @@ export default function BillsRecurringPage() {
 
                       <button
                         onClick={() => handleDelete(rule.id, rule.title)}
-                        className="p-2 rounded-xl border border-[#2b2b40] bg-[#1a1a28] text-[#8888a8] hover:text-rose-400 hover:border-rose-500/40 transition-colors cursor-pointer"
+                        className="p-2 rounded-xl border border-border bg-bg-hover text-text-muted hover:text-expense hover:border-expense/40 transition-colors cursor-pointer"
                         title="Delete Rule"
                       >
                         <Trash2 size={15} />

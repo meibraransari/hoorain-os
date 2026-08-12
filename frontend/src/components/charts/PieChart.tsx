@@ -40,9 +40,13 @@ export function PieChart({ data, title, height = 320, defaultCollapsed = false }
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
-  const textColor = theme === 'light' ? '#555577' : '#8888a8';
-  const tooltipBg = theme === 'light' ? '#ffffff' : '#16161f';
-  const gridColor = theme === 'light' ? '#e0e0ef' : '#2a2a3a';
+  // Get CSS variable values dynamically from the current theme
+  const textColor = getComputedStyle(document.documentElement)
+    .getPropertyValue('--text-secondary').trim();
+  const tooltipBg = getComputedStyle(document.documentElement)
+    .getPropertyValue('--bg-card').trim();
+  const gridColor = getComputedStyle(document.documentElement)
+    .getPropertyValue('--border').trim();
 
   const totalValue = data.reduce((sum, item) => sum + item.value, 0);
 

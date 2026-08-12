@@ -1,4 +1,4 @@
-import { usePrivacy } from '@/components/providers/PrivacyProvider';
+﻿import { usePrivacy } from '@/components/providers/PrivacyProvider';
 import { format } from 'date-fns';
 import {
   ShoppingBag,
@@ -75,16 +75,16 @@ export function TransactionItem({ transaction, action }: TransactionItemProps) {
   const hasNotes = Boolean(rawNotes && rawNotes.trim() !== '');
 
   return (
-    <div className="group flex items-center justify-between p-3.5 px-4 rounded-2xl bg-[#141420] border border-[#26263a] hover:bg-[#1a1a2b] hover:border-[#6c63ff]/60 hover:shadow-xl transition-all duration-200 cursor-pointer my-1.5">
+    <div className="group flex items-center justify-between p-3.5 px-4 rounded-2xl bg-bg-card border border-border hover:bg-bg-hover hover:border-accent/60 hover:shadow-xl transition-all duration-200 cursor-pointer my-1.5">
       <div className="flex items-start gap-3.5 min-w-0 flex-1 pr-3">
         {/* Category Avatar Icon Tile */}
         <div
           className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-105 mt-0.5 shadow-md ${
             isTransfer
-              ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40 shadow-violet-500/10'
+              ? 'bg-transfer/20 text-transfer border border-violet-500/40 shadow-violet-500/10'
               : isIncome
-              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-emerald-500/10'
-              : 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-rose-500/10'
+              ? 'bg-income/20 text-income border border-income/40 shadow-emerald-500/10'
+              : 'bg-expense/20 text-expense border border-expense/40 shadow-rose-500/10'
           }`}
         >
           {getCategoryIcon(categoryName, isTransfer)}
@@ -93,12 +93,12 @@ export function TransactionItem({ transaction, action }: TransactionItemProps) {
         {/* Content Details Block */}
         <div className="flex flex-col min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <h4 className="font-bold text-[#ffffff] text-[15px] tracking-tight truncate group-hover:text-[#8b85ff] transition-colors">
+            <h4 className="font-bold text-text-primary text-[15px] tracking-tight truncate group-hover:text-accent-light transition-colors">
               {primaryTitle}
             </h4>
 
             {transaction.excludeFromBalance && (
-              <span className="px-2 py-0.5 text-[10px] font-bold rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/40 shrink-0">
+              <span className="px-2 py-0.5 text-[10px] font-bold rounded-md bg-warning/20 text-warning border border-warning/40 shrink-0">
                 Excluded
               </span>
             )}
@@ -106,17 +106,17 @@ export function TransactionItem({ transaction, action }: TransactionItemProps) {
 
           {/* Account, Category, Budget & Goal Pills */}
           <div className="flex flex-wrap items-center gap-1.5 mt-1.5 text-xs">
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-[#1e1e2e] text-[#a0a0cc] text-[11px] font-semibold border border-[#2d2d44]">
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-bg-secondary text-text-secondary text-[11px] font-semibold border border-border-subtle">
               🏷️ {categoryName}
             </span>
 
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-[#1e1e2e] text-[#a0a0cc] text-[11px] font-semibold border border-[#2d2d44]">
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-bg-secondary text-text-secondary text-[11px] font-semibold border border-border-subtle">
               🏦 {accountName}
             </span>
 
             {/* Optional Linked Monthly Budget Pill */}
             {budgetName && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-[#251c42] text-[#c4b5fd] border border-[#3b2d6b] text-[11px] font-bold shadow-xs">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-[#251c42] text-[#c4b5fd] border border-border text-[11px] font-bold shadow-xs">
                 <PieChart size={12} className="text-[#a78bfa] shrink-0" />
                 <span>Budget: {budgetName}</span>
               </span>
@@ -124,7 +124,7 @@ export function TransactionItem({ transaction, action }: TransactionItemProps) {
 
             {/* Optional Linked Financial Goal Pill */}
             {goalName && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-[#132e27] text-[#6ee7b7] border border-[#1f4e42] text-[11px] font-bold shadow-xs">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-[#132e27] text-[#6ee7b7] border border-border text-[11px] font-bold shadow-xs">
                 <Target size={12} className="text-[#34d399] shrink-0" />
                 <span>Goal: {goalName}</span>
               </span>
@@ -133,8 +133,8 @@ export function TransactionItem({ transaction, action }: TransactionItemProps) {
 
           {/* Dedicated High-Contrast Transaction Notes Block */}
           {hasNotes && (
-            <div className="mt-2 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#10101a] border border-[#2b2b40] text-xs text-[#c0c0e0] font-medium shadow-xs">
-              <FileText size={13} className="shrink-0 text-[#8b85ff]" />
+            <div className="mt-2 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-bg-secondary border border-border text-xs text-text-primary font-medium shadow-xs">
+              <FileText size={13} className="shrink-0 text-accent-light" />
               <span className="truncate">{rawNotes}</span>
             </div>
           )}
@@ -147,16 +147,16 @@ export function TransactionItem({ transaction, action }: TransactionItemProps) {
           <span
             className={`font-extrabold text-[16px] tracking-tight ${
               isTransfer
-                ? 'text-[#60a5fa]'
+                ? 'text-info'
                 : isIncome
-                ? 'text-[#10d88a]'
-                : 'text-[#ffffff]'
+                ? 'text-success'
+                : 'text-text-primary'
             }`}
           >
             {isTransfer ? '' : isIncome ? '+' : '-'}{formatPrivateCurrency(Math.abs(rawAmount))}
           </span>
           {formattedTime && (
-            <span className="text-[12px] text-[#8888a8] mt-0.5 font-medium tracking-wide">
+            <span className="text-[12px] text-text-secondary mt-0.5 font-medium tracking-wide">
               {formattedTime}
             </span>
           )}

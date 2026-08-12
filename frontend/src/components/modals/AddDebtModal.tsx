@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
@@ -126,18 +126,18 @@ export function AddDebtModal({ isOpen, onClose, debtToEdit }: AddDebtModalProps)
 
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto">
-      <div className="card w-full max-w-lg bg-[#141420] border border-[#2a2a3e] rounded-2xl shadow-2xl overflow-hidden my-auto ring-1 ring-white/10 animate-in fade-in-0 zoom-in-95 duration-200">
+      <div className="card w-full max-w-lg bg-bg-card border border-border rounded-2xl shadow-2xl overflow-hidden my-auto ring-1 ring-white/10 animate-in fade-in-0 zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#26263a] px-6 py-4 bg-[#181826]">
+        <div className="flex items-center justify-between border-b border-border px-6 py-4 bg-bg-secondary">
           <div className="flex items-center gap-2">
-            <Calculator size={20} className="text-[#6c63ff]" />
-            <h2 className="text-xl font-bold tracking-tight text-[#ffffff]">
+            <Calculator size={20} className="text-accent" />
+            <h2 className="text-xl font-bold tracking-tight text-text-primary">
               {debtToEdit ? 'Edit Loan / Debt Item' : 'Add Loan, Credit Card or Debt'}
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-[#8888a8] hover:text-[#ffffff] hover:bg-[#222234] transition-all cursor-pointer"
+            className="p-1.5 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-hover transition-all cursor-pointer"
           >
             <X size={20} />
           </button>
@@ -145,14 +145,14 @@ export function AddDebtModal({ isOpen, onClose, debtToEdit }: AddDebtModalProps)
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[82vh] overflow-y-auto scrollbar-thin">
           {error && (
-            <div className="p-3.5 text-sm rounded-xl bg-rose-500/15 text-rose-300 border border-rose-500/30 font-medium">
+            <div className="p-3.5 text-sm rounded-xl bg-expense/15 text-expense border border-expense/30 font-medium">
               {error}
             </div>
           )}
 
           {/* Title */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
               Debt / Loan Title
             </label>
             <input
@@ -160,7 +160,7 @@ export function AddDebtModal({ isOpen, onClose, debtToEdit }: AddDebtModalProps)
               placeholder="e.g. HDFC Credit Card, Home Loan, SBI Car Loan"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full rounded-xl border border-[#2b2b40] bg-[#10101a] px-4 py-2.5 text-sm text-[#ffffff] font-medium focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/30 focus:outline-none transition-all"
+              className="w-full rounded-xl border border-border bg-bg-primary px-4 py-2.5 text-sm text-text-primary font-medium focus:border-accent focus:ring-2 focus:ring-accent/30 focus:outline-none transition-all"
               required
             />
           </div>
@@ -168,7 +168,7 @@ export function AddDebtModal({ isOpen, onClose, debtToEdit }: AddDebtModalProps)
           {/* Balance & APR Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
                 Current Owed Balance
               </label>
               <input
@@ -177,13 +177,13 @@ export function AddDebtModal({ isOpen, onClose, debtToEdit }: AddDebtModalProps)
                 placeholder="0.00"
                 value={balance}
                 onChange={(e) => setBalance(e.target.value)}
-                className="w-full text-lg font-bold rounded-xl border border-[#2b2b40] bg-[#10101a] px-4 py-2.5 text-[#ffffff] focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/30 focus:outline-none transition-all"
+                className="w-full text-lg font-bold rounded-xl border border-border bg-bg-primary px-4 py-2.5 text-text-primary focus:border-accent focus:ring-2 focus:ring-accent/30 focus:outline-none transition-all"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
                 Interest Rate (APR %)
               </label>
               <input
@@ -192,7 +192,7 @@ export function AddDebtModal({ isOpen, onClose, debtToEdit }: AddDebtModalProps)
                 placeholder="e.g. 18.5"
                 value={interestRate}
                 onChange={(e) => setInterestRate(e.target.value)}
-                className="w-full text-lg font-bold rounded-xl border border-[#2b2b40] bg-[#10101a] px-4 py-2.5 text-[#ffffff] focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/30 focus:outline-none transition-all"
+                className="w-full text-lg font-bold rounded-xl border border-border bg-bg-primary px-4 py-2.5 text-text-primary focus:border-accent focus:ring-2 focus:ring-accent/30 focus:outline-none transition-all"
                 required
               />
             </div>
@@ -201,7 +201,7 @@ export function AddDebtModal({ isOpen, onClose, debtToEdit }: AddDebtModalProps)
           {/* Min Payment & Extra Payment Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
                 Min Monthly Payment
               </label>
               <input
@@ -210,13 +210,13 @@ export function AddDebtModal({ isOpen, onClose, debtToEdit }: AddDebtModalProps)
                 placeholder="0.00"
                 value={minimumPayment}
                 onChange={(e) => setMinimumPayment(e.target.value)}
-                className="w-full rounded-xl border border-[#2b2b40] bg-[#10101a] px-4 py-2.5 text-sm text-[#ffffff] font-medium focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/30 focus:outline-none transition-all"
+                className="w-full rounded-xl border border-border bg-bg-primary px-4 py-2.5 text-sm text-text-primary font-medium focus:border-accent focus:ring-2 focus:ring-accent/30 focus:outline-none transition-all"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
                 Optional Extra Monthly Payment
               </label>
               <input
@@ -225,14 +225,14 @@ export function AddDebtModal({ isOpen, onClose, debtToEdit }: AddDebtModalProps)
                 placeholder="0.00"
                 value={extraPayment}
                 onChange={(e) => setExtraPayment(e.target.value)}
-                className="w-full rounded-xl border border-[#2b2b40] bg-[#10101a] px-4 py-2.5 text-sm text-[#ffffff] font-medium focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/30 focus:outline-none transition-all"
+                className="w-full rounded-xl border border-border bg-bg-primary px-4 py-2.5 text-sm text-text-primary font-medium focus:border-accent focus:ring-2 focus:ring-accent/30 focus:outline-none transition-all"
               />
             </div>
           </div>
 
           {/* Debt Category */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
               Category
             </label>
             <SmoothSelect
@@ -244,7 +244,7 @@ export function AddDebtModal({ isOpen, onClose, debtToEdit }: AddDebtModalProps)
 
           {/* Notes */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
               Notes / Account Reference
             </label>
             <textarea
@@ -252,23 +252,23 @@ export function AddDebtModal({ isOpen, onClose, debtToEdit }: AddDebtModalProps)
               placeholder="Enter loan account numbers or lender notes..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full rounded-xl border border-[#2b2b40] bg-[#10101a] p-3 text-sm text-[#ffffff] focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/30 focus:outline-none transition-all resize-y min-h-[70px] font-medium"
+              className="w-full rounded-xl border border-border bg-bg-primary p-3 text-sm text-text-primary focus:border-accent focus:ring-2 focus:ring-accent/30 focus:outline-none transition-all resize-y min-h-[70px] font-medium"
             />
           </div>
 
           {/* Footer Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#26263a]">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl text-sm font-semibold text-[#8888a8] hover:text-[#ffffff] hover:bg-[#1f1f2e] transition-colors cursor-pointer"
+              className="px-4 py-2.5 rounded-xl text-sm font-semibold text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2.5 rounded-xl text-sm font-bold bg-[#6c63ff] text-white shadow-lg shadow-[#6c63ff]/30 hover:bg-[#8b85ff] hover:scale-[1.02] transition-all cursor-pointer disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl text-sm font-bold bg-accent text-white shadow-lg shadow-accent/30 hover:bg-accent-light hover:scale-[1.02] transition-all cursor-pointer disabled:opacity-50"
             >
               {loading ? 'Saving...' : debtToEdit ? 'Update Debt' : 'Add Debt'}
             </button>

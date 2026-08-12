@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
@@ -145,18 +145,18 @@ export function SettleLentBorrowModal({ isOpen, onClose, recordToSettle }: Settl
 
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto">
-      <div className="card w-full max-w-lg bg-[#141420] border border-[#2a2a3e] rounded-2xl shadow-2xl overflow-hidden my-auto ring-1 ring-white/10 animate-in fade-in-0 zoom-in-95 duration-200">
+      <div className="card w-full max-w-lg bg-bg-card border border-border rounded-2xl shadow-2xl overflow-hidden my-auto ring-1 ring-white/10 animate-in fade-in-0 zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#26263a] px-6 py-4 bg-[#181826]">
+        <div className="flex items-center justify-between border-b border-border px-6 py-4 bg-bg-secondary">
           <div className="flex items-center gap-2">
-            <CheckCircle2 size={20} className="text-[#10d88a]" />
-            <h2 className="text-xl font-bold tracking-tight text-[#ffffff]">
+            <CheckCircle2 size={20} className="text-income" />
+            <h2 className="text-xl font-bold tracking-tight text-text-primary">
               Settle Debt & Repay
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-[#8888a8] hover:text-[#ffffff] hover:bg-[#222234] transition-all cursor-pointer"
+            className="p-1.5 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-hover transition-all cursor-pointer"
           >
             <X size={20} />
           </button>
@@ -164,24 +164,24 @@ export function SettleLentBorrowModal({ isOpen, onClose, recordToSettle }: Settl
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[82vh] overflow-y-auto scrollbar-thin">
           {error && (
-            <div className="p-3.5 text-sm rounded-xl bg-rose-500/15 text-rose-300 border border-rose-500/30 font-medium">
+            <div className="p-3.5 text-sm rounded-xl bg-expense/15 text-expense border border-expense/30 font-medium">
               {error}
             </div>
           )}
 
           {/* Record Summary Banner */}
-          <div className="p-4 rounded-2xl border border-[#26263a] bg-[#10101a] space-y-2">
-            <div className="flex items-center justify-between text-xs text-[#8888a8] font-semibold uppercase tracking-wider">
+          <div className="p-4 rounded-2xl border border-border bg-bg-primary space-y-2">
+            <div className="flex items-center justify-between text-xs text-text-muted font-semibold uppercase tracking-wider">
               <span>Original Debt Record</span>
-              <span className={isLent ? 'text-rose-400 font-bold' : 'text-emerald-400 font-bold'}>
+              <span className={isLent ? 'text-expense font-bold' : 'text-income font-bold'}>
                 {isLent ? '↗ Money Lent' : '↘ Money Borrowed'}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-base font-bold text-[#ffffff] flex items-center gap-1.5">
+              <span className="text-base font-bold text-text-primary flex items-center gap-1.5">
                 👤 {person}
               </span>
-              <span className={`text-xl font-extrabold ${isLent ? 'text-rose-400' : 'text-emerald-400'}`}>
+              <span className={`text-xl font-extrabold ${isLent ? 'text-expense' : 'text-income'}`}>
                 {formatCurrency(origAmount)}
               </span>
             </div>
@@ -189,8 +189,8 @@ export function SettleLentBorrowModal({ isOpen, onClose, recordToSettle }: Settl
 
           {/* Settlement Account Picker */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5 flex items-center gap-1">
-              <Building2 size={13} className="text-[#6c63ff]" />
+            <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5 flex items-center gap-1">
+              <Building2 size={13} className="text-accent" />
               <span>Settlement Account (Account Used to Settle / Repay)</span>
             </label>
             <SmoothSelect
@@ -205,7 +205,7 @@ export function SettleLentBorrowModal({ isOpen, onClose, recordToSettle }: Settl
                 description: `${acc.currency || 'INR'} • Current Balance: ${formatCurrency(acc.currentBalance ?? acc.balance ?? 0)}`,
               }))}
             />
-            <span className="text-[11px] text-[#8888a8] mt-1 block">
+            <span className="text-[11px] text-text-muted mt-1 block">
               {isLent
                 ? 'Money collected will be deposited as Income into this account.'
                 : 'Money repaid will be deducted as an Expense from this account.'}
@@ -214,7 +214,7 @@ export function SettleLentBorrowModal({ isOpen, onClose, recordToSettle }: Settl
 
           {/* Settlement Amount */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
               Settlement Amount
             </label>
             <input
@@ -223,7 +223,7 @@ export function SettleLentBorrowModal({ isOpen, onClose, recordToSettle }: Settl
               placeholder="0.00"
               value={settleAmount}
               onChange={(e) => setSettleAmount(e.target.value)}
-              className="w-full text-2xl font-extrabold rounded-2xl border border-[#2b2b40] bg-[#10101a] px-4 py-3 text-[#ffffff] focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/30 focus:outline-none transition-all"
+              className="w-full text-2xl font-extrabold rounded-2xl border border-border bg-bg-primary px-4 py-3 text-text-primary focus:border-accent focus:ring-2 focus:ring-accent/30 focus:outline-none transition-all"
               required
             />
           </div>
@@ -237,7 +237,7 @@ export function SettleLentBorrowModal({ isOpen, onClose, recordToSettle }: Settl
 
           {/* Notes / Description */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
               Settlement Memo / Notes
             </label>
             <textarea
@@ -245,23 +245,23 @@ export function SettleLentBorrowModal({ isOpen, onClose, recordToSettle }: Settl
               placeholder="Enter settlement notes or reference memo..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full rounded-xl border border-[#2b2b40] bg-[#10101a] p-3 text-sm text-[#ffffff] focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/30 focus:outline-none transition-all resize-y min-h-[70px] font-medium"
+              className="w-full rounded-xl border border-border bg-bg-primary p-3 text-sm text-text-primary focus:border-accent focus:ring-2 focus:ring-accent/30 focus:outline-none transition-all resize-y min-h-[70px] font-medium"
             />
           </div>
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#26263a]">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl text-sm font-semibold text-[#8888a8] hover:text-[#ffffff] hover:bg-[#1f1f2e] transition-colors cursor-pointer"
+              className="px-4 py-2.5 rounded-xl text-sm font-semibold text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2.5 rounded-xl text-sm font-bold bg-[#10d88a] text-black shadow-lg shadow-[#10d88a]/25 hover:bg-[#34d399] hover:scale-[1.02] transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+              className="px-6 py-2.5 rounded-xl text-sm font-bold bg-income text-white shadow-lg shadow-income/25 hover:bg-income hover:scale-[1.02] transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
             >
               <CheckCircle2 size={16} />
               <span>{loading ? 'Settling...' : 'Confirm Settlement'}</span>

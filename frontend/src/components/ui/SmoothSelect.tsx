@@ -64,13 +64,13 @@ export function SmoothSelect({
         type="button"
         disabled={disabled}
         onClick={() => setIsOpen((prev) => !prev)}
-        className={`w-full px-4 py-2.5 bg-[#10101a] border rounded-xl text-sm flex items-center justify-between transition-all duration-200 focus:outline-none shadow-xs ${
+        className={`w-full px-4 py-2.5 bg-bg-secondary border rounded-xl text-sm flex items-center justify-between transition-all duration-200 focus:outline-none shadow-xs ${
           isOpen
-            ? 'border-[#6c63ff] ring-2 ring-[#6c63ff]/30 bg-[#141420] shadow-lg shadow-[#6c63ff]/10'
-            : 'border-[#2b2b40] hover:border-[#6c63ff]/60 hover:bg-[#161624]'
+            ? 'border-accent ring-2 ring-accent/30 bg-bg-card shadow-lg shadow-accent/10'
+            : 'border-border hover:border-accent/60 hover:bg-bg-hover'
         } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
       >
-        <span className="flex items-center gap-2.5 truncate text-[#ffffff] font-medium">
+        <span className="flex items-center gap-2.5 truncate text-text-primary font-medium">
           {selectedOption ? (
             <>
               {selectedOption.icon && (
@@ -81,30 +81,30 @@ export function SmoothSelect({
               <span className="truncate">{selectedOption.label}</span>
             </>
           ) : (
-            <span className="text-[#8888a8]">{placeholder}</span>
+            <span className="text-text-secondary">{placeholder}</span>
           )}
         </span>
         <ChevronDown
           size={16}
-          className={`text-[#8888a8] shrink-0 transition-transform duration-200 ${
-            isOpen ? 'rotate-180 text-[#6c63ff]' : ''
+          className={`text-text-secondary shrink-0 transition-transform duration-200 ${
+            isOpen ? 'rotate-180 text-accent' : ''
           }`}
         />
       </button>
 
       {/* Popover Dropdown Menu */}
       {isOpen && (
-        <div className={`absolute z-50 w-full bg-[#141422] border border-[#2b2b40] rounded-2xl shadow-2xl overflow-hidden ring-1 ring-white/10 animate-in fade-in-0 zoom-in-95 duration-150 ${positionClass}`}>
+        <div className={`absolute z-50 w-full bg-bg-card border border-border rounded-2xl shadow-2xl overflow-hidden ring-1 ring-white/10 animate-in fade-in-0 zoom-in-95 duration-150 ${positionClass}`}>
           {searchable && (
-            <div className="p-2.5 border-b border-[#242436] bg-[#10101a]">
+            <div className="p-2.5 border-b border-border-subtle bg-bg-secondary">
               <div className="relative flex items-center">
-                <Search size={14} className="absolute left-3 text-[#8888a8]" />
+                <Search size={14} className="absolute left-3 text-text-secondary" />
                 <input
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search..."
-                  className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#181826] border border-[#2d2d44] rounded-lg text-[#ffffff] focus:outline-none focus:border-[#6c63ff] focus:ring-1 focus:ring-[#6c63ff]/30 font-medium"
+                  className="w-full pl-8 pr-3 py-1.5 text-xs bg-bg-hover border border-border-subtle rounded-lg text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/30 font-medium"
                   autoFocus
                 />
               </div>
@@ -113,7 +113,7 @@ export function SmoothSelect({
 
           <div className="max-h-60 overflow-y-auto p-1.5 space-y-1 scrollbar-thin">
             {filteredOptions.length === 0 ? (
-              <div className="px-3 py-3 text-xs text-[#8888a8] text-center italic">
+              <div className="px-3 py-3 text-xs text-text-secondary text-center italic">
                 No matching options
               </div>
             ) : (
@@ -130,8 +130,8 @@ export function SmoothSelect({
                     }}
                     className={`w-full px-3 py-2 text-left rounded-xl flex items-center justify-between transition-all duration-150 cursor-pointer ${
                       isSelected
-                        ? 'bg-[#6c63ff]/20 text-[#6c63ff] font-bold ring-1 ring-[#6c63ff]/40 shadow-xs'
-                        : 'text-[#ffffff] hover:bg-[#1f1f30]'
+                        ? 'bg-accent/20 text-accent font-bold ring-1 ring-accent/40 shadow-xs'
+                        : 'text-text-primary hover:bg-bg-hover'
                     }`}
                   >
                     <div className="flex items-center gap-2.5 truncate min-w-0 pr-2">
@@ -145,13 +145,13 @@ export function SmoothSelect({
                           {opt.label}
                         </span>
                         {opt.description && (
-                          <span className="text-[10px] text-[#8888a8] font-medium truncate mt-0.5">
+                          <span className="text-[10px] text-text-secondary font-medium truncate mt-0.5">
                             {opt.description}
                           </span>
                         )}
                       </div>
                     </div>
-                    {isSelected && <Check size={14} className="text-[#6c63ff] shrink-0 font-bold" />}
+                    {isSelected && <Check size={14} className="text-accent shrink-0 font-bold" />}
                   </button>
                 );
               })

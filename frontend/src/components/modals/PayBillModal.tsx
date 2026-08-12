@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
@@ -99,18 +99,18 @@ export function PayBillModal({ isOpen, onClose, ruleToPay }: PayBillModalProps) 
 
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto">
-      <div className="card w-full max-w-lg bg-[#141420] border border-[#2a2a3e] rounded-2xl shadow-2xl overflow-hidden my-auto ring-1 ring-white/10 animate-in fade-in-0 zoom-in-95 duration-200">
+      <div className="card w-full max-w-lg bg-bg-card border border-border rounded-2xl shadow-2xl overflow-hidden my-auto ring-1 ring-white/10 animate-in fade-in-0 zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#26263a] px-6 py-4 bg-[#181826]">
+        <div className="flex items-center justify-between border-b border-border px-6 py-4 bg-bg-secondary">
           <div className="flex items-center gap-2">
-            <CheckCircle2 size={20} className="text-[#10d88a]" />
-            <h2 className="text-xl font-bold tracking-tight text-[#ffffff]">
+            <CheckCircle2 size={20} className="text-income" />
+            <h2 className="text-xl font-bold tracking-tight text-text-primary">
               Pay Bill & Log Transaction
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-[#8888a8] hover:text-[#ffffff] hover:bg-[#222234] transition-all cursor-pointer"
+            className="p-1.5 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-hover transition-all cursor-pointer"
           >
             <X size={20} />
           </button>
@@ -118,22 +118,22 @@ export function PayBillModal({ isOpen, onClose, ruleToPay }: PayBillModalProps) 
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[82vh] overflow-y-auto scrollbar-thin">
           {error && (
-            <div className="p-3.5 text-sm rounded-xl bg-rose-500/15 text-rose-300 border border-rose-500/30 font-medium">
+            <div className="p-3.5 text-sm rounded-xl bg-expense/15 text-expense border border-expense/30 font-medium">
               {error}
             </div>
           )}
 
           {/* Rule Details Summary Card */}
-          <div className="p-4 rounded-2xl border border-[#26263a] bg-[#10101a] space-y-1.5">
-            <div className="flex items-center justify-between text-xs text-[#8888a8] font-semibold uppercase tracking-wider">
+          <div className="p-4 rounded-2xl border border-border bg-bg-primary space-y-1.5">
+            <div className="flex items-center justify-between text-xs text-text-muted font-semibold uppercase tracking-wider">
               <span>Bill / Subscription</span>
-              <span className="text-[#6c63ff] font-bold uppercase">{ruleToPay.frequency || 'Monthly'}</span>
+              <span className="text-accent font-bold uppercase">{ruleToPay.frequency || 'Monthly'}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-lg font-bold text-[#ffffff] flex items-center gap-1.5">
+              <span className="text-lg font-bold text-text-primary flex items-center gap-1.5">
                 💳 {ruleTitle}
               </span>
-              <span className="text-2xl font-extrabold text-rose-400">
+              <span className="text-2xl font-extrabold text-expense">
                 {formatCurrency(amountVal)}
               </span>
             </div>
@@ -141,7 +141,7 @@ export function PayBillModal({ isOpen, onClose, ruleToPay }: PayBillModalProps) 
 
           {/* Account Selector */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
               Payment Account (Deduct Balance From)
             </label>
             <SmoothSelect
@@ -167,7 +167,7 @@ export function PayBillModal({ isOpen, onClose, ruleToPay }: PayBillModalProps) 
 
           {/* Notes / Description */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
               Payment Reference / Notes
             </label>
             <textarea
@@ -175,23 +175,23 @@ export function PayBillModal({ isOpen, onClose, ruleToPay }: PayBillModalProps) 
               placeholder="Enter reference number or payment notes..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full rounded-xl border border-[#2b2b40] bg-[#10101a] p-3 text-sm text-[#ffffff] focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/30 focus:outline-none transition-all resize-y min-h-[70px] font-medium"
+              className="w-full rounded-xl border border-border bg-bg-primary p-3 text-sm text-text-primary focus:border-accent focus:ring-2 focus:ring-accent/30 focus:outline-none transition-all resize-y min-h-[70px] font-medium"
             />
           </div>
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#26263a]">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl text-sm font-semibold text-[#8888a8] hover:text-[#ffffff] hover:bg-[#1f1f2e] transition-colors cursor-pointer"
+              className="px-4 py-2.5 rounded-xl text-sm font-semibold text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2.5 rounded-xl text-sm font-bold bg-[#10d88a] text-black shadow-lg shadow-[#10d88a]/25 hover:bg-[#34d399] hover:scale-[1.02] transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+              className="px-6 py-2.5 rounded-xl text-sm font-bold bg-income text-white shadow-lg shadow-income/25 hover:bg-income hover:scale-[1.02] transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
             >
               <CheckCircle2 size={16} />
               <span>{loading ? 'Processing...' : 'Confirm & Deduct Balance'}</span>

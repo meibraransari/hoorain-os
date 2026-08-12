@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useCreditUtilization } from '@/lib/hooks/useFinance';
 import { usePrivacy } from '@/components/providers/PrivacyProvider';
@@ -31,7 +31,7 @@ export function CreditUtilizationWidget() {
     }
     if (status === 'warning' || pct >= 30) {
       return (
-        <span className="px-2.5 py-0.5 text-xs font-bold rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+        <span className="px-2.5 py-0.5 text-xs font-bold rounded-full bg-warning/15 text-warning border border-warning/30 flex items-center gap-1">
           <AlertTriangle size={13} />
           <span>Moderate ({pct}%)</span>
         </span>
@@ -77,7 +77,7 @@ export function CreditUtilizationWidget() {
               overallUtilizationPercentage > 70
                 ? 'bg-expense'
                 : overallUtilizationPercentage >= 30
-                ? 'bg-amber-400'
+                ? 'bg-warning'
                 : 'bg-income'
             }`}
             style={{ width: `${Math.min(100, overallUtilizationPercentage)}%` }}
@@ -111,7 +111,7 @@ export function CreditUtilizationWidget() {
                       card.utilizationPercentage > 70
                         ? 'bg-expense'
                         : card.utilizationPercentage >= 30
-                        ? 'bg-amber-400'
+                        ? 'bg-warning'
                         : 'bg-income'
                     }`}
                     style={{ width: `${Math.min(100, card.utilizationPercentage)}%` }}

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
@@ -179,18 +179,18 @@ export function AddLentBorrowModal({ isOpen, onClose, recordToEdit }: AddLentBor
 
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 overflow-y-auto">
-      <div className="card w-full max-w-lg bg-[#141420] border border-[#2a2a3e] rounded-2xl shadow-2xl overflow-hidden my-auto ring-1 ring-white/10 animate-in fade-in-0 zoom-in-95 duration-200">
+      <div className="card w-full max-w-lg bg-bg-card border border-border rounded-2xl shadow-2xl overflow-hidden my-auto ring-1 ring-white/10 animate-in fade-in-0 zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#26263a] px-6 py-4 bg-[#181826]">
+        <div className="flex items-center justify-between border-b border-border px-6 py-4 bg-bg-secondary">
           <div className="flex items-center gap-2">
-            <HandCoins size={20} className="text-[#6c63ff]" />
-            <h2 className="text-xl font-bold tracking-tight text-[#ffffff]">
+            <HandCoins size={20} className="text-accent" />
+            <h2 className="text-xl font-bold tracking-tight text-text-primary">
               {recordToEdit ? 'Edit Debt Record' : 'Record Money Lent / Borrowed'}
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-[#8888a8] hover:text-[#ffffff] hover:bg-[#222234] transition-all cursor-pointer"
+            className="p-1.5 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-hover transition-all cursor-pointer"
           >
             <X size={20} />
           </button>
@@ -198,20 +198,20 @@ export function AddLentBorrowModal({ isOpen, onClose, recordToEdit }: AddLentBor
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[82vh] overflow-y-auto scrollbar-thin">
           {error && (
-            <div className="p-3.5 text-sm rounded-xl bg-rose-500/15 text-rose-300 border border-rose-500/30 font-medium">
+            <div className="p-3.5 text-sm rounded-xl bg-expense/15 text-expense border border-expense/30 font-medium">
               {error}
             </div>
           )}
 
           {/* Type Switcher: Lent vs Borrowed */}
-          <div className="grid grid-cols-2 gap-2 p-1.5 bg-[#0e0e17] rounded-2xl border border-[#242436]">
+          <div className="grid grid-cols-2 gap-2 p-1.5 bg-bg-primary rounded-2xl border border-border-subtle">
             <button
               type="button"
               onClick={() => setLentType('lent')}
               className={`py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                 lentType === 'lent'
                   ? 'bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-500/25 scale-[1.02]'
-                  : 'text-[#8888a8] hover:text-[#ffffff] hover:bg-[#1a1a28]'
+                  : 'text-text-muted hover:text-text-primary hover:bg-bg-hover'
               }`}
             >
               <ArrowUpRight size={16} />
@@ -224,7 +224,7 @@ export function AddLentBorrowModal({ isOpen, onClose, recordToEdit }: AddLentBor
               className={`py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                 lentType === 'borrowed'
                   ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/25 scale-[1.02]'
-                  : 'text-[#8888a8] hover:text-[#ffffff] hover:bg-[#1a1a28]'
+                  : 'text-text-muted hover:text-text-primary hover:bg-bg-hover'
               }`}
             >
               <ArrowDownLeft size={16} />
@@ -234,17 +234,17 @@ export function AddLentBorrowModal({ isOpen, onClose, recordToEdit }: AddLentBor
 
           {/* Person / Contact Name */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
               Person / Contact Name
             </label>
             <div className="relative">
-              <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8888a8]" />
+              <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
               <input
                 type="text"
                 placeholder="e.g. Irshad Bhai, Flat Almasheera, Abbu"
                 value={personName}
                 onChange={(e) => setPersonName(e.target.value)}
-                className="w-full rounded-xl border border-[#2b2b40] bg-[#10101a] pl-10 pr-4 py-2.5 text-sm text-[#ffffff] font-medium focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/30 focus:outline-none transition-all"
+                className="w-full rounded-xl border border-border bg-bg-primary pl-10 pr-4 py-2.5 text-sm text-text-primary font-medium focus:border-accent focus:ring-2 focus:ring-accent/30 focus:outline-none transition-all"
                 required
               />
             </div>
@@ -252,7 +252,7 @@ export function AddLentBorrowModal({ isOpen, onClose, recordToEdit }: AddLentBor
 
           {/* Hero Amount Field */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
               Amount
             </label>
             <input
@@ -261,14 +261,14 @@ export function AddLentBorrowModal({ isOpen, onClose, recordToEdit }: AddLentBor
               placeholder="0.00"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full text-3xl font-extrabold rounded-2xl border border-[#2b2b40] bg-[#10101a] px-4 py-3.5 text-[#ffffff] focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/30 focus:outline-none transition-all"
+              className="w-full text-3xl font-extrabold rounded-2xl border border-border bg-bg-primary px-4 py-3.5 text-text-primary focus:border-accent focus:ring-2 focus:ring-accent/30 focus:outline-none transition-all"
               required
             />
           </div>
 
           {/* Account Selector */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
               Account Used
             </label>
             <SmoothSelect
@@ -294,7 +294,7 @@ export function AddLentBorrowModal({ isOpen, onClose, recordToEdit }: AddLentBor
 
           {/* Notes / Description */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-[#a0a0cc] mb-1.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
               Notes / Description / Due Date Details
             </label>
             <textarea
@@ -302,15 +302,15 @@ export function AddLentBorrowModal({ isOpen, onClose, recordToEdit }: AddLentBor
               placeholder="Enter loan reason, repayment promises, or notes..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full rounded-xl border border-[#2b2b40] bg-[#10101a] p-3.5 text-sm text-[#ffffff] focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/30 focus:outline-none transition-all resize-y min-h-[80px] font-medium"
+              className="w-full rounded-xl border border-border bg-bg-primary p-3.5 text-sm text-text-primary focus:border-accent focus:ring-2 focus:ring-accent/30 focus:outline-none transition-all resize-y min-h-[80px] font-medium"
             />
           </div>
 
           {/* Settled Status Toggle */}
-          <div className="flex items-center justify-between p-3.5 rounded-2xl border border-[#26263a] bg-[#181826]">
+          <div className="flex items-center justify-between p-3.5 rounded-2xl border border-border bg-bg-secondary">
             <div>
-              <span className="text-sm font-bold text-[#ffffff] block">Mark as Settled / Repaid</span>
-              <span className="text-xs text-[#8888a8]">
+              <span className="text-sm font-bold text-text-primary block">Mark as Settled / Repaid</span>
+              <span className="text-xs text-text-muted">
                 Settled records represent fully repaid loans and don't affect pending debts.
               </span>
             </div>
@@ -318,7 +318,7 @@ export function AddLentBorrowModal({ isOpen, onClose, recordToEdit }: AddLentBor
               type="button"
               onClick={() => setIsSettled(!isSettled)}
               className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                isSettled ? 'bg-[#10d88a]' : 'bg-[#10101a] border-[#2b2b40]'
+                isSettled ? 'bg-income' : 'bg-bg-primary border-border'
               }`}
             >
               <span
@@ -330,18 +330,18 @@ export function AddLentBorrowModal({ isOpen, onClose, recordToEdit }: AddLentBor
           </div>
 
           {/* Footer Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#26263a]">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl text-sm font-semibold text-[#8888a8] hover:text-[#ffffff] hover:bg-[#1f1f2e] transition-colors cursor-pointer"
+              className="px-4 py-2.5 rounded-xl text-sm font-semibold text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2.5 rounded-xl text-sm font-bold bg-[#6c63ff] text-white shadow-lg shadow-[#6c63ff]/30 hover:bg-[#8b85ff] hover:scale-[1.02] transition-all cursor-pointer disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl text-sm font-bold bg-accent text-white shadow-lg shadow-accent/30 hover:bg-accent-light hover:scale-[1.02] transition-all cursor-pointer disabled:opacity-50"
             >
               {loading ? 'Saving...' : recordToEdit ? 'Update Record' : 'Save Record'}
             </button>

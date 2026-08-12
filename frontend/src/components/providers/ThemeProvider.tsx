@@ -2,7 +2,17 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'dark' | 'light' | 'amoled' | 'cyberpunk' | 'glassmorphism';
+export type Theme = 'dark' | 'light' | 'amoled' | 'cyberpunk' | 'glassmorphism' | 'sublime' | 'nord';
+
+export const THEMES: { id: Theme; label: string; description: string; accentColor: string }[] = [
+  { id: 'dark',          label: 'Dark',          description: 'Default dark theme',          accentColor: '#6c63ff' },
+  { id: 'light',         label: 'Light',         description: 'Clean light mode',            accentColor: '#6c63ff' },
+  { id: 'amoled',        label: 'AMOLED',        description: 'Pure black for OLED screens', accentColor: '#6c63ff' },
+  { id: 'cyberpunk',     label: 'Cyberpunk',     description: 'Neon magenta & electric',     accentColor: '#ff00ff' },
+  { id: 'glassmorphism', label: 'Glassmorphism', description: 'Frosted glass & purple',      accentColor: '#a855f7' },
+  { id: 'sublime',       label: 'Sublime Text',  description: 'Warm dark with gold accent',  accentColor: '#e6b450' },
+  { id: 'nord',          label: 'Nord',          description: 'Arctic, bluish palette',      accentColor: '#88c0d0' },
+];
 
 interface ThemeContextType {
   theme: Theme;
@@ -19,18 +29,23 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as Theme;
-    if (savedTheme) {
+    if (savedTheme && THEMES.some(t => t.id === savedTheme)) {
+      applyTheme(savedTheme);
       setThemeState(savedTheme);
-      document.documentElement.className = `theme-${savedTheme}`;
-      document.documentElement.setAttribute('data-theme', savedTheme);
+    } else {
+      applyTheme('dark');
     }
   }, []);
+
+  const applyTheme = (t: Theme) => {
+    document.documentElement.className = `theme-${t}`;
+    document.documentElement.setAttribute('data-theme', t);
+  };
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
     localStorage.setItem('theme', newTheme);
-    document.documentElement.className = `theme-${newTheme}`;
-    document.documentElement.setAttribute('data-theme', newTheme);
+    applyTheme(newTheme);
   };
 
   return (

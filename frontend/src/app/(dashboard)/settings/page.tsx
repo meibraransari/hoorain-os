@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTheme } from '@/components/providers/ThemeProvider';
+import { useTheme, THEMES } from '@/components/providers/ThemeProvider';
 import { useSettings } from '@/components/providers/SettingsProvider';
 import { api } from '@/lib/api';
 import {
@@ -250,7 +250,55 @@ export default function SettingsPage() {
         </Link>
       </div>
 
-      {/* 2. Regional & Currency Preferences */}
+      {/* 2. Appearance & Theme */}
+      <div className="card border border-border p-6 rounded-2xl bg-bg-card/90 backdrop-blur-md shadow-xl space-y-5">
+        <div className="flex items-center justify-between border-b border-border pb-3">
+          <div className="flex items-center gap-2 text-text-primary font-bold text-base">
+            <Palette size={18} className="text-accent" />
+            <h2>Appearance &amp; Theme</h2>
+          </div>
+          <span className="text-[11px] text-accent font-mono font-semibold bg-accent/10 border border-accent/20 px-2.5 py-0.5 rounded-full">
+            {THEMES.find(t => t.id === theme)?.label ?? 'Dark'} Active
+          </span>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {THEMES.map((t) => {
+            const isActive = theme === t.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setTheme(t.id)}
+                className={`relative flex flex-col items-start gap-2 p-3.5 rounded-xl border transition-all cursor-pointer text-left group ${
+                  isActive
+                    ? 'border-accent bg-accent/10 shadow-lg shadow-accent/10'
+                    : 'border-border bg-bg-secondary/50 hover:border-accent/50 hover:bg-bg-hover'
+                }`}
+              >
+                <div className="flex items-center gap-1.5 w-full">
+                  <span
+                    className="h-5 w-5 rounded-md flex-shrink-0 ring-1 ring-white/20"
+                    style={{ backgroundColor: t.accentColor }}
+                  />
+                  <span className="h-3 w-3 rounded-sm flex-shrink-0 opacity-60" style={{ backgroundColor: t.accentColor + '88' }} />
+                  <span className="h-3 w-3 rounded-sm flex-shrink-0 opacity-30" style={{ backgroundColor: t.accentColor + '44' }} />
+                  {isActive && (
+                    <span className="ml-auto text-[10px] font-bold text-accent bg-accent/15 px-1.5 py-0.5 rounded-full">✓ Active</span>
+                  )}
+                </div>
+                <div>
+                  <p className={`text-xs font-bold ${isActive ? 'text-accent' : 'text-text-primary group-hover:text-accent transition-colors'}`}>
+                    {t.label}
+                  </p>
+                  <p className="text-[10px] text-text-muted mt-0.5 leading-tight">{t.description}</p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 3. Regional & Currency Preferences */}
       <div className="card border border-border p-6 rounded-2xl bg-bg-card/90 backdrop-blur-md shadow-xl space-y-5">
         <div className="flex items-center justify-between border-b border-border pb-3">
           <div className="flex items-center gap-2 text-text-primary font-bold text-base">
