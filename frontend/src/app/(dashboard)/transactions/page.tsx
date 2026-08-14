@@ -17,10 +17,10 @@ import {
 } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
 import { usePrivacy } from '@/components/providers/PrivacyProvider';
-import { useTransactions } from '@/lib/hooks/useFinance';
+import { useTransactions, useAccounts } from '@/lib/hooks/useFinance';
 import { useSettings } from '@/components/providers/SettingsProvider';
 
-import { TransactionItem } from '@/components/ui/TransactionItem';
+
 import { DateRangePicker } from '@/components/ui/DateRangePicker';
 import { AddTransactionModal } from '@/components/modals/AddTransactionModal';
 import { DeleteTransactionModal } from '@/components/modals/DeleteTransactionModal';
@@ -42,11 +42,33 @@ import {
   ArrowUpRight,
   ArrowDownLeft,
   Wallet,
+  ShoppingBag,
+  Coffee,
+  Car,
+  Home,
+  Smartphone,
+  Briefcase,
+  HelpCircle,
+  ArrowRightLeft,
 } from 'lucide-react';
+
+const getCategoryIcon = (categoryName?: string, isTransfer?: boolean) => {
+  if (isTransfer) return <ArrowRightLeft size={16} />;
+  if (!categoryName) return <HelpCircle size={16} />;
+  const cat = categoryName.toLowerCase();
+  if (cat.includes('food') || cat.includes('groceries') || cat.includes('snack') || cat.includes('milk') || cat.includes('bakery')) return <Coffee size={16} />;
+  if (cat.includes('shop') || cat.includes('clothes') || cat.includes('dry') || cat.includes('computer')) return <ShoppingBag size={16} />;
+  if (cat.includes('transport') || cat.includes('fuel') || cat.includes('petrol') || cat.includes('metro') || cat.includes('service')) return <Car size={16} />;
+  if (cat.includes('house') || cat.includes('rent') || cat.includes('electricity') || cat.includes('gas')) return <Home size={16} />;
+  if (cat.includes('phone') || cat.includes('mobile') || cat.includes('entertainment')) return <Smartphone size={16} />;
+  if (cat.includes('salary') || cat.includes('income') || cat.includes('work') || cat.includes('freelance') || cat.includes('bonus')) return <Briefcase size={16} />;
+  return <HelpCircle size={16} />;
+};
 
 function TransactionsContent() {
   const { formatPrivateCurrency } = usePrivacy();
   const { settings } = useSettings();
+  const { accounts } = useAccounts();
   const searchParams = useSearchParams();
   const accountParam = searchParams.get('account') || searchParams.get('accountId') || '';
 
@@ -152,27 +174,18 @@ function TransactionsContent() {
   const startRecord = (page - 1) * limit + 1;
   const endRecord = Math.min(total, page * limit);
 
-  const { groupedTransactions, periodIncome, periodExpense } = useMemo(() => {
-    if (!transactions || transactions.length === 0) return { groupedTransactions: {}, periodIncome: 0, periodExpense: 0 };
+  const { tableData, periodIncome, periodExpense } = useMemo(() => {
+    if (!transactions || transactions.length === 0) return { tableData: [], periodIncome: 0, periodExpense: 0 };
 
     let inc = 0;
     let exp = 0;
 
-    const grouped = transactions.reduce((acc: any, tx: any) => {
-      let dateKey = 'Unknown Date';
-      if (tx.date) {
-        try {
-          const d = new Date(tx.date);
-          if (isToday(d)) dateKey = 'Today';
-          else if (isYesterday(d)) dateKey = 'Yesterday';
-          else dateKey = format(d, 'EEEE, MMMM d, yyyy');
-        } catch (e) {}
-      }
-      if (!acc[dateKey]) {
-        acc[dateKey] = { transactions: [], netTotal: 0 };
-      }
-      acc[dateKey].transactions.push(tx);
+    const accountBalances: Record<string, number> = {};
+    accounts.forEach((acc: any) => {
+      accountBalances[acc.id] = parseFloat(acc.currentBalance || '0');
+    });
 
+    const calculatedTableData = transactions.map((tx: any) => {
       const rawAmount = typeof tx.amount === 'number' ? tx.amount : parseFloat(tx.amount) || 0;
       const isTransfer = tx.isTransfer || tx.type === 'transfer';
       const isIncome = !isTransfer && (tx.type === 'income' || tx.income === 1);
@@ -180,14 +193,63 @@ function TransactionsContent() {
       if (!isTransfer) {
         if (isIncome) inc += rawAmount;
         else exp += rawAmount;
-        acc[dateKey].netTotal += (isIncome ? rawAmount : -rawAmount);
       }
 
-      return acc;
-    }, {});
+      let curr = 0;
+      let prev = 0;
+      
+      const accId = tx.account?.id;
+      if (accId) {
+         if (accountBalances[accId] === undefined) {
+            accountBalances[accId] = parseFloat(tx.account?.currentBalance || tx.account?.current_balance || '0');
+         }
+         curr = accountBalances[accId];
+         if (tx.excludeFromBalance) {
+           prev = curr;
+         } else if (isIncome) {
+           prev = curr - rawAmount;
+         } else if (!isTransfer) { 
+           prev = curr + rawAmount;
+         } else {
+           prev = curr;
+         }
+         accountBalances[accId] = prev;
+      }
 
-    return { groupedTransactions: grouped, periodIncome: inc, periodExpense: exp };
-  }, [transactions]);
+      let dateKey = 'Unknown Date';
+      if (tx.date) {
+        try {
+          const d = new Date(tx.date);
+          dateKey = format(d, 'EEEE, MMMM d, yyyy');
+        } catch (e) {}
+      }
+
+      const categoryName = typeof tx.category === 'string'
+        ? tx.category
+        : tx.category?.name || (isTransfer ? 'Transfer' : 'General');
+        
+      const accountName = typeof tx.account === 'string'
+        ? tx.account
+        : tx.account?.name || 'Account';
+        
+      const primaryTitle = tx.title || categoryName || 'Transaction';
+
+      return {
+        ...tx,
+        calculatedCurr: curr,
+        calculatedPrev: prev,
+        formattedDate: dateKey,
+        categoryName,
+        accountName,
+        primaryTitle,
+        isTransfer,
+        isIncome,
+        rawAmount
+      };
+    });
+
+    return { tableData: calculatedTableData, periodIncome: inc, periodExpense: exp };
+  }, [transactions, accounts]);
 
   const displayIncome = summary ? summary.income : periodIncome;
   const displayExpense = summary ? summary.expense : periodExpense;
@@ -467,56 +529,101 @@ function TransactionsContent() {
             )}
           </div>
         ) : (
-          <div className="flex flex-col p-2 space-y-1">
-            {Object.entries(groupedTransactions).map(([dateLabel, group]: [string, any]) => (
-              <div key={dateLabel} className="space-y-1">
-                {/* Sticky High-Contrast Date Header Strip */}
-                <div className="sticky top-0 z-10 flex items-center justify-between bg-bg-secondary px-4 py-2 rounded-xl border border-border my-1.5 shadow-sm">
-                  <h3 className="text-xs font-extrabold text-text-primary uppercase tracking-wider">
-                    {dateLabel}
-                  </h3>
-                  <div className="text-xs font-bold text-text-secondary">
-                    {group.netTotal >= 0 ? '+' : ''}{formatCurrency(group.netTotal)}
-                  </div>
-                </div>
-
-                {/* Group Transactions Items */}
-                <div className="flex flex-col">
-                  {group.transactions.map((tx: any) => (
-                    <TransactionItem
-                      key={tx.id}
-                      transaction={tx}
-                      action={
-                        <>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEdit(tx);
-                            }}
-                            className="p-1.5 rounded-lg bg-bg-hover border border-border text-text-muted hover:text-accent hover:border-accent transition-colors shadow-xs cursor-pointer"
-                            title="Edit Transaction"
-                          >
-                            <Edit2 size={13} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleOpenDelete(tx);
-                            }}
-                            className="p-1.5 rounded-lg bg-bg-hover border border-border text-text-muted hover:text-expense hover:border-expense/50 transition-colors shadow-xs cursor-pointer"
-                            title="Delete Transaction"
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </>
-                      }
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm whitespace-nowrap">
+              <thead className="bg-bg-secondary text-text-muted border-b border-border">
+                <tr>
+                  <th className="px-4 py-3 font-semibold uppercase tracking-wider text-xs">Date</th>
+                  <th className="px-4 py-3 font-semibold uppercase tracking-wider text-xs">Description</th>
+                  <th className="px-4 py-3 font-semibold uppercase tracking-wider text-xs">Category</th>
+                  <th className="px-4 py-3 font-semibold uppercase tracking-wider text-xs">Account</th>
+                  <th className="px-4 py-3 font-semibold uppercase tracking-wider text-xs text-right">Amount</th>
+                  <th className="px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/50">
+                {tableData.map((tx: any) => (
+                  <tr key={tx.id} className="hover:bg-bg-hover transition-colors group">
+                    <td className="px-4 py-3 text-text-secondary font-medium">{tx.formattedDate}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-sm ${
+                            tx.isTransfer
+                              ? 'bg-transfer/20 text-transfer border border-violet-500/20'
+                              : tx.isIncome
+                              ? 'bg-income/20 text-income border border-income/20'
+                              : 'bg-expense/20 text-expense border border-expense/20'
+                          }`}
+                        >
+                          {getCategoryIcon(tx.categoryName, tx.isTransfer)}
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-text-primary group-hover:text-accent-light transition-colors">
+                            {tx.primaryTitle}
+                          </span>
+                          {tx.notes && (
+                            <span className="text-[11px] text-text-muted truncate max-w-[200px] mt-0.5">{tx.notes}</span>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-bg-secondary border border-border text-xs font-semibold text-text-secondary">
+                        {tx.categoryName}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-text-secondary">
+                      <span className="font-semibold">{tx.accountName}</span>
+                      <div className="text-[11px] font-medium opacity-70 mt-0.5">
+                        ({formatPrivateCurrency(tx.calculatedPrev)} 
+                        {tx.isIncome ? ' + ' : tx.isTransfer ? ' → ' : ' - '} 
+                        {formatPrivateCurrency(Math.abs(tx.rawAmount))})
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <span
+                        className={`font-extrabold text-[15px] tracking-tight ${
+                          tx.isTransfer
+                            ? 'text-info'
+                            : tx.isIncome
+                            ? 'text-success'
+                            : 'text-text-primary'
+                        }`}
+                      >
+                        {tx.isTransfer ? '' : tx.isIncome ? '+' : '-'}{formatPrivateCurrency(Math.abs(tx.rawAmount))}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right w-16">
+                      <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit(tx);
+                          }}
+                          className="p-1.5 rounded-lg bg-bg-secondary border border-border text-text-muted hover:text-accent hover:border-accent transition-colors shadow-xs cursor-pointer"
+                          title="Edit Transaction"
+                        >
+                          <Edit2 size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenDelete(tx);
+                          }}
+                          className="p-1.5 rounded-lg bg-bg-secondary border border-border text-text-muted hover:text-expense hover:border-expense/50 transition-colors shadow-xs cursor-pointer"
+                          title="Delete Transaction"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
 
