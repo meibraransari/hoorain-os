@@ -65,23 +65,23 @@ export class AdminSeederService {
     if (categoriesCount === 0) {
       const defaultCategories = [
         // Income Categories
-        { name: 'Salary', type: CategoryType.INCOME, icon: 'briefcase', color: '#10b981', isDefault: true },
-        { name: 'Business & Freelance', type: CategoryType.INCOME, icon: 'laptop', color: '#3b82f6', isDefault: true },
-        { name: 'Investments & Dividends', type: CategoryType.INCOME, icon: 'trending-up', color: '#8b5cf6', isDefault: true },
-        { name: 'Borrowed', type: CategoryType.INCOME, icon: 'hand-coins', color: '#f59e0b', isDefault: true },
-        { name: 'Other Income', type: CategoryType.INCOME, icon: 'dollar-sign', color: '#64748b', isDefault: true },
+        { name: 'Salary', type: CategoryType.INCOME, icon: '💰', color: '#10b981', isDefault: true },
+        { name: 'Business & Freelance', type: CategoryType.INCOME, icon: '💻', color: '#3b82f6', isDefault: true },
+        { name: 'Investments & Dividends', type: CategoryType.INCOME, icon: '📈', color: '#8b5cf6', isDefault: true },
+        { name: 'Borrowed', type: CategoryType.INCOME, icon: '🤝', color: '#f59e0b', isDefault: true },
+        { name: 'Other Income', type: CategoryType.INCOME, icon: '💵', color: '#64748b', isDefault: true },
 
         // Expense Categories
-        { name: 'Food & Dining', type: CategoryType.EXPENSE, icon: 'utensils', color: '#ef4444', isDefault: true },
-        { name: 'Housing & Rent', type: CategoryType.EXPENSE, icon: 'home', color: '#f97316', isDefault: true },
-        { name: 'Utilities & Bills', type: CategoryType.EXPENSE, icon: 'zap', color: '#eab308', isDefault: true },
-        { name: 'Transportation & Fuel', type: CategoryType.EXPENSE, icon: 'car', color: '#06b6d4', isDefault: true },
-        { name: 'Shopping & Clothes', type: CategoryType.EXPENSE, icon: 'shopping-bag', color: '#ec4899', isDefault: true },
-        { name: 'Health & Medical', type: CategoryType.EXPENSE, icon: 'heart-pulse', color: '#14b8a6', isDefault: true },
-        { name: 'Entertainment & Subscriptions', type: CategoryType.EXPENSE, icon: 'film', color: '#a855f7', isDefault: true },
-        { name: 'Debt Payoff', type: CategoryType.EXPENSE, icon: 'calculator', color: '#6c63ff', isDefault: true },
-        { name: 'Lent', type: CategoryType.EXPENSE, icon: 'hand-coins', color: '#6366f1', isDefault: true },
-        { name: 'Other Expenses', type: CategoryType.EXPENSE, icon: 'tag', color: '#94a3b8', isDefault: true },
+        { name: 'Food & Dining', type: CategoryType.EXPENSE, icon: '🍽️', color: '#ef4444', isDefault: true },
+        { name: 'Housing & Rent', type: CategoryType.EXPENSE, icon: '🏠', color: '#f97316', isDefault: true },
+        { name: 'Utilities & Bills', type: CategoryType.EXPENSE, icon: '⚡', color: '#eab308', isDefault: true },
+        { name: 'Transportation & Fuel', type: CategoryType.EXPENSE, icon: '🚗', color: '#06b6d4', isDefault: true },
+        { name: 'Shopping & Clothes', type: CategoryType.EXPENSE, icon: '🛍️', color: '#ec4899', isDefault: true },
+        { name: 'Health & Medical', type: CategoryType.EXPENSE, icon: '💊', color: '#14b8a6', isDefault: true },
+        { name: 'Entertainment & Subscriptions', type: CategoryType.EXPENSE, icon: '🎬', color: '#a855f7', isDefault: true },
+        { name: 'Debt Payoff', type: CategoryType.EXPENSE, icon: '💳', color: '#6c63ff', isDefault: true },
+        { name: 'Lent', type: CategoryType.EXPENSE, icon: '💸', color: '#6366f1', isDefault: true },
+        { name: 'Other Expenses', type: CategoryType.EXPENSE, icon: '🏷️', color: '#94a3b8', isDefault: true },
       ];
       await this.categoryRepository.save(defaultCategories);
       this.logger.log('Seeded default income & expense categories');

@@ -8,7 +8,7 @@ import Link from 'next/link';
 import {
   Tag, Plus, Search, Edit2, Trash2, Layers, TrendingDown, TrendingUp,
   Filter, AlertTriangle, Sparkles, FolderTree, PieChart, ArrowUpRight,
-  ShieldAlert, X, ChevronRight, BarChart3, Eye
+  ShieldAlert, X, ChevronRight, BarChart3, RotateCw
 } from 'lucide-react';
 import { formatCurrency, renderCategoryIcon } from '@/lib/utils';
 import { usePrivacy } from '@/components/providers/PrivacyProvider';
@@ -23,7 +23,8 @@ export default function CategoriesPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [categoryToEdit, setCategoryToEdit] = useState<any | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedType, setSelectedType] = useState<'all' | 'expense' | 'income'>('all');
+  const [selectedType, setSelectedType] = useState<'expense' | 'income' | 'transfer'>('expense');
+  const [selectedParentId, setSelectedParentId] = useState<string | null>(null);
   const [categoryToDelete, setCategoryToDelete] = useState<any | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -56,14 +57,25 @@ export default function CategoriesPage() {
     return { categoryStats: stats, grandExpenseTotal: expenseSum };
   }, [transactions]);
 
-  // Filter categories
-  const filteredCategories = useMemo(() => {
-    return categories.filter((c: any) => {
-      const matchesType = selectedType === 'all' || c.type === selectedType;
-      const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesType && matchesSearch;
-    });
-  }, [categories, selectedType, searchQuery]);
+  // Derived state for the Sidebar
+  const parentCategories = useMemo(() => {
+    return categories.filter((c: any) => !c.parentId && c.type === selectedType);
+  }, [categories, selectedType]);
+
+  // Derived state for the Main Content Area
+  const displayedCategories = useMemo(() => {
+    let list = [];
+    if (selectedParentId === null) {
+      list = parentCategories;
+    } else {
+      list = categories.filter((c: any) => c.parentId === selectedParentId);
+    }
+
+    if (searchQuery) {
+      list = list.filter((c: any) => c.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    }
+    return list;
+  }, [categories, parentCategories, selectedParentId, searchQuery]);
 
   const expenseCategories = categories.filter((c: any) => c.type === 'expense');
   const incomeCategories = categories.filter((c: any) => c.type === 'income');
@@ -173,212 +185,196 @@ export default function CategoriesPage() {
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between card p-4 border border-border/80 rounded-2xl bg-bg-card/90 backdrop-blur-md shadow-xl">
-        <div className="relative flex-1 max-w-md">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search categories by name..."
-            className="w-full pl-9 pr-4 py-2.5 bg-bg-secondary border border-border rounded-xl text-xs font-semibold text-text-primary focus:outline-none focus:border-accent transition-colors"
-          />
+      {/* Split-Pane Layout */}
+      <div className="flex flex-col lg:flex-row gap-6 items-start mt-6">
+        {/* Left Sidebar */}
+        <div className="w-full lg:w-72 flex flex-col gap-4">
+          {/* Type Selector (Segmented Control) */}
+          <div className="flex flex-col gap-1 p-3 bg-bg-secondary/40 border border-border/80 rounded-2xl shadow-sm">
+            <button
+              onClick={() => { setSelectedType('expense'); setSelectedParentId(null); }}
+              className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all border ${
+                selectedType === 'expense' ? 'bg-bg-card border-expense/30 text-expense shadow-md' : 'border-transparent text-text-secondary hover:text-text-primary'
+              }`}
+            >
+              Expense
+            </button>
+            <button
+              onClick={() => { setSelectedType('income'); setSelectedParentId(null); }}
+              className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all border ${
+                selectedType === 'income' ? 'bg-bg-card border-income/30 text-income shadow-md' : 'border-transparent text-text-secondary hover:text-text-primary'
+              }`}
+            >
+              Income
+            </button>
+            <button
+              onClick={() => { setSelectedType('transfer'); setSelectedParentId(null); }}
+              className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all border ${
+                selectedType === 'transfer' ? 'bg-bg-card border-accent/30 text-accent shadow-md' : 'border-transparent text-text-secondary hover:text-text-primary'
+              }`}
+            >
+              Transfer
+            </button>
+          </div>
+
+          {/* Primary Categories List */}
+          <div className="card border border-border/80 rounded-2xl bg-bg-card/90 backdrop-blur-md shadow-xl overflow-hidden flex flex-col">
+            <button
+              onClick={() => setSelectedParentId(null)}
+              className={`w-full text-left px-5 py-3.5 text-xs font-bold transition-colors ${
+                selectedParentId === null ? 'text-accent' : 'text-accent/60 hover:text-accent'
+              }`}
+            >
+              Primary Categories
+            </button>
+            <div className="flex flex-col max-h-[500px] overflow-y-auto">
+              {parentCategories.map((cat: any) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedParentId(cat.id)}
+                  className={`w-full text-left px-5 py-3 text-xs font-semibold transition-colors border-b border-border/30 last:border-0 ${
+                    selectedParentId === cat.id ? 'text-text-primary bg-bg-secondary border-l-2 border-l-accent' : 'text-text-secondary hover:bg-bg-secondary/50 hover:text-text-primary'
+                  }`}
+                >
+                  {cat.name}
+                </button>
+              ))}
+              {parentCategories.length === 0 && (
+                <div className="px-5 py-6 text-center text-xs text-text-muted">
+                  No primary categories found.
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Filter size={15} className="text-text-muted" />
-          <div className="flex items-center gap-1 bg-bg-secondary p-1 rounded-xl border border-border">
-            <button
-              onClick={() => setSelectedType('all')}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                selectedType === 'all'
-                  ? 'bg-accent text-white shadow-md'
-                  : 'text-text-secondary hover:text-text-primary'
-              }`}
-            >
-              All ({categories.length})
-            </button>
-            <button
-              onClick={() => setSelectedType('expense')}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                selectedType === 'expense'
-                  ? 'bg-expense text-white shadow-md'
-                  : 'text-text-secondary hover:text-text-primary'
-              }`}
-            >
-              Expense ({expenseCategories.length})
-            </button>
-            <button
-              onClick={() => setSelectedType('income')}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                selectedType === 'income'
-                  ? 'bg-income text-white shadow-md'
-                  : 'text-text-secondary hover:text-text-primary'
-              }`}
-            >
-              Income ({incomeCategories.length})
-            </button>
+        {/* Right Main Panel */}
+        <div className="flex-1 card border border-border/80 rounded-2xl bg-bg-card/90 backdrop-blur-md shadow-xl overflow-hidden w-full">
+          {/* Header */}
+          <div className="flex flex-wrap gap-4 items-center justify-between p-4 border-b border-border/60 bg-bg-secondary/20">
+            <div className="flex items-center gap-3">
+              <h2 className="text-base font-display font-bold text-text-primary flex items-center gap-2">
+                {selectedParentId === null ? 'Transaction Categories' : parentCategories.find((c: any) => c.id === selectedParentId)?.name || 'Categories'}
+              </h2>
+              {selectedParentId !== null && (
+                <div className="flex items-center gap-1 ml-1 border-l border-border/60 pl-3">
+                  <button
+                    onClick={() => {
+                      const parentCat = parentCategories.find((c: any) => c.id === selectedParentId);
+                      if (parentCat) {
+                        setCategoryToEdit(parentCat);
+                        setIsAddModalOpen(true);
+                      }
+                    }}
+                    className="p-1.5 rounded-lg text-text-muted hover:text-accent hover:bg-bg-secondary transition-colors cursor-pointer"
+                    title="Edit Primary Category"
+                  >
+                    <Edit2 size={14} />
+                  </button>
+                  <button
+                    onClick={() => {
+                      const parentCat = parentCategories.find((c: any) => c.id === selectedParentId);
+                      if (parentCat) {
+                        setCategoryToDelete(parentCat);
+                      }
+                    }}
+                    className="p-1.5 rounded-lg text-text-muted hover:text-danger hover:bg-bg-secondary transition-colors cursor-pointer"
+                    title="Delete Primary Category"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              )}
+              <div className="flex items-center gap-2 ml-2">
+                <button
+                  onClick={() => {
+                    setCategoryToEdit(null);
+                    setIsAddModalOpen(true);
+                  }}
+                  className="flex items-center gap-1.5 rounded-lg bg-bg-secondary/50 border border-border px-3 py-1.5 text-xs font-bold text-text-primary hover:text-accent hover:border-accent transition-all cursor-pointer"
+                >
+                  <span>Add</span>
+                </button>
+                <button className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-secondary transition-colors cursor-pointer">
+                  <RotateCw size={14} />
+                </button>
+              </div>
+            </div>
+            
+            <div className="relative">
+              <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search..."
+                className="w-48 pl-8 pr-3 py-1.5 bg-bg-secondary border border-border rounded-lg text-xs font-semibold text-text-primary focus:outline-none focus:border-accent transition-colors"
+              />
+            </div>
+          </div>
+
+          {/* List Area */}
+          <div className="w-full">
+            <div className="flex items-center justify-between px-6 py-2.5 bg-bg-secondary/40 border-b border-border/50 text-[10px] font-extrabold uppercase tracking-wider text-text-muted">
+              <span>Category Name</span>
+              <span>Operation</span>
+            </div>
+
+            {categoriesLoading ? (
+               <div className="p-12 text-center text-text-muted text-xs">Loading categories...</div>
+            ) : displayedCategories.length === 0 ? (
+               <div className="p-16 text-center text-text-muted text-xs flex flex-col items-center gap-3">
+                 <Tag size={32} className="opacity-40" />
+                 <span>No categories found in this section.</span>
+               </div>
+            ) : (
+               <div className="flex flex-col">
+                 {displayedCategories.map((cat: any) => {
+                   const catColor = cat.color || '#6c63ff';
+                   return (
+                     <div
+                       key={cat.id}
+                       className="group flex items-center justify-between px-6 py-3 border-b border-border/40 last:border-0 hover:bg-bg-secondary/30 transition-colors"
+                     >
+                       <div className="flex items-center gap-4">
+                         <div
+                           className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-[15px] font-bold shadow-sm"
+                           style={{ backgroundColor: catColor }}
+                         >
+                           {renderCategoryIcon(cat.icon, cat.name)}
+                         </div>
+                         <span className="text-sm font-semibold text-text-primary">
+                           {cat.name}
+                         </span>
+                       </div>
+
+                       <div className="flex items-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                         <button
+                           onClick={() => {
+                             setCategoryToEdit(cat);
+                             setIsAddModalOpen(true);
+                           }}
+                           className="flex items-center gap-1.5 text-xs font-bold text-text-muted hover:text-accent transition-colors cursor-pointer"
+                         >
+                           <Edit2 size={13} />
+                           Edit
+                         </button>
+                         <button
+                           onClick={() => setCategoryToDelete(cat)}
+                           className="flex items-center gap-1.5 text-xs font-bold text-text-muted hover:text-danger transition-colors cursor-pointer"
+                         >
+                           <Trash2 size={13} />
+                           Delete
+                         </button>
+                       </div>
+                     </div>
+                   );
+                 })}
+               </div>
+            )}
           </div>
         </div>
       </div>
-
-      {/* Categories Grid */}
-      {categoriesLoading ? (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-44 rounded-2xl skeleton" />
-          ))}
-        </div>
-      ) : filteredCategories.length === 0 ? (
-        <div className="card p-12 text-center text-text-muted border border-border/80 rounded-2xl bg-bg-card/90 backdrop-blur-md shadow-xl space-y-3">
-          <Tag size={40} className="mx-auto text-text-muted opacity-40" />
-          <p className="text-base font-bold text-text-primary">No categories matching your filter.</p>
-          <p className="text-xs text-text-muted">Click "Create New Category" to establish a new transaction category.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredCategories.map((cat: any) => {
-            const stat = categoryStats[cat.id] || categoryStats[cat.name] || { count: 0, total: 0 };
-            const subCats = categories.filter((c: any) => c.parentId === cat.id);
-            const catColor = cat.color || '#6c63ff';
-
-            // Calculate percentage share of grand expense total
-            const percentShare = grandExpenseTotal > 0 && cat.type === 'expense'
-              ? Math.min(100, Math.round((stat.total / grandExpenseTotal) * 100))
-              : 0;
-
-            return (
-              <div
-                key={cat.id}
-                className="relative group overflow-hidden rounded-2xl border border-border/80 bg-bg-card/90 backdrop-blur-md p-5 shadow-xl hover:shadow-2xl transition-all duration-300 hover:border-accent/40 flex flex-col justify-between space-y-4"
-              >
-                {/* Glowing top line matching category color */}
-                <div
-                  className="absolute top-0 left-0 w-full h-[3px] transition-all opacity-80 group-hover:opacity-100"
-                  style={{ backgroundColor: catColor }}
-                />
-
-                {/* Header Info & Actions */}
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3.5">
-                    {/* Category Icon Badge */}
-                    <div
-                      className="w-11 h-11 rounded-2xl flex items-center justify-center text-white text-xl font-bold shadow-md shrink-0 transition-transform group-hover:scale-105"
-                      style={{ backgroundColor: catColor }}
-                    >
-                      {renderCategoryIcon(cat.icon, cat.name)}
-                    </div>
-
-                    <div className="space-y-0.5">
-                      <h3 className="font-bold text-base text-text-primary group-hover:text-accent transition-colors">
-                        {cat.name}
-                      </h3>
-                      <span
-                        className={`inline-flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-md border tracking-wider uppercase ${
-                          cat.type === 'income'
-                            ? 'bg-income/15 text-income border-income/30'
-                            : 'bg-expense/15 text-expense border-expense/30'
-                        }`}
-                      >
-                        {cat.type === 'income' ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
-                        {cat.type}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
-                    <Link
-                      href={`/reports?category=${encodeURIComponent(cat.id)}`}
-                      className="p-1.5 rounded-xl border border-accent/40 bg-accent/10 text-accent hover:bg-accent hover:text-white transition-all shadow-sm cursor-pointer"
-                      title={`View Reports for ${cat.name}`}
-                    >
-                      <BarChart3 size={13} />
-                    </Link>
-                    <button
-                      onClick={() => {
-                        setCategoryToEdit(cat);
-                        setIsAddModalOpen(true);
-                      }}
-                      className="p-1.5 rounded-xl border border-border bg-bg-secondary/60 text-text-muted hover:text-accent hover:border-accent transition-colors shadow-sm cursor-pointer"
-                      title="Edit Category"
-                    >
-                      <Edit2 size={13} />
-                    </button>
-                    <button
-                      onClick={() => setCategoryToDelete(cat)}
-                      className="p-1.5 rounded-xl border border-border bg-bg-secondary/60 text-text-muted hover:text-danger hover:border-danger transition-colors shadow-sm cursor-pointer"
-                      title="Delete Category"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Subcategories Pills */}
-                {subCats.length > 0 && (
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-text-muted block">
-                      Subcategories ({subCats.length})
-                    </span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {subCats.map((sc: any) => (
-                        <span
-                          key={sc.id}
-                          className="text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-bg-secondary/80 border border-border/80 text-text-secondary flex items-center gap-1"
-                        >
-                          <ChevronRight size={10} className="text-accent" />
-                          {sc.name}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Volume Progress Bar for Expense Categories */}
-                {cat.type === 'expense' && percentShare > 0 && (
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-text-muted font-medium">Spending Share</span>
-                      <span className="font-bold text-accent">{percentShare}%</span>
-                    </div>
-                    <div className="h-1.5 w-full rounded-full bg-bg-secondary overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{
-                          width: `${percentShare}%`,
-                          backgroundColor: catColor,
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Footer Activity Info & View Reports Button */}
-                <div className="flex items-center justify-between text-xs pt-3 border-t border-border/60 text-text-muted font-medium">
-                  <div className="flex items-center gap-2">
-                    <span>{stat.count} transaction{stat.count === 1 ? '' : 's'}</span>
-                    <span className="opacity-40">•</span>
-                    <Link
-                      href={`/reports?category=${encodeURIComponent(cat.id)}`}
-                      className="inline-flex items-center gap-1 text-[11px] font-bold text-accent hover:text-accent-light transition-colors"
-                    >
-                      <Eye size={12} />
-                      <span>View Reports →</span>
-                    </Link>
-                  </div>
-                  <span className={`font-mono font-bold text-sm ${
-                    cat.type === 'income' ? 'text-income' : 'text-text-primary'
-                  }`}>
-                    {stat.total > 0 ? formatPrivateCurrency(stat.total) : '₹0.00'}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
 
       {/* Add / Edit Category Modal */}
       <AddCategoryModal
