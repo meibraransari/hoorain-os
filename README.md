@@ -19,7 +19,7 @@ docker compose up -d
 
 ## 🔑 First-Time Admin Setup & Login
 
-When you launch **Hoorain** for the first time via `docker compose up -d`, an initial administrator account is automatically generated during backend startup by the `AdminSeederService` ([admin.seeder.ts](file:///d:/Anti_Gravity_RAW/finance-platform/backend/src/database/seeders/admin.seeder.ts)):
+When you launch **Hoorain** for the first time via `docker compose up -d`, an initial administrator account is automatically generated during backend startup by the `AdminSeederService` ([admin.seeder.ts](file:///./finance-platform/backend/src/database/seeders/admin.seeder.ts)):
 
 ### 🤖 How Admin Creation Works on Startup:
 1. **Startup Check**: Upon NestJS container boot, `AdminSeederService.seed()` checks if an administrator record with `username = 'admin'` exists in PostgreSQL.
@@ -34,25 +34,26 @@ When you launch **Hoorain** for the first time via `docker compose up -d`, an in
    ╚══════════════════════════════════════╝
    ```
 3. **Default Credentials**:
+   - **URL:** `127.0.0.1:080`
    - **Username:** `admin`
    - **Email:** `admin@hoorain.app`
    - **Default Password:** `AdminPass123!`
    - **Role:** `ADMIN`
 
-> ⚠️ **Security Tip:** After logging in for the first time at `http://localhost:8080`, navigate to **Profile** or **Settings** to update your admin password.
+> ⚠️ **Security Tip:** After logging in for the first time at `http://127.0.0.1:8080`, navigate to **Profile** or **Settings** to update your admin password.
 
 ### Creating Additional Admin Users
 You can create new users or secondary administrator accounts via the API:
 
 ```bash
 # 1. Obtain Auth Token as default Admin
-TOKEN=$(curl -s -X POST http://localhost:8080/api/v1/auth/login \
+TOKEN=$(curl -s -X POST http://127.0.0.1:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"AdminPass123!"}' \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['accessToken'])")
 
 # 2. Register a new Administrator
-curl -X POST http://localhost:8080/api/v1/users \
+curl -X POST http://127.0.0.1:8080/api/v1/users \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -83,7 +84,7 @@ docker compose up -d
 docker compose ps
 
 # 5. Open the app in your browser
-open http://localhost:8080
+open http://127.0.0.1:8080
 ```
 
 > **Default port:** `8080` — configurable via `APP_PORT` in `.env`
@@ -209,7 +210,7 @@ Hoorain can import your existing data from mobile finance apps and database back
 ### Step 2 — Import to Hoorain
 ```bash
 # Get your auth token first
-TOKEN=$(curl -s -X POST http://localhost:8080/api/v1/auth/login \
+TOKEN=$(curl -s -X POST http://127.0.0.1:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"yourpassword"}' \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['accessToken'])")
@@ -221,7 +222,7 @@ TOKEN=$(curl -s -X POST http://localhost:8080/api/v1/auth/login \
 ### Step 3 — Check Import Status
 ```bash
 curl -s -H "Authorization: Bearer $TOKEN" \
-  http://localhost:8080/api/v1/import/cashew/{importId} | python3 -m json.tool
+  http://127.0.0.1:8080/api/v1/import/cashew/{importId} | python3 -m json.tool
 ```
 
 See [docs/DATABASE.md](docs/DATABASE.md) for the full field mapping table.
@@ -261,7 +262,7 @@ The `pgbackup` service in `docker-compose.prod.yml` runs daily backups automatic
 Full interactive API docs are available at:
 
 ```
-http://localhost:8080/api/docs
+http://127.0.0.1:8080/api/docs
 ```
 
 (Swagger UI with try-it-out support)
