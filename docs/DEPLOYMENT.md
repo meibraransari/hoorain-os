@@ -1,4 +1,4 @@
-# 🚀 FinanceOS Deployment Guide
+# 🚀 HoorainOS Deployment Guide
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
@@ -41,8 +41,8 @@ docker compose version   # Verify compose v2
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/yourusername/financeos.git
-cd financeos
+git clone https://github.com/meibraransari/HoorainOS.git
+cd HoorainOS
 
 # 2. Copy environment template
 cp .env.example .env
@@ -95,7 +95,7 @@ docker compose -f docker-compose.prod.yml ps
 The schema and seeds are automatically applied on first start via the `./database/migrations` volume mount. To manually apply seeds:
 
 ```bash
-docker compose exec postgres psql -U financeos financeos \
+docker compose exec postgres psql -U HoorainOS HoorainOS \
   -f /docker-entrypoint-initdb.d/001_default_categories.sql
 ```
 
@@ -149,14 +149,14 @@ docker compose -f docker-compose.prod.yml up -d nginx
 
 ```bash
 # Add to crontab
-(crontab -l 2>/dev/null; echo "0 3 * * * certbot renew --quiet && cp /etc/letsencrypt/live/finance.yourdomain.com/*.pem /path/to/financeos/ssl/ && docker compose -f /path/to/financeos/docker-compose.prod.yml exec nginx nginx -s reload") | crontab -
+(crontab -l 2>/dev/null; echo "0 3 * * * certbot renew --quiet && cp /etc/letsencrypt/live/finance.yourdomain.com/*.pem /path/to/HoorainOS/ssl/ && docker compose -f /path/to/HoorainOS/docker-compose.prod.yml exec nginx nginx -s reload") | crontab -
 ```
 
 ---
 
 ## Cloudflare Reverse Proxy
 
-Using Cloudflare in front of FinanceOS provides DDoS protection, global CDN, and free SSL.
+Using Cloudflare in front of HoorainOS provides DDoS protection, global CDN, and free SSL.
 
 ### Setup
 
@@ -171,7 +171,7 @@ Using Cloudflare in front of FinanceOS provides DDoS protection, global CDN, and
 3. **SSL/TLS Settings:**
    - In Cloudflare dashboard → SSL/TLS → set mode to **Full (strict)**
 
-4. **Configure FinanceOS for Cloudflare:**
+4. **Configure HoorainOS for Cloudflare:**
    ```env
    # .env — use port 80 since Cloudflare handles SSL
    APP_PORT=80
@@ -213,7 +213,7 @@ The `pgbackup` service runs daily at container startup and every 24 hours therea
 ./scripts/backup.sh
 
 # Backup to specific directory
-./scripts/backup.sh /mnt/nas/financeos-backups
+./scripts/backup.sh /mnt/nas/HoorainOS-backups
 ```
 
 ### Off-site Backup Recommendation
@@ -228,7 +228,7 @@ curl https://rclone.org/install.sh | sudo bash
 rclone config
 
 # Add to crontab — sync daily at 4 AM
-echo "0 4 * * * rclone sync /path/to/financeos/backups remote:financeos-backups --log-file /var/log/rclone.log" | crontab -
+echo "0 4 * * * rclone sync /path/to/HoorainOS/backups remote:HoorainOS-backups --log-file /var/log/rclone.log" | crontab -
 ```
 
 ### Restore
@@ -258,7 +258,7 @@ docker compose ps
 docker stats
 
 # Specific container
-docker stats financeos-backend
+docker stats HoorainOS-backend
 ```
 
 ### Log Monitoring
@@ -323,7 +323,7 @@ docker compose logs backend
 
 ```bash
 # Check Postgres is healthy
-docker compose exec postgres pg_isready -U financeos
+docker compose exec postgres pg_isready -U HoorainOS
 
 # Check env vars
 docker compose exec backend env | grep DATABASE

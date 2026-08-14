@@ -342,11 +342,11 @@ docker compose exec backend npm run migration:run
 
 ## Cashew Import Mapping
 
-The following table shows how Cashew fields map to FinanceOS fields.
+The following table shows how Cashew fields map to HoorainOS fields.
 
 ### Transactions
 
-| Cashew Field | FinanceOS Field | Notes |
+| Cashew Field | HoorainOS Field | Notes |
 |---|---|---|
 | `id` (ObjectBox int) | `transactions.cashew_id` | Stored for deduplication |
 | `name` | `transactions.description` | Transaction title |
@@ -359,7 +359,7 @@ The following table shows how Cashew fields map to FinanceOS fields.
 
 ### Categories
 
-| Cashew Field | FinanceOS Field | Notes |
+| Cashew Field | HoorainOS Field | Notes |
 |---|---|---|
 | `name` | `categories.name` | Matched or created |
 | `income` | `categories.type` | income / expense |
@@ -368,7 +368,7 @@ The following table shows how Cashew fields map to FinanceOS fields.
 
 ### Accounts (Wallets)
 
-| Cashew Field | FinanceOS Field | Notes |
+| Cashew Field | HoorainOS Field | Notes |
 |---|---|---|
 | `name` | `accounts.name` | — |
 | `currency` | `accounts.currency` | ISO 4217 |

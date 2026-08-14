@@ -52,8 +52,8 @@
 
 ### 8. 🐳 Docker & Self-Hosted Infrastructure
 - **5 Container Services**:
-  - `financeos-frontend`: Next.js 15 App Router frontend.
-  - `financeos-backend`: NestJS 10 REST API backend.
-  - `financeos-postgres`: PostgreSQL 17 database engine.
-  - `financeos-redis`: Redis 7 session & cache engine.
-  - `financeos-nginx`: Nginx reverse proxy router.
+  - `HoorainOS-frontend`: Next.js 15 App Router frontend.
+  - `HoorainOS-backend`: NestJS 10 REST API backend.
+  - `HoorainOS-postgres`: PostgreSQL 17 database engine.
+  - `HoorainOS-redis`: Redis 7 session & cache engine.
+  - `HoorainOS-nginx`: Nginx reverse proxy router.

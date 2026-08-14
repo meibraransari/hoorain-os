@@ -72,7 +72,7 @@ curl -X POST http://127.0.0.1:8080/api/v1/users \
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/yourusername/hoorain.git && cd hoorain
+git clone https://github.com/meibraransari/hoorain-os.git && cd hoorain
 
 # 2. Configure environment
 cp .env.example .env
@@ -129,9 +129,9 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for full SSL + Cloudflare setup.
 |---|---|---|---|
 | `APP_PORT` | `8080` | No | External port for Nginx |
 | `NODE_ENV` | `production` | No | `production` or `development` |
-| `POSTGRES_USER` | `financeos` | No | Database username |
+| `POSTGRES_USER` | `HoorainOS` | No | Database username |
 | `POSTGRES_PASSWORD` | — | **Yes** | Database password (change!) |
-| `POSTGRES_DB` | `financeos` | No | Database name |
+| `POSTGRES_DB` | `HoorainOS` | No | Database name |
 | `POSTGRES_PORT` | `5432` | No | Dev-only exposed port |
 | `REDIS_PASSWORD` | — | **Yes** | Redis password (change!) |
 | `REDIS_PORT` | `6379` | No | Dev-only exposed port |
@@ -237,7 +237,7 @@ See [docs/DATABASE.md](docs/DATABASE.md) for the full field mapping table.
 ./scripts/backup.sh
 
 # Custom output directory
-./scripts/backup.sh /mnt/external/financeos-backups
+./scripts/backup.sh /mnt/external/HoorainOS-backups
 
 # Or use Make
 make backup
