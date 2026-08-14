@@ -2,14 +2,14 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 
-export type Theme = 'dark' | 'light' | 'amoled' | 'cyberpunk' | 'glassmorphism' | 'sublime' | 'nord';
+export type Theme = 'dark' | 'light' | 'amoled' | 'ocean' | 'mocha' | 'sublime' | 'nord';
 
 export const THEMES: { id: Theme; label: string; description: string; accentColor: string }[] = [
   { id: 'dark',          label: 'Dark',          description: 'Default dark theme',          accentColor: '#6c63ff' },
   { id: 'light',         label: 'Light',         description: 'Clean light mode',            accentColor: '#6c63ff' },
   { id: 'amoled',        label: 'AMOLED',        description: 'Pure black for OLED screens', accentColor: '#6c63ff' },
-  { id: 'cyberpunk',     label: 'Cyberpunk',     description: 'Neon magenta & electric',     accentColor: '#ff00ff' },
-  { id: 'glassmorphism', label: 'Glassmorphism', description: 'Frosted glass & purple',      accentColor: '#a855f7' },
+  { id: 'ocean',         label: 'Ocean Breeze',  description: 'Soft & relaxing blues',       accentColor: '#0284c7' },
+  { id: 'mocha',         label: 'Mocha',         description: 'Warm & earthy dark tones',    accentColor: '#cba6f7' },
   { id: 'sublime',       label: 'Sublime Text',  description: 'Warm dark with gold accent',  accentColor: '#e6b450' },
   { id: 'nord',          label: 'Nord',          description: 'Arctic, bluish palette',      accentColor: '#88c0d0' },
 ];
