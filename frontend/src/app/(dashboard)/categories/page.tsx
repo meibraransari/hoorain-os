@@ -11,10 +11,14 @@ import {
   ShieldAlert, X, ChevronRight, BarChart3, Eye
 } from 'lucide-react';
 import { formatCurrency, renderCategoryIcon } from '@/lib/utils';
+import { usePrivacy } from '@/components/providers/PrivacyProvider';
+
 
 export default function CategoriesPage() {
+  const { formatPrivateCurrency } = usePrivacy();
   const { categories, isLoading: categoriesLoading, deleteCategory } = useCategories();
   const { transactions } = useTransactions({ limit: 2500 });
+
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [categoryToEdit, setCategoryToEdit] = useState<any | null>(null);
@@ -367,7 +371,7 @@ export default function CategoriesPage() {
                   <span className={`font-mono font-bold text-sm ${
                     cat.type === 'income' ? 'text-income' : 'text-text-primary'
                   }`}>
-                    {stat.total > 0 ? formatCurrency(stat.total) : '₹0.00'}
+                    {stat.total > 0 ? formatPrivateCurrency(stat.total) : '₹0.00'}
                   </span>
                 </div>
               </div>

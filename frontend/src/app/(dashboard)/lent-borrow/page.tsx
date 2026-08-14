@@ -3,7 +3,9 @@
 import { useState, useMemo, Suspense } from 'react';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
+import { usePrivacy } from '@/components/providers/PrivacyProvider';
 import { useTransactions } from '@/lib/hooks/useFinance';
+
 import { AddLentBorrowModal } from '@/components/modals/AddLentBorrowModal';
 import { SettleLentBorrowModal } from '@/components/modals/SettleLentBorrowModal';
 import { DeleteTransactionModal } from '@/components/modals/DeleteTransactionModal';
@@ -26,8 +28,10 @@ import {
 } from 'lucide-react';
 
 function LentBorrowContent() {
+  const { formatPrivateCurrency } = usePrivacy();
   const [search, setSearch] = useState('');
   const [tabFilter, setTabFilter] = useState<'all' | 'lent' | 'borrowed' | 'active' | 'settled'>('all');
+
   const [selectedPerson, setSelectedPerson] = useState<string>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [recordToEdit, setRecordToEdit] = useState<any>(null);
@@ -225,7 +229,7 @@ function LentBorrowContent() {
             </div>
           </div>
           <span className="text-2xl font-extrabold text-expense tracking-tight mt-2">
-            +{formatCurrency(totalLentActive)}
+            +{formatPrivateCurrency(totalLentActive)}
           </span>
         </div>
 
@@ -238,7 +242,7 @@ function LentBorrowContent() {
             </div>
           </div>
           <span className="text-2xl font-extrabold text-income tracking-tight mt-2">
-            -{formatCurrency(totalBorrowedActive)}
+            -{formatPrivateCurrency(totalBorrowedActive)}
           </span>
         </div>
 
@@ -255,8 +259,9 @@ function LentBorrowContent() {
               netBalance >= 0 ? 'text-expense' : 'text-income'
             }`}
           >
-            {netBalance >= 0 ? '+' : ''}{formatCurrency(netBalance)}
+            {netBalance >= 0 ? '+' : ''}{formatPrivateCurrency(netBalance)}
           </span>
+
         </div>
 
         {/* Settled Count */}

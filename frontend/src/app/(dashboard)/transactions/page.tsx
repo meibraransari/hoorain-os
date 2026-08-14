@@ -16,8 +16,10 @@ import {
   endOfYear,
 } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
+import { usePrivacy } from '@/components/providers/PrivacyProvider';
 import { useTransactions } from '@/lib/hooks/useFinance';
 import { useSettings } from '@/components/providers/SettingsProvider';
+
 import { TransactionItem } from '@/components/ui/TransactionItem';
 import { DateRangePicker } from '@/components/ui/DateRangePicker';
 import { AddTransactionModal } from '@/components/modals/AddTransactionModal';
@@ -43,9 +45,11 @@ import {
 } from 'lucide-react';
 
 function TransactionsContent() {
+  const { formatPrivateCurrency } = usePrivacy();
   const { settings } = useSettings();
   const searchParams = useSearchParams();
   const accountParam = searchParams.get('account') || searchParams.get('accountId') || '';
+
 
   const [search, setSearch] = useState(accountParam);
   const [typeFilter, setTypeFilter] = useState('');
@@ -397,7 +401,7 @@ function TransactionsContent() {
               </div>
             </div>
             <span className="text-2xl font-extrabold text-income tracking-tight mt-2">
-              +{formatCurrency(displayIncome)}
+              +{formatPrivateCurrency(displayIncome)}
             </span>
           </div>
 
@@ -410,7 +414,7 @@ function TransactionsContent() {
               </div>
             </div>
             <span className="text-2xl font-extrabold text-text-primary tracking-tight mt-2">
-              -{formatCurrency(displayExpense)}
+              -{formatPrivateCurrency(displayExpense)}
             </span>
           </div>
 
@@ -427,8 +431,9 @@ function TransactionsContent() {
                 displayNet >= 0 ? 'text-income' : 'text-expense'
               }`}
             >
-              {displayNet >= 0 ? '+' : ''}{formatCurrency(displayNet)}
+              {displayNet >= 0 ? '+' : ''}{formatPrivateCurrency(displayNet)}
             </span>
+
           </div>
         </div>
       )}

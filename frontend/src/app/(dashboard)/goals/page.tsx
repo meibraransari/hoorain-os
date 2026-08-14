@@ -5,10 +5,14 @@ import { useGoals, useAccounts } from '@/lib/hooks/useFinance';
 import { AddGoalModal } from '@/components/modals/AddGoalModal';
 import { Plus, Target, Trash2, Edit2, PiggyBank, CheckCircle2, TrendingDown, Building2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
+import { usePrivacy } from '@/components/providers/PrivacyProvider';
+
 
 export default function GoalsPage() {
+  const { formatPrivateCurrency } = usePrivacy();
   const { goals, isLoading, contributeGoal, deleteGoal } = useGoals();
   const { accounts } = useAccounts();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [goalToEdit, setGoalToEdit] = useState<any>(null);
   const [contributeGoalId, setContributeGoalId] = useState<string | null>(null);
@@ -143,8 +147,9 @@ export default function GoalsPage() {
                   <div className="flex justify-between text-sm mb-2">
                     <span className="text-text-muted font-medium">Progress ({pct}%)</span>
                     <span className="font-bold text-text-primary">
-                      {formatCurrency(current)} / {formatCurrency(target)}
+                      {formatPrivateCurrency(current)} / {formatPrivateCurrency(target)}
                     </span>
+
                   </div>
                   <div className="w-full bg-bg-hover h-3 rounded-full overflow-hidden border border-border">
                     <div
