@@ -337,7 +337,7 @@ Please follow [Conventional Commits](https://www.conventionalcommits.org/) and e
 
 ## 📄 License
 
-MIT License — see [LICENSE](LICENSE) for details.
+GNU AGPLv3 License — see [LICENSE](LICENSE) for details.
 
 ---
 
