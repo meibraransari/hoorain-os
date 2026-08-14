@@ -41,10 +41,11 @@ import {
   BarChart3,
   ShieldAlert,
 } from 'lucide-react';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, renderCategoryIcon } from '@/lib/utils';
 import { usePrivacy } from '@/components/providers/PrivacyProvider';
 import { useSettings, AppSettings } from '@/components/providers/SettingsProvider';
 import Link from 'next/link';
+import { format } from 'date-fns';
 
 export default function DashboardPage() {
   const { isPrivate, formatPrivateCurrency, formatPrivateNumber } = usePrivacy();
@@ -746,10 +747,82 @@ export default function DashboardPage() {
                 No transactions recorded yet. Click "Add Transaction" or import your database backup.
               </div>
             ) : (
-              <div className="space-y-1">
-                {transactions.slice(0, 7).map((tx: any) => (
-                  <TransactionItem key={tx.id} transaction={tx} />
-                ))}
+              <div className="overflow-x-auto mt-2 pb-1">
+                <table className="w-full text-left text-sm whitespace-nowrap">
+                  <thead className="bg-bg-secondary text-text-muted border-b border-border">
+                    <tr>
+                      <th className="px-4 py-3 font-semibold uppercase tracking-wider text-xs">Date</th>
+                      <th className="px-4 py-3 font-semibold uppercase tracking-wider text-xs">Description</th>
+                      <th className="px-4 py-3 font-semibold uppercase tracking-wider text-xs">Category</th>
+                      <th className="px-4 py-3 font-semibold uppercase tracking-wider text-xs">Account</th>
+                      <th className="px-4 py-3 font-semibold uppercase tracking-wider text-xs text-right">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/50">
+                    {transactions.slice(0, 7).map((tx: any) => {
+                      const rawAmount = typeof tx.amount === 'number' ? tx.amount : parseFloat(tx.amount) || 0;
+                      const isTransfer = tx.isTransfer || tx.type === 'transfer';
+                      const isIncome = !isTransfer && (tx.type === 'income' || tx.income === 1);
+                      const categoryName = typeof tx.category === 'string' ? tx.category : tx.category?.name || (isTransfer ? 'Transfer' : 'General');
+                      const accountName = typeof tx.account === 'string' ? tx.account : tx.account?.name || 'Account';
+                      const primaryTitle = tx.title || categoryName || 'Transaction';
+                      const formattedDate = tx.date ? format(new Date(tx.date), 'EEEE, MMMM d, yyyy') : 'Unknown Date';
+                      
+                      const iconVal = typeof tx.category === 'object' ? tx.category?.icon : undefined;
+                      const categoryIcon = renderCategoryIcon(iconVal, categoryName);
+                      
+                      return (
+                        <tr key={tx.id} className="hover:bg-bg-hover transition-colors group">
+                          <td className="px-4 py-3 text-text-secondary font-medium">{formattedDate}</td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-sm text-base ${
+                                  isTransfer
+                                    ? 'bg-transfer/20 text-transfer border border-violet-500/20'
+                                    : isIncome
+                                    ? 'bg-income/20 text-income border border-income/20'
+                                    : 'bg-expense/20 text-expense border border-expense/20'
+                                }`}
+                              >
+                                {isTransfer ? '🔄' : categoryIcon}
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="font-bold text-text-primary group-hover:text-accent-light transition-colors">
+                                  {primaryTitle}
+                                </span>
+                                {tx.notes && (
+                                  <span className="text-[11px] text-text-muted truncate max-w-[200px] mt-0.5">{tx.notes}</span>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-bg-secondary border border-border text-xs font-semibold text-text-secondary">
+                              {categoryName}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-text-secondary">
+                            <span className="font-semibold">{accountName}</span>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <span
+                              className={`font-extrabold text-[15px] tracking-tight ${
+                                isTransfer
+                                  ? 'text-info'
+                                  : isIncome
+                                  ? 'text-success'
+                                  : 'text-text-primary'
+                              }`}
+                            >
+                              {isTransfer ? '' : isIncome ? '+' : '-'}{formatPrivateCurrency(Math.abs(rawAmount))}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             )}
           </CollapsibleCard>
