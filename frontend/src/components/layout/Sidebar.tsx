@@ -127,7 +127,11 @@ export function Sidebar() {
               {/* Header Info */}
               <div className="flex items-center gap-3 border-b border-border/80 pb-3">
                 <div className="relative h-10 w-10 shrink-0 rounded-xl bg-accent/15 text-accent flex items-center justify-center border border-accent/30 font-extrabold text-sm">
-                  {user?.name?.charAt(0) || 'A'}
+                  {user?.avatar ? (
+                    <img src={user.avatar} alt="Avatar" className="h-full w-full rounded-xl object-cover" />
+                  ) : (
+                    user?.name?.charAt(0) || 'A'
+                  )}
                   <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-income ring-2 ring-bg-card" />
                 </div>
                 <div className="flex-1 overflow-hidden">
@@ -195,7 +199,11 @@ export function Sidebar() {
                 className="flex items-center gap-2.5 flex-1 min-w-0 text-left group cursor-pointer"
               >
                 <div className="relative h-9 w-9 shrink-0 rounded-xl bg-accent/15 text-accent flex items-center justify-center border border-accent/30 font-bold text-xs group-hover:scale-105 transition-transform">
-                  {user?.name?.charAt(0) || 'A'}
+                  {user?.avatar ? (
+                    <img src={user.avatar} alt="Avatar" className="h-full w-full rounded-xl object-cover" />
+                  ) : (
+                    user?.name?.charAt(0) || 'A'
+                  )}
                   <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-income ring-2 ring-bg-card" />
                 </div>
                 <div className="flex-1 overflow-hidden">
@@ -230,7 +238,11 @@ export function Sidebar() {
               className="relative h-9 w-9 rounded-xl bg-accent/15 text-accent flex items-center justify-center border border-accent/30 font-bold text-xs hover:scale-105 transition-transform cursor-pointer"
               title="User Menu"
             >
-              {user?.name?.charAt(0) || 'A'}
+              {user?.avatar ? (
+                <img src={user.avatar} alt="Avatar" className="h-full w-full rounded-xl object-cover" />
+              ) : (
+                user?.name?.charAt(0) || 'A'
+              )}
               <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-income ring-2 ring-bg-card" />
             </button>
 

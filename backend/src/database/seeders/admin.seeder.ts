@@ -49,12 +49,12 @@ export class AdminSeederService {
     const accountTypesCount = await this.accountTypeRepository.count();
     if (accountTypesCount === 0) {
       const defaultAccountTypes = [
-        { name: 'Bank Account', type: 'bank', icon: 'building-bank', color: '#6c63ff', isCustom: false },
-        { name: 'Savings Account', type: 'savings', icon: 'piggy-bank', color: '#10b981', isCustom: false },
-        { name: 'Cash Wallet', type: 'cash', icon: 'wallet', color: '#f59e0b', isCustom: false },
-        { name: 'Credit Card', type: 'credit_card', icon: 'credit-card', color: '#ef4444', isCustom: false },
-        { name: 'Investment', type: 'investment', icon: 'trending-up', color: '#3b82f6', isCustom: false },
-        { name: 'Digital Wallet', type: 'digital_wallet', icon: 'smartphone', color: '#8b5cf6', isCustom: false },
+        { name: 'Bank Account', code: 'bank', icon: 'building-bank', color: '#6c63ff', isDefault: true },
+        { name: 'Savings Account', code: 'savings', icon: 'piggy-bank', color: '#10b981', isDefault: true },
+        { name: 'Cash Wallet', code: 'cash', icon: 'wallet', color: '#f59e0b', isDefault: true },
+        { name: 'Credit Card', code: 'credit_card', icon: 'credit-card', color: '#ef4444', isDefault: true },
+        { name: 'Investment', code: 'investment', icon: 'trending-up', color: '#3b82f6', isDefault: true },
+        { name: 'Digital Wallet', code: 'digital_wallet', icon: 'smartphone', color: '#8b5cf6', isDefault: true },
       ];
       await this.accountTypeRepository.save(defaultAccountTypes);
       this.logger.log('Seeded default account types');

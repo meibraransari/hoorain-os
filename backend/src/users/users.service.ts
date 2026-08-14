@@ -64,6 +64,12 @@ export class UsersService {
     return this.userRepository.save(user);
   }
 
+  async updateAvatar(id: string, url: string): Promise<User> {
+    const user = await this.getOrThrow(id);
+    user.avatarUrl = url;
+    return this.userRepository.save(user);
+  }
+
   async changePassword(id: string, dto: ChangePasswordDto): Promise<{ success: true }> {
     const user = await this.getOrThrow(id);
     const matches = await bcrypt.compare(dto.currentPassword, user.passwordHash);

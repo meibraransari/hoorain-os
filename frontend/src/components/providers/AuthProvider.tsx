@@ -26,8 +26,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (existingToken) {
         try {
           // Verify token against active backend DB user
-          const user: any = await api.get('/users/me');
-          if (user && user.id) {
+          const userRes: any = await api.get('/users/me');
+          if (userRes && userRes.id) {
+            const user = {
+              ...userRes,
+              avatar: userRes.avatarUrl,
+              name: `${userRes.firstName || ''} ${userRes.lastName || ''}`.trim() || userRes.username,
+            };
             setAuth(user, existingToken);
             setIsLoading(false);
             return;
@@ -52,7 +57,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const res: any = await api.post('/auth/login', { username, password });
     if (res?.accessToken) {
       localStorage.setItem('financeos_access_token', res.accessToken);
-      setAuth(res.user || { id: 'admin', name: 'Admin', email: 'admin@hoorain.app' }, res.accessToken);
+      const user = res.user ? {
+        ...res.user,
+        avatar: res.user.avatarUrl,
+        name: `${res.user.firstName || ''} ${res.user.lastName || ''}`.trim() || res.user.username,
+      } : { id: 'admin', name: 'Admin', email: 'admin@hoorain.app' };
+      setAuth(user, res.accessToken);
       await mutate(() => true); // Revalidate all active SWR queries
     } else {
       throw new Error('Login failed: invalid response from server');

@@ -8,13 +8,16 @@ export class AddMissingColumnsAndAccountTypesTable1786417300000 implements Migra
         await queryRunner.query(`
             CREATE TABLE IF NOT EXISTS "account_types" (
                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
-                "name" character varying NOT NULL,
-                "icon" character varying,
-                "color" character varying,
-                "type" character varying NOT NULL DEFAULT 'bank',
-                "is_custom" boolean NOT NULL DEFAULT false,
+                "user_id" uuid,
+                "name" character varying(100) NOT NULL,
+                "code" character varying(50) NOT NULL,
+                "icon" character varying(50) NOT NULL DEFAULT 'wallet',
+                "color" character varying(20) NOT NULL DEFAULT '#3f51b5',
+                "is_default" boolean NOT NULL DEFAULT false,
                 "created_at" TIMESTAMP NOT NULL DEFAULT now(),
-                CONSTRAINT "PK_account_types_id" PRIMARY KEY ("id")
+                "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
+                CONSTRAINT "PK_account_types_id" PRIMARY KEY ("id"),
+                CONSTRAINT "FK_account_types_user_id" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE
             )
         `);
 

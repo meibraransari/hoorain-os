@@ -33,6 +33,7 @@ export default function ProfilePage() {
   const [profileError, setProfileError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   // Form States
   const [firstName, setFirstName] = useState('');
@@ -112,6 +113,38 @@ export default function ProfilePage() {
     }
   };
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingAvatar(true);
+    setProfileError('');
+    setProfileSuccess('');
+    
+    try {
+      const formData = new FormData();
+      formData.append('avatar', file);
+
+      const res: any = await api.post('/users/me/avatar', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      if (res && res.avatarUrl) {
+        setAvatarUrl(res.avatarUrl);
+        if (authUser) {
+          setUser({ ...authUser, avatar: res.avatarUrl });
+        }
+        setProfileSuccess('Profile image uploaded successfully!');
+        setTimeout(() => setProfileSuccess(''), 4000);
+      }
+    } catch (err: any) {
+      setProfileError(err.response?.data?.message || 'Failed to upload profile image.');
+    } finally {
+      setUploadingAvatar(false);
+      e.target.value = '';
+    }
+  };
+
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
@@ -162,22 +195,39 @@ export default function ProfilePage() {
       <div className="relative overflow-hidden rounded-2xl border border-border/80 bg-gradient-to-r from-bg-card via-bg-secondary to-bg-card p-6 shadow-xl before:absolute before:top-0 before:left-0 before:w-full before:h-[3px] before:bg-gradient-to-r before:from-accent before:via-accent-light before:to-transparent">
         <div className="flex flex-col sm:flex-row items-center gap-5">
           {/* Avatar Display */}
-          <div className="relative group">
+          <label className={`relative group cursor-pointer ${uploadingAvatar ? 'opacity-50 pointer-events-none' : ''}`}>
+            <input 
+              type="file" 
+              accept="image/*" 
+              className="hidden" 
+              onChange={handleAvatarUpload}
+              disabled={uploadingAvatar}
+            />
             {avatarUrl ? (
               <img
                 src={avatarUrl}
                 alt="Profile"
-                className="h-20 w-20 rounded-2xl object-cover border-2 border-accent/40 shadow-lg"
+                className="h-20 w-20 rounded-2xl object-cover border-2 border-accent/40 shadow-lg group-hover:border-accent transition-colors"
               />
             ) : (
-              <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-accent/15 border-2 border-accent/30 text-accent font-display text-2xl font-bold shadow-lg">
+              <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-accent/15 border-2 border-accent/30 text-accent font-display text-2xl font-bold shadow-lg group-hover:border-accent group-hover:bg-accent/20 transition-all">
                 {initials}
               </div>
             )}
+            
+            {/* Overlay Icon */}
+            <div className="absolute inset-0 bg-black/40 rounded-2xl opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+              {uploadingAvatar ? (
+                <RefreshCw size={24} className="text-white animate-spin" />
+              ) : (
+                <Camera size={24} className="text-white" />
+              )}
+            </div>
+
             <div className="absolute -bottom-1 -right-1 p-1.5 rounded-lg bg-accent text-white shadow">
               <Sparkles size={12} />
             </div>
-          </div>
+          </label>
 
           <div className="text-center sm:text-left space-y-1 flex-1">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
