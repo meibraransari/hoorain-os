@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useMemo, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -103,10 +103,15 @@ function ReportsContent() {
   const [activeTab, setActiveTab] = useState<'account' | 'category' | 'type' | 'timeline' | 'merchants'>('account');
   const [isFilterOpen, setIsFilterOpen] = useState(true);
 
+  const initialDatePreset = 'this_month';
+  const now = new Date();
+  const initStartStr = format(new Date(now.getFullYear(), now.getMonth(), 1), 'yyyy-MM-dd');
+  const initEndStr = format(new Date(now.getFullYear(), now.getMonth() + 1, 0), 'yyyy-MM-dd');
+
   // Pending Filter States (User selections before clicking Apply Filter)
-  const [pendingTimeRange, setPendingTimeRange] = useState<string>('all');
-  const [pendingStartDate, setPendingStartDate] = useState('');
-  const [pendingEndDate, setPendingEndDate] = useState('');
+  const [pendingTimeRange, setPendingTimeRange] = useState<string>(initialDatePreset);
+  const [pendingStartDate, setPendingStartDate] = useState(initStartStr);
+  const [pendingEndDate, setPendingEndDate] = useState(initEndStr);
   const [pendingAccountFilter, setPendingAccountFilter] = useState(initialAccountParam);
   const [pendingCategoryFilter, setPendingCategoryFilter] = useState(initialCategoryParam);
   const [pendingTypeFilter, setPendingTypeFilter] = useState('');
@@ -115,9 +120,9 @@ function ReportsContent() {
   const [pendingSearchKeyword, setPendingSearchKeyword] = useState('');
 
   // Applied Filter States (Committed states used to filter data after clicking Apply Filter)
-  const [appliedTimeRange, setAppliedTimeRange] = useState<string>('all');
-  const [appliedStartDate, setAppliedStartDate] = useState('');
-  const [appliedEndDate, setAppliedEndDate] = useState('');
+  const [appliedTimeRange, setAppliedTimeRange] = useState<string>(initialDatePreset);
+  const [appliedStartDate, setAppliedStartDate] = useState(initStartStr);
+  const [appliedEndDate, setAppliedEndDate] = useState(initEndStr);
   const [appliedAccountFilter, setAppliedAccountFilter] = useState(initialAccountParam);
   const [appliedCategoryFilter, setAppliedCategoryFilter] = useState(initialCategoryParam);
   const [appliedTypeFilter, setAppliedTypeFilter] = useState('');
@@ -165,9 +170,9 @@ function ReportsContent() {
 
   // Reset all filters
   const handleResetFilters = () => {
-    setPendingTimeRange('all');
-    setPendingStartDate('');
-    setPendingEndDate('');
+    setPendingTimeRange(initialDatePreset);
+    setPendingStartDate(initStartStr);
+    setPendingEndDate(initEndStr);
     setPendingAccountFilter('');
     setPendingCategoryFilter('');
     setPendingTypeFilter('');
@@ -175,9 +180,9 @@ function ReportsContent() {
     setPendingMaxAmount('');
     setPendingSearchKeyword('');
 
-    setAppliedTimeRange('all');
-    setAppliedStartDate('');
-    setAppliedEndDate('');
+    setAppliedTimeRange(initialDatePreset);
+    setAppliedStartDate(initStartStr);
+    setAppliedEndDate(initEndStr);
     setAppliedAccountFilter('');
     setAppliedCategoryFilter('');
     setAppliedTypeFilter('');
@@ -515,14 +520,41 @@ function ReportsContent() {
     ];
   }, []);
 
-  const handleExportCsv = async () => {
+  const handleExportCsv = () => {
     try {
-      const response: any = await api.get('/export/transactions?format=csv', { responseType: 'blob' });
-      const blob = new Blob([response.data || response], { type: 'text/csv' });
+      if (!filteredTransactions || filteredTransactions.length === 0) {
+        alert('No data to export based on current filters.');
+        return;
+      }
+      
+      const headers = ['Date', 'Title', 'Amount', 'Type', 'Category', 'Account', 'Notes'];
+      const rows = filteredTransactions.map((tx: any) => {
+        const rawAmt = typeof tx.amount === 'number' ? tx.amount : parseFloat(tx.amount) || 0;
+        let dateStr = '';
+        if (tx.date) {
+          try { dateStr = format(new Date(tx.date), 'yyyy-MM-dd'); } catch(e) {}
+        }
+        
+        const isTransfer = tx.isTransfer || tx.type === 'transfer';
+        const isIncome = !isTransfer && (tx.type === 'income' || tx.income === 1);
+        const txType = isTransfer ? 'transfer' : isIncome ? 'income' : 'expense';
+
+        const title = `"${(tx.title || tx.name || tx.notes || '').replace(/"/g, '""')}"`;
+        const notes = `"${(tx.notes || '').replace(/"/g, '""')}"`;
+        const catName = typeof tx.category === 'object' ? tx.category?.name : tx.category || '';
+        const accName = typeof tx.account === 'object' ? tx.account?.name : tx.account || '';
+        const cat = `"${catName.replace(/"/g, '""')}"`;
+        const acc = `"${accName.replace(/"/g, '""')}"`;
+        
+        return [dateStr, title, rawAmt, txType, cat, acc, notes].join(',');
+      });
+
+      const csvContent = [headers.join(','), ...rows].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `filtered-expense-report.csv`);
+      link.setAttribute('download', `filtered-finance-report.csv`);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -544,9 +576,108 @@ function ReportsContent() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 print:space-y-4 print:bg-white print:text-black">
+      {/* Print Layout CSS Overrides */}
+      <style dangerouslySetInnerHTML={{__html: `
+        @media print {
+          @page { margin: 0.5cm; }
+          /* Crucial overrides to fix 1-page cutoff caused by flex/h-screen */
+          html, body, #__next, body > div, .h-screen, .overflow-hidden, .overflow-y-auto { 
+            height: auto !important; 
+            min-height: auto !important; 
+            overflow: visible !important; 
+            display: block !important;
+          }
+          body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          
+          /* Ensure table rows flow to next page and headers repeat */
+          table { page-break-inside: auto; border-collapse: collapse; width: 100%; }
+          tr { break-inside: avoid; page-break-inside: avoid; page-break-after: auto; }
+          thead { display: table-header-group; }
+          tfoot { display: table-footer-group; }
+
+          /* Forcefully hide sidebar, header, fixed overlays, and print:hidden elements */
+          aside, header, nav, .fixed { display: none !important; }
+          .print\\:hidden, [class*="print:hidden"] { display: none !important; }
+          
+          div[class*="ml-"] { margin-left: 0 !important; }
+          main { padding: 0 !important; overflow: visible !important; height: auto !important; display: block !important; }
+          .card { border: 1px solid #e2e8f0 !important; box-shadow: none !important; break-inside: avoid; background: white !important; }
+          .text-text-primary { color: black !important; }
+          .text-text-secondary, .text-text-muted { color: #475569 !important; }
+          * { scrollbar-width: none !important; }
+          ::-webkit-scrollbar { display: none; }
+        }
+      `}} />
+
+      {/* Print-only Header */}
+      <div className="hidden print:block mb-6">
+        <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 p-6 rounded-2xl text-white shadow-md">
+          <h1 className="text-3xl font-extrabold tracking-tight">Hoorain OS Financial Report</h1>
+          <p className="text-sm font-medium mt-1 opacity-90">
+            Generated on {format(new Date(), 'MMMM d, yyyy')}
+          </p>
+          <div className="mt-4 grid grid-cols-3 gap-4 text-sm font-bold bg-white/20 p-3 rounded-xl border border-white/30 backdrop-blur-sm">
+            <div>
+              <span className="block text-xs uppercase opacity-80 text-white">Total Income</span>
+              <span className="text-lg text-white">{formatPrivateCurrency(totalIncome)}</span>
+            </div>
+            <div>
+              <span className="block text-xs uppercase opacity-80 text-white">Total Expenses</span>
+              <span className="text-lg text-white">{formatPrivateCurrency(totalExpenses)}</span>
+            </div>
+            <div>
+              <span className="block text-xs uppercase opacity-80 text-white">Total Transfers</span>
+              <span className="text-lg text-white">{formatPrivateCurrency(totalTransfers)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Print-only Flat Transactions Table */}
+      <div className="hidden print:block mb-8">
+        <h3 className="text-xl font-bold border-b border-gray-300 pb-2 mb-4 text-black">Itemized Transactions</h3>
+        <table className="w-full text-left border-collapse text-sm text-black">
+          <thead>
+            <tr className="border-b-2 border-gray-300">
+              <th className="py-2 px-1">Date</th>
+              <th className="py-2 px-1">Details</th>
+              <th className="py-2 px-1">Category</th>
+              <th className="py-2 px-1">Account</th>
+              <th className="py-2 px-1 text-right">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredTransactions.map((tx: any, idx: number) => {
+              const rawAmt = typeof tx.amount === 'number' ? tx.amount : parseFloat(tx.amount) || 0;
+              let dateStr = '';
+              if (tx.date) {
+                try { dateStr = format(new Date(tx.date), 'MMM d, yyyy'); } catch(e) {}
+              }
+              const isTransfer = tx.isTransfer || tx.type === 'transfer';
+              const isIncome = !isTransfer && (tx.type === 'income' || tx.income === 1);
+              const txType = isTransfer ? 'Transfer' : isIncome ? 'Income' : 'Expense';
+              const title = tx.title || tx.name || tx.notes || 'Transaction';
+              const catName = typeof tx.category === 'object' ? tx.category?.name : tx.category || '';
+              const accName = typeof tx.account === 'object' ? tx.account?.name : tx.account || '';
+              const amtColor = isTransfer ? 'text-blue-600' : isIncome ? 'text-green-600' : 'text-red-600';
+
+              return (
+                <tr key={tx.id || idx} className="border-b border-gray-200">
+                  <td className="py-2 px-1 whitespace-nowrap text-gray-600">{dateStr}</td>
+                  <td className="py-2 px-1 font-semibold">{title}</td>
+                  <td className="py-2 px-1 text-gray-600">{catName}</td>
+                  <td className="py-2 px-1 text-gray-600">{accName}</td>
+                  <td className={`py-2 px-1 text-right font-bold ${amtColor}`}>{formatPrivateCurrency(rawAmt)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
       {/* Page Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between print:hidden">
         <div>
           <h1 className="text-3xl font-display font-bold text-text-primary">Financial Analytics & Custom Reports</h1>
           <p className="text-text-secondary mt-1">Multi-dimensional custom filtering with itemized expandable transactions.</p>
@@ -580,14 +711,14 @@ function ReportsContent() {
             className="flex items-center gap-2 rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white shadow-md hover:bg-accent-light transition-all cursor-pointer"
           >
             <Printer size={16} />
-            <span>Print Report</span>
+            <span>Export PDF</span>
           </button>
         </div>
       </div>
 
       {/* Advanced Custom Filter Control Panel with Luxury DateRangePicker & Apply Button */}
       {isFilterOpen && (
-        <div className="card p-6 border border-accent/30 bg-bg-card rounded-2xl space-y-5 shadow-2xl animate-fade-in relative overflow-hidden">
+        <div className="card p-6 border border-accent/30 bg-bg-card rounded-2xl space-y-5 shadow-2xl animate-fade-in relative overflow-hidden print:hidden">
           {/* Header Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border/80 pb-4 gap-3">
             <div className="flex items-center gap-2.5">
@@ -755,7 +886,7 @@ function ReportsContent() {
       )}
 
       {/* KPI Stats Bar */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 print:hidden">
         <div className="card p-5 border border-expense/30 bg-expense/5 rounded-xl space-y-1">
           <div className="flex items-center justify-between text-xs text-expense font-bold uppercase">
             <span>Filtered Expenses</span>
@@ -802,7 +933,7 @@ function ReportsContent() {
       </div>
 
       {/* Navigation Sub-Tabs for Reports Views */}
-      <div className="flex items-center gap-2 border-b border-border pb-3 overflow-x-auto scrollbar-none">
+      <div className="flex items-center gap-2 border-b border-border pb-3 overflow-x-auto scrollbar-none print:hidden">
         {reportsList.map((r) => {
           const IconComponent = r.icon;
           const isActive = activeTab === r.id;
@@ -825,7 +956,7 @@ function ReportsContent() {
 
       {/* Tab 1: Expenses by Account */}
       {activeTab === 'account' && (
-        <div className="space-y-4">
+        <div className="space-y-4 print:hidden">
           <div className="flex items-center justify-between">
             <h3 className="font-extrabold text-lg text-text-primary">1. Expense Breakdown by Account</h3>
             <span className="text-xs text-text-muted">{accountBreakdown.length} Accounts Active</span>
@@ -875,7 +1006,7 @@ function ReportsContent() {
 
       {/* Tab 2: Expenses by Category */}
       {activeTab === 'category' && (
-        <div className="space-y-4">
+        <div className="space-y-4 print:hidden">
           <div className="flex items-center justify-between">
             <h3 className="font-extrabold text-lg text-text-primary">2. Expense Breakdown by Category</h3>
             <span className="text-xs text-text-muted">{categoryBreakdown.length} Categories Tracked</span>
@@ -925,7 +1056,7 @@ function ReportsContent() {
 
       {/* Tab 3: Transaction Type & Cash Flow */}
       {activeTab === 'type' && (
-        <div className="space-y-4">
+        <div className="space-y-4 print:hidden">
           <h3 className="font-extrabold text-lg text-text-primary">3. Financial Flow Ratio Analysis</h3>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -989,7 +1120,7 @@ function ReportsContent() {
 
       {/* Tab 4: Spending Velocity & Monthly Trend */}
       {activeTab === 'timeline' && (
-        <div className="space-y-4">
+        <div className="space-y-4 print:hidden">
           <h3 className="font-extrabold text-lg text-text-primary">4. Monthly Spending Velocity</h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1033,7 +1164,7 @@ function ReportsContent() {
 
       {/* Tab 5: Top Payees & Transaction Brackets */}
       {activeTab === 'merchants' && (
-        <div className="space-y-6">
+        <div className="space-y-6 print:hidden">
           <div className="space-y-4">
             <h3 className="font-extrabold text-lg text-text-primary">Top 10 Payees & Vendors</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
