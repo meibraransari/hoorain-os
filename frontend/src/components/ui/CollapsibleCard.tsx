@@ -36,10 +36,10 @@ export function CollapsibleCard({
             className="p-1.5 rounded-lg bg-bg-secondary hover:bg-bg-hover border border-border/80 text-accent hover:text-white transition-all shadow-sm group cursor-pointer"
             title={isCollapsed ? 'Maximize / Expand' : 'Minimize / Collapse'}
           >
-            <ChevronDown
-              size={17}
-              className={`transition-transform duration-300 ${
-                isCollapsed ? '-rotate-90 text-text-muted group-hover:text-accent' : 'rotate-0 text-accent'
+            <Triangle
+              size={14}
+              className={`transition-transform duration-300 fill-current ${
+                isCollapsed ? 'rotate-90 text-text-muted group-hover:text-accent' : 'rotate-180 text-accent'
               }`}
             />
           </button>

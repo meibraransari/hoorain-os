@@ -15,8 +15,8 @@ import { DateRangePicker } from '@/components/ui/DateRangePicker';
 import { RecurringBillsWidget } from '@/components/ui/RecurringBillsWidget';
 import { FinancialHealthWidget } from '@/components/ui/FinancialHealthWidget';
 import { ExecutiveProfitLossWidget } from '@/components/ui/ExecutiveProfitLossWidget';
+import { GoalVelocityTracker } from '@/components/ui/GoalVelocityTracker';
 import { CreditUtilizationWidget } from '@/components/ui/CreditUtilizationWidget';
-import { SavingsRateRunwayWidget } from '@/components/ui/SavingsRateRunwayWidget';
 import {
   Wallet,
   TrendingUp,
@@ -48,14 +48,21 @@ import { useSettings, AppSettings } from '@/components/providers/SettingsProvide
 import Link from 'next/link';
 import { format } from 'date-fns';
 
-export default function DashboardPage() {
+export default function PlanningDashboardPage() {
   const { isPrivate, formatPrivateCurrency, formatPrivateNumber } = usePrivacy();
   const { settings, updateSettings } = useSettings();
   const {
     showNetWorth = true,
     showCreditDebt = true,
+    showSpendingGraph = true,
+    showPieChart = true,
+    showObjectives = false,
     showQuickTransfer = true,
+    showCategoryAnalytics = true,
+    showRecurringBills = true,
     showHealthScore = true,
+    showProfitLoss = true,
+    showCreditUtilization = true,
     hiddenAccounts = {},
     removeZeroTransactionEntries = false,
   } = settings || {};
@@ -390,14 +397,14 @@ export default function DashboardPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-display font-bold text-text-primary">Dashboard</h1>
+            <h1 className="text-3xl font-display font-bold text-text-primary">Planning & Future</h1>
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-accent/15 text-accent border border-accent/20 shadow-sm">
               <Calendar size={12} />
               {currentMonthLabel}
             </span>
           </div>
           <div className="flex items-center gap-3 mt-1 flex-wrap">
-            <p className="text-text-secondary text-sm">Here is your financial performance for {currentMonthLabel}.</p>
+            <p className="text-text-secondary text-sm">Stay ahead of upcoming bills, goals, and budgets.</p>
           </div>
         </div>
 
@@ -428,8 +435,8 @@ export default function DashboardPage() {
                   <span className="text-[10px] uppercase font-bold text-accent tracking-wider block px-1">Widgets & Charts</span>
 
                   {[
-                    { key: 'showNetWorth', label: 'Net Worth KPI Card', active: showNetWorth, icon: Wallet },
-                    { key: 'showQuickTransfer', label: 'Quick Fund Transfer Tool', active: showQuickTransfer, icon: Sparkles },
+                    { key: 'showCreditUtilization', label: 'Credit Utilization & Debt Safety Gauge', active: showCreditUtilization, icon: ShieldAlert },
+                    { key: 'showRecurringBills', label: 'Overdue & Upcoming Bills Widget', active: showRecurringBills, icon: CalendarClock },
                   ].map((item) => {
                     const IconComp = item.icon;
                     return (
@@ -457,39 +464,8 @@ export default function DashboardPage() {
                   })}
                 </div>
 
-                {/* Available Accounts List */}
-                {accounts.length > 0 && (
-                  <div className="space-y-1.5 pt-2.5 border-t border-border/80">
-                    <span className="text-[10px] uppercase font-bold text-accent tracking-wider block px-1">Available Accounts Summary</span>
-                    {accounts.map((acc: any) => {
-                      const isHidden = hiddenAccounts[acc.id];
-                      const bal = typeof acc.currentBalance === 'number' ? acc.currentBalance : parseFloat(acc.currentBalance || acc.balance) || 0;
-                      return (
-                        <button
-                          key={acc.id}
-                          type="button"
-                          onClick={() => handleToggleAccountVisibility(acc.id)}
-                          className="w-full flex items-center justify-between p-2.5 rounded-xl border border-border/60 bg-bg-secondary hover:bg-bg-hover hover:border-accent/40 transition-all text-xs font-semibold text-text-primary cursor-pointer"
-                        >
-                          <div className="flex items-center gap-2 truncate pr-2">
-                            <CreditCard size={14} className="text-accent shrink-0" />
-                            <span className="truncate">{acc.name}</span>
-                          </div>
-                          {!isHidden ? (
-                            <span className="flex items-center gap-1 text-[10px] font-bold text-income bg-income/10 px-2 py-0.5 rounded-md border border-income/20 shrink-0">
-                              <Eye size={12} /> {formatPrivateCurrency(bal)}
-                            </span>
-                          ) : (
-                            <span className="flex items-center gap-1 text-[10px] font-bold text-text-muted bg-bg-card px-2 py-0.5 rounded-md border border-border shrink-0">
-                              <EyeOff size={12} /> Hidden
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
+                              </div>
+
             )}
           </div>
 
@@ -503,269 +479,70 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Account Quick Summary Widget Bar (If visible accounts exist) */}
-      {visibleAccounts.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-extrabold uppercase tracking-wider text-text-muted flex items-center gap-2">
-              <CreditCard size={15} className="text-accent" />
-              Accounts ({visibleAccounts.length})
-            </span>
-            <Link
-              href="/accounts"
-              className="text-xs font-bold text-accent hover:text-accent-light transition-colors flex items-center gap-1 group"
-            >
-              <span>Manage Accounts</span>
-              <ArrowUpRight size={13} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-            </Link>
-          </div>
-
-          <div className="grid grid-rows-2 grid-flow-col auto-cols-[minmax(260px,_1fr)] gap-4 overflow-x-auto pb-4 pt-1 no-scrollbar">
-            {visibleAccounts.map((acc: any) => {
-              const bal = typeof acc.currentBalance === 'number' ? acc.currentBalance : parseFloat(acc.currentBalance || acc.balance) || 0;
-              const rawType = (typeof acc.type === 'object' ? acc.type?.name : acc.type || 'Account').toLowerCase();
-              const typeLabel = typeof acc.type === 'object' ? acc.type?.name : acc.type || 'Account';
-              const color = acc.color || '#6c63ff';
-
-              // Select suitable account icon
-              let AccIcon = Building2;
-              if (rawType.includes('wallet')) AccIcon = Wallet;
-              else if (rawType.includes('cash')) AccIcon = Banknote;
-              else if (rawType.includes('credit') || rawType.includes('card')) AccIcon = CreditCard;
-
-              return (
-                <Link
-                  key={acc.id}
-                  href={`/reports?account=${acc.id}`}
-                  className="group relative flex flex-col justify-between h-[115px] p-4 rounded-2xl border border-border/80 bg-gradient-to-br from-bg-card/95 via-bg-secondary/70 to-bg-card/95 backdrop-blur-xl shadow-md hover:shadow-xl hover:border-accent/50 hover:-translate-y-0.5 transition-all duration-300 shrink-0 cursor-pointer overflow-hidden w-full"
-                >
-                  {/* Top ambient glow blob matching account color */}
-                  <div
-                    className="absolute -top-10 -right-10 w-24 h-24 rounded-full blur-2xl opacity-15 transition-opacity group-hover:opacity-35"
-                    style={{ backgroundColor: color }}
-                  />
-
-                  {/* Header: Icon Badge & Account Type Tag */}
-                  <div className="flex items-center justify-between">
-                    <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-md border border-white/20 transition-transform group-hover:scale-110"
-                      style={{ backgroundColor: color }}
-                    >
-                      <AccIcon size={18} />
-                    </div>
-
-                    <span className="text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20 group-hover:bg-accent group-hover:text-white transition-colors">
-                      {typeLabel}
-                    </span>
-                  </div>
-
-                  {/* Middle & Bottom: Account Name & Balance */}
-                  <div className="mt-2 space-y-0.5">
-                    <span className="text-[11px] font-bold text-text-primary tracking-tight block truncate group-hover:text-accent transition-colors">
-                      {acc.name}
-                    </span>
-
-                    <div className="flex items-baseline justify-between pt-0.5">
-                      <span className={`font-mono text-base font-extrabold tracking-tight ${
-                        bal >= 0 ? 'text-text-primary' : 'text-expense'
-                      }`}>
-                        {formatPrivateCurrency(bal)}
-                      </span>
-                      <ChevronRight size={16} className="text-text-muted opacity-40 group-hover:opacity-100 group-hover:translate-x-1 transition-all text-accent" />
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Net Worth Card */}
-        {showNetWorth && (
-          <CollapsibleCard
-            title={
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold uppercase text-text-muted">Net Worth</span>
-              </div>
-            }
-            action={
-              <div className="p-2 bg-accent/10 text-accent rounded-xl">
-                <Wallet size={18} />
-              </div>
-            }
-          >
-            <div>
-              <div className={`text-2xl font-bold ${netWorth >= 0 ? 'text-text-primary' : 'text-expense'}`}>
-                {formatPrivateCurrency(netWorth)}
-              </div>
-              {showCreditDebt && (
-                <div className="flex items-center gap-3 text-xs mt-2 pt-2 border-t border-border">
-                  <span className="text-income font-medium flex items-center gap-0.5">
-                    <ArrowUpRight size={13} /> Assets: {formatPrivateCurrency(totalAssets)}
-                  </span>
-                  <span className="text-expense font-medium flex items-center gap-0.5">
-                    <ArrowDownRight size={13} /> Debt: {formatPrivateCurrency(totalLiabilities)}
-                  </span>
-                </div>
-              )}
-            </div>
-            {totalLiabilities > 0 && (
-              <Link
-                href="/accounts"
-                className="flex items-center gap-1 text-[11px] text-accent hover:underline pt-2 block"
-              >
-                <AlertCircle size={12} />
-                <span>Edit account initial balances to adjust Net Worth</span>
-              </Link>
-            )}
-          </CollapsibleCard>
-        )}
-
-        <StatCard
-          title={`Income (${currentMonthLabel})`}
-          value={formatPrivateCurrency(monthlyIncome)}
-          subtitle={`Yearly ${currentYear}: ${formatPrivateCurrency(yearlyIncome)}`}
-          icon={<TrendingUp size={20} className="text-income" />}
-          trend="This Month"
-          trendType="up"
-          isLoading={txLoading}
-        />
-        <StatCard
-          title={`Expenses (${currentMonthLabel})`}
-          value={formatPrivateCurrency(monthlyExpense)}
-          subtitle={`Yearly ${currentYear}: ${formatPrivateCurrency(yearlyExpense)}`}
-          icon={<TrendingDown size={20} className="text-expense" />}
-          trend="This Month"
-          trendType="down"
-          isLoading={txLoading}
-        />
-        <StatCard
-          title="Savings Rate"
-          value={formatPrivateNumber(savingsRate, '%')}
-          subtitle={`Yearly Net: ${formatPrivateCurrency(yearlyIncome - yearlyExpense)}`}
-          icon={<Target size={20} className="text-accent" />}
-          isLoading={txLoading}
-        />
-      </div>
-
       {/* Integrated Masonry Dashboard Grid */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 items-start">
         {/* Left Column (2 Spans): Executive P&L + Credit Utilization + Cash Flow Analysis + Quick Transfer + Recent Transactions */}
         <div className="lg:col-span-2 space-y-6">
-          {/* 3. Recent Transactions */}
-          <CollapsibleCard
-            title={`Recent Transactions (${currentMonthLabel})`}
-            action={
-              <Link href="/transactions" className="text-xs font-semibold text-accent hover:underline">
-                View All
-              </Link>
-            }
-          >
-            {txLoading ? (
-              <div className="space-y-3">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="h-14 rounded-xl skeleton" />
-                ))}
-              </div>
-            ) : transactions.length === 0 ? (
-              <div className="p-8 text-center text-text-muted text-sm">
-                No transactions recorded yet. Click "Add Transaction" or import your database backup.
-              </div>
-            ) : (
-              <div className="overflow-x-auto mt-2 pb-1">
-                <table className="w-full text-left text-sm whitespace-nowrap">
-                  <thead className="bg-bg-secondary text-text-muted border-b border-border">
-                    <tr>
-                      <th className="px-4 py-3 font-semibold uppercase tracking-wider text-xs">Date</th>
-                      <th className="px-4 py-3 font-semibold uppercase tracking-wider text-xs">Description</th>
-                      <th className="px-4 py-3 font-semibold uppercase tracking-wider text-xs">Category</th>
-                      <th className="px-4 py-3 font-semibold uppercase tracking-wider text-xs">Account</th>
-                      <th className="px-4 py-3 font-semibold uppercase tracking-wider text-xs text-right">Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/50">
-                    {transactions.slice(0, 7).map((tx: any) => {
-                      const rawAmount = typeof tx.amount === 'number' ? tx.amount : parseFloat(tx.amount) || 0;
-                      const isTransfer = tx.isTransfer || tx.type === 'transfer';
-                      const isIncome = !isTransfer && (tx.type === 'income' || tx.income === 1);
-                      const categoryName = typeof tx.category === 'string' ? tx.category : tx.category?.name || (isTransfer ? 'Transfer' : 'General');
-                      const accountName = typeof tx.account === 'string' ? tx.account : tx.account?.name || 'Account';
-                      const primaryTitle = tx.title || categoryName || 'Transaction';
-                      const formattedDate = tx.date ? format(new Date(tx.date), 'EEEE, MMMM d, yyyy') : 'Unknown Date';
-                      
-                      const iconVal = typeof tx.category === 'object' ? tx.category?.icon : undefined;
-                      const categoryIcon = renderCategoryIcon(iconVal, categoryName);
-                      
-                      return (
-                        <tr key={tx.id} className="hover:bg-bg-hover transition-colors group">
-                          <td className="px-4 py-3 text-text-secondary font-medium">{formattedDate}</td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-3">
-                              <div
-                                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-sm text-base ${
-                                  isTransfer
-                                    ? 'bg-transfer/20 text-transfer border border-violet-500/20'
-                                    : isIncome
-                                    ? 'bg-income/20 text-income border border-income/20'
-                                    : 'bg-expense/20 text-expense border border-expense/20'
-                                }`}
-                              >
-                                {isTransfer ? '🔄' : categoryIcon}
-                              </div>
-                              <div className="flex flex-col">
-                                <span className="font-bold text-text-primary group-hover:text-accent-light transition-colors">
-                                  {primaryTitle}
-                                </span>
-                                {tx.notes && (
-                                  <span className="text-[11px] text-text-muted truncate max-w-[200px] mt-0.5">{tx.notes}</span>
-                                )}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-bg-secondary border border-border text-xs font-semibold text-text-secondary">
-                              {categoryName}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-text-secondary">
-                            <span className="font-semibold">{accountName}</span>
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <span
-                              className={`font-extrabold text-[15px] tracking-tight ${
-                                isTransfer
-                                  ? 'text-info'
-                                  : isIncome
-                                  ? 'text-success'
-                                  : 'text-text-primary'
-                              }`}
-                            >
-                              {isTransfer ? '' : isIncome ? '+' : '-'}{formatPrivateCurrency(Math.abs(rawAmount))}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </CollapsibleCard>
-        </div>
+          <GoalVelocityTracker />
+          {/* Credit Utilization & Debt Safety Gauge Widget */}
+          {showCreditUtilization && <CreditUtilizationWidget />}
+
+          </div>
 
         {/* Right Column (1 Span): AI Health + Top Expenses + Category Analytics + Monthly Budgets + Recurring Bills */}
         <div className="space-y-6">
-          {/* 1. AI Financial Health Score Widget */}
-          {showHealthScore && <FinancialHealthWidget />}
+          {/* 2. Overdue & Upcoming Bills Widget */}
+          {showRecurringBills && <RecurringBillsWidget />}
 
-          {/* 2. Financial Runway Widget */}
-          <SavingsRateRunwayWidget />
+          {/* 3. Monthly Budgets Overview */}
+          <CollapsibleCard
+            title="Monthly Budgets"
+            action={
+              <Link href="/budgets" className="text-xs font-semibold text-accent hover:underline">
+                Manage Budgets
+              </Link>
+            }
+          >
+            {budgetLoading ? (
+              <div className="space-y-3">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="h-24 rounded-xl skeleton" />
+                ))}
+              </div>
+            ) : budgets.length === 0 ? (
+              <div className="p-8 text-center text-text-muted text-sm space-y-2">
+                <p>No active monthly budgets set up.</p>
+                <Link href="/budgets" className="text-xs font-semibold text-accent hover:underline inline-block">
+                  + Create Monthly Budget
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {budgets.slice(0, 3).map((b: any) => (
+                  <BudgetCard key={b.id} budget={b} />
+                ))}
+              </div>
+            )}
+          </CollapsibleCard>
 
-          {/* 3. Quick Fund Transfer */}
-          {showQuickTransfer && <QuickTransferWidget />}
+          {/* 4. Financial Objectives Widget */}
+          {showObjectives && (
+            <CollapsibleCard
+              title="Financial Goals & Objectives"
+              action={
+                <Link href="/goals" className="text-xs font-semibold text-accent hover:underline">
+                  Manage Goals
+                </Link>
+              }
+            >
+              <div className="p-4 text-center text-text-muted text-sm space-y-2">
+                <p>Financial Objectives widget is active.</p>
+                <Link href="/goals" className="text-xs font-semibold text-accent hover:underline inline-block">
+                  + View Financial Goals
+                </Link>
+              </div>
+            </CollapsibleCard>
+          )}
         </div>
       </div>
 

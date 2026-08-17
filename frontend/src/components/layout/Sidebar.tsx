@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Wallet, Wallet as WalletIcon, ArrowLeftRight, Tag, PieChart, 
   Target, FileText, Settings, LogOut, ChevronLeft, ChevronRight,
   User, HandCoins, CalendarClock, BrainCircuit, Calculator, Github,
-  ChevronUp
+  ChevronUp, BarChart3
 } from 'lucide-react';
 import { useUIStore } from '@/store/ui.store';
 import { useAuth } from '@/components/providers/AuthProvider';
@@ -15,18 +15,35 @@ import { useAuthStore } from '@/store/auth.store';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const navItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
-  { icon: Wallet, label: 'Accounts', href: '/accounts' },
-  { icon: ArrowLeftRight, label: 'Transactions', href: '/transactions' },
-  { icon: HandCoins, label: 'Lent & Borrow', href: '/lent-borrow' },
-  { icon: CalendarClock, label: 'Overdue & Upcoming', href: '/bills-recurring' },
-  { icon: BrainCircuit, label: 'AI Health & Insights', href: '/financial-health' },
-  { icon: Calculator, label: 'Debt Payoff Planner', href: '/debt-planner' },
-  { icon: Tag, label: 'Categories', href: '/categories' },
-  { icon: PieChart, label: 'Budgets', href: '/budgets' },
-  { icon: Target, label: 'Goals', href: '/goals' },
-  { icon: FileText, label: 'Reports', href: '/reports' },
+const navGroups = [
+  {
+    group: 'Dashboards',
+    items: [
+      { icon: LayoutDashboard, label: 'Main Overview', href: '/dashboard' },
+      { icon: BarChart3, label: 'Cashflow Analytics', href: '/dashboard-analytics' },
+      { icon: Target, label: 'Planning & Future', href: '/dashboard-planning' },
+    ]
+  },
+  {
+    group: 'Management',
+    items: [
+      { icon: Wallet, label: 'Accounts', href: '/accounts' },
+      { icon: ArrowLeftRight, label: 'Transactions', href: '/transactions' },
+      { icon: HandCoins, label: 'Lent & Borrow', href: '/lent-borrow' },
+      { icon: Tag, label: 'Categories', href: '/categories' },
+      { icon: FileText, label: 'Reports & Export', href: '/reports' },
+    ]
+  },
+  {
+    group: 'Advanced',
+    items: [
+      { icon: CalendarClock, label: 'Upcoming Bills', href: '/bills-recurring' },
+      { icon: BrainCircuit, label: 'AI Health', href: '/financial-health' },
+      { icon: Calculator, label: 'Debt Planner', href: '/debt-planner' },
+      { icon: PieChart, label: 'Budgets', href: '/budgets' },
+      { icon: Target, label: 'Goals', href: '/goals' },
+    ]
+  }
 ];
 
 export function Sidebar() {
@@ -79,32 +96,44 @@ export function Sidebar() {
 
       {/* Navigation Links */}
       <div className="flex-1 overflow-y-auto py-3 scrollbar-hide">
-        <nav className="flex flex-col gap-1 px-2.5">
-          {navItems.map((item) => {
-            const isActive = pathname.startsWith(item.href);
-            return (
-              <Link 
-                key={item.href} 
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition-all group relative cursor-pointer",
-                  isActive 
-                    ? "bg-accent/10 text-accent font-bold shadow-sm border border-accent/20" 
-                    : "text-text-secondary hover:bg-bg-hover hover:text-text-primary"
-                )}
-                title={sidebarCollapsed ? item.label : undefined}
-              >
-                {isActive && (
-                  <motion.div 
-                    layoutId="activeTab"
-                    className="absolute left-0 top-1/2 -mt-2 h-4 w-1 rounded-r-full bg-accent"
-                  />
-                )}
-                <item.icon size={18} className={cn("shrink-0 transition-colors", isActive ? "text-accent" : "group-hover:text-accent")} />
-                {!sidebarCollapsed && <span className="whitespace-nowrap">{item.label}</span>}
-              </Link>
-            );
-          })}
+        <nav className="flex flex-col gap-4 px-2.5">
+          {navGroups.map((group, gIdx) => (
+            <div key={gIdx} className="space-y-1">
+              {!sidebarCollapsed && (
+                <div className="px-3 pb-1 text-[10px] font-extrabold uppercase tracking-widest text-text-muted">
+                  {group.group}
+                </div>
+              )}
+              {group.items.map((item) => {
+                const isActive = item.href === '/dashboard' 
+                  ? pathname === item.href 
+                  : pathname.startsWith(item.href);
+                  
+                return (
+                  <Link 
+                    key={item.href} 
+                    href={item.href}
+                    className={cn(
+                      "flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition-all group relative cursor-pointer",
+                      isActive 
+                        ? "bg-accent/10 text-accent font-bold shadow-sm border border-accent/20" 
+                        : "text-text-secondary hover:bg-bg-hover hover:text-text-primary"
+                    )}
+                    title={sidebarCollapsed ? item.label : undefined}
+                  >
+                    {isActive && (
+                      <motion.div 
+                        layoutId="activeTab"
+                        className="absolute left-0 top-1/2 -mt-2 h-4 w-1 rounded-r-full bg-accent"
+                      />
+                    )}
+                    <item.icon size={18} className={cn("shrink-0 transition-colors", isActive ? "text-accent" : "group-hover:text-accent")} />
+                    {!sidebarCollapsed && <span className="whitespace-nowrap">{item.label}</span>}
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
         </nav>
       </div>
 
