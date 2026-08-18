@@ -21,6 +21,7 @@ interface PieChartProps {
   title?: string;
   height?: number;
   defaultCollapsed?: boolean;
+  widgetId?: string;
 }
 
 const getCategoryIcon = (name: string) => {
@@ -34,11 +35,23 @@ const getCategoryIcon = (name: string) => {
   return <Package size={16} />;
 };
 
-export function PieChart({ data, title, height = 320, defaultCollapsed = false }: PieChartProps) {
+export function PieChart({ data, title, height = 320, defaultCollapsed = false, widgetId }: PieChartProps) {
   const { formatPrivateCurrency } = usePrivacy();
   const { theme } = useTheme();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
+
+  const toggleCollapse = () => {
+    const next = !isCollapsed;
+    setIsCollapsed(next);
+    if (widgetId) {
+      window.dispatchEvent(
+        new CustomEvent('widget-collapse', { 
+          detail: { widgetId, collapsed: next, minH: 3, maxH: 7 } // 3 for chart, 7 for chart + list
+        })
+      );
+    }
+  };
 
   // Get CSS variable values dynamically from the current theme
   const textColor = getComputedStyle(document.documentElement)
@@ -59,13 +72,13 @@ export function PieChart({ data, title, height = 320, defaultCollapsed = false }
   const activeItem = activeIndex !== null && processedData[activeIndex] ? processedData[activeIndex] : null;
 
   return (
-    <div className="card p-6 border border-border rounded-xl space-y-4">
+    <div className="card p-6 border border-border rounded-xl flex flex-col h-full overflow-hidden">
       {/* Header with Triangle Minimize/Maximize Toggle Button */}
       {title && (
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-4 shrink-0">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setIsCollapsed(!isCollapsed)}
+              onClick={toggleCollapse}
               className="p-1.5 rounded-lg bg-bg-card hover:bg-bg-hover border border-border text-accent hover:text-accent-light transition-all shadow-sm group"
               title={isCollapsed ? 'Maximize / Expand' : 'Minimize / Collapse'}
             >
@@ -85,69 +98,70 @@ export function PieChart({ data, title, height = 320, defaultCollapsed = false }
         </div>
       )}
 
-      {/* Collapsible Content */}
-      {!isCollapsed && (
-        <div className="space-y-5 pt-2 border-t border-border/60 transition-all duration-300">
-          {/* Donut Chart with Center Summary Callout */}
-          <div className="relative" style={{ width: '100%', height: 220 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <RechartsPieChart>
-                <Pie
-                  data={processedData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={68}
-                  outerRadius={92}
-                  paddingAngle={4}
-                  dataKey="value"
-                  stroke="none"
-                  onMouseEnter={(_, index) => setActiveIndex(index)}
-                  onMouseLeave={() => setActiveIndex(null)}
-                >
-                  {processedData.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={entry.color} 
-                      style={{
-                        filter: activeIndex === index ? 'brightness(1.2) drop-shadow(0 0 8px rgba(255,255,255,0.3))' : 'none',
-                        transition: 'all 0.3s ease',
-                        cursor: 'pointer'
-                      }}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: tooltipBg, 
-                    borderRadius: '12px', 
-                    border: `1px solid ${gridColor}`, 
-                    color: textColor,
-                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
-                  }}
-                  formatter={(value: number, name: any, props: any) => [
-                    `${formatPrivateCurrency(value)} (${props.payload.percentage}%)`,
-                    props.payload.name
-                  ]}
-                />
-              </RechartsPieChart>
-            </ResponsiveContainer>
+      {/* Chart and Collapsible List Area */}
+      <div className="flex-1 overflow-hidden flex flex-col pt-2 border-t border-border/60 transition-all duration-300 pr-1">
+        
+        {/* Donut Chart with Center Summary Callout (Always Visible) */}
+        <div className="relative shrink-0" style={{ width: '100%', height: 220 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <RechartsPieChart>
+              <Pie
+                data={processedData}
+                cx="50%"
+                cy="50%"
+                innerRadius={68}
+                outerRadius={92}
+                paddingAngle={4}
+                dataKey="value"
+                stroke="none"
+                onMouseEnter={(_, index) => setActiveIndex(index)}
+                onMouseLeave={() => setActiveIndex(null)}
+              >
+                {processedData.map((entry, index) => (
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={entry.color} 
+                    style={{
+                      filter: activeIndex === index ? 'brightness(1.2) drop-shadow(0 0 8px rgba(255,255,255,0.3))' : 'none',
+                      transition: 'all 0.3s ease',
+                      cursor: 'pointer'
+                    }}
+                  />
+                ))}
+              </Pie>
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: tooltipBg, 
+                  borderRadius: '12px', 
+                  border: `1px solid ${gridColor}`, 
+                  color: textColor,
+                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
+                }}
+                formatter={(value: number, name: any, props: any) => [
+                  `${formatPrivateCurrency(value)} (${props.payload.percentage}%)`,
+                  props.payload.name
+                ]}
+              />
+            </RechartsPieChart>
+          </ResponsiveContainer>
 
-            {/* Center Donut Label */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center p-2">
-              <span className="text-[11px] font-medium text-text-muted uppercase tracking-wider">
-                {activeItem ? activeItem.name : 'Total Expense'}
-              </span>
-              <span className="text-lg font-bold text-text-primary mt-0.5">
-                {formatPrivateCurrency(activeItem ? activeItem.value : totalValue)}
-              </span>
-              <span className="text-[10px] font-semibold text-accent mt-0.5">
-                {activeItem ? `${activeItem.percentage}% of total` : `${data.length} Categories`}
-              </span>
-            </div>
+          {/* Center Donut Label */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center p-2">
+            <span className="text-[11px] font-medium text-text-muted uppercase tracking-wider">
+              {activeItem ? activeItem.name : 'Total Expense'}
+            </span>
+            <span className="text-lg font-bold text-text-primary mt-0.5">
+              {formatPrivateCurrency(activeItem ? activeItem.value : totalValue)}
+            </span>
+            <span className="text-[10px] font-semibold text-accent mt-0.5">
+              {activeItem ? `${activeItem.percentage}% of total` : `${data.length} Categories`}
+            </span>
           </div>
+        </div>
 
-          {/* Category Breakdown Cards List */}
-          <div className="space-y-2.5 pt-2 border-t border-border/60">
+        {/* Category Breakdown Cards List (Toggled) */}
+        {!isCollapsed && (
+          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2.5 mt-2 pt-2 border-t border-border/60">
             {processedData.map((item, index) => {
               const isHovered = activeIndex === index;
               return (
@@ -206,8 +220,8 @@ export function PieChart({ data, title, height = 320, defaultCollapsed = false }
               );
             })}
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

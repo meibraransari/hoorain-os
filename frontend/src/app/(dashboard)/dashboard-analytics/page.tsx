@@ -45,6 +45,7 @@ import {
 import { formatCurrency, renderCategoryIcon } from '@/lib/utils';
 import { usePrivacy } from '@/components/providers/PrivacyProvider';
 import { useSettings, AppSettings } from '@/components/providers/SettingsProvider';
+import { DraggableDashboard, DashboardWidget } from '@/components/ui/DraggableDashboard';
 import Link from 'next/link';
 import { format } from 'date-fns';
 
@@ -484,79 +485,87 @@ export default function AnalyticsDashboardPage() {
         </div>
       </div>
 
-      {/* Integrated Masonry Dashboard Grid */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 items-start">
-        {/* Left Column (2 Spans): Executive P&L + Credit Utilization + Cash Flow Analysis + Quick Transfer + Recent Transactions */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Executive P&L Summary Widget */}
-          {showProfitLoss && <ExecutiveProfitLossWidget />}
-
-          {/* Credit Utilization & Debt Safety Gauge Widget */}
-          {showCreditUtilization && <CreditUtilizationWidget />}
-
-          {/* 1. Cash Flow Analysis Chart */}
-          {showSpendingGraph && (
-            <AreaChart
-              data={chartData}
-              title={
-                chartTimeframe === 'thisMonth'
-                  ? `Daily Cash Flow (${currentMonthLabel})`
-                  : chartTimeframe === 'monthlyTrend'
-                  ? `12-Month Cash Flow Trend (${currentYear})`
-                  : `Cash Flow Trend (${customStartDate && customEndDate ? `${customStartDate} → ${customEndDate}` : 'Custom Range'})`
-              }
-              height={320}
-              action={
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="flex items-center gap-1 bg-bg-card p-1 rounded-xl border border-border shadow-sm">
-                    <button
-                      onClick={() => setChartTimeframe('thisMonth')}
-                      className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                        chartTimeframe === 'thisMonth'
-                          ? 'bg-accent text-white shadow-sm font-bold'
-                          : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
-                      }`}
-                    >
-                      This Month (Daily)
-                    </button>
-                    <button
-                      onClick={() => setChartTimeframe('monthlyTrend')}
-                      className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                        chartTimeframe === 'monthlyTrend'
-                          ? 'bg-accent text-white shadow-sm font-bold'
-                          : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
-                      }`}
-                    >
-                      12-Month Trend
-                    </button>
+      
+      {/* Draggable Dashboard Layout */}
+      <DraggableDashboard 
+        pageKey="analyticsDashboard" 
+        widgets={[
+          ...(showProfitLoss ? [{
+            id: 'profitLoss',
+            defaultLayout: { w: 2, h: 2, x: 0, y: 0 },
+            component: <ExecutiveProfitLossWidget />
+          }] : []),
+          ...(showCreditUtilization ? [{
+            id: 'creditUtil',
+            defaultLayout: { w: 2, h: 2, x: 0, y: 2 },
+            component: <CreditUtilizationWidget />
+          }] : []),
+          ...(showSpendingGraph ? [{
+            id: 'spendingGraph',
+            defaultLayout: { w: 2, h: 4, x: 0, y: 4 },
+            component: (
+              <AreaChart
+                data={chartData}
+                title={
+                  chartTimeframe === 'thisMonth'
+                    ? `Daily Cash Flow (${currentMonthLabel})`
+                    : chartTimeframe === 'monthlyTrend'
+                    ? `12-Month Cash Flow Trend (${currentYear})`
+                    : `Cash Flow Trend (${customStartDate && customEndDate ? `${customStartDate} → ${customEndDate}` : 'Custom Range'})`
+                }
+                height={320}
+                action={
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex items-center gap-1 bg-bg-card p-1 rounded-xl border border-border shadow-sm">
+                      <button
+                        onClick={() => setChartTimeframe('thisMonth')}
+                        className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                          chartTimeframe === 'thisMonth'
+                            ? 'bg-accent text-white shadow-sm font-bold'
+                            : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
+                        }`}
+                      >
+                        This Month (Daily)
+                      </button>
+                      <button
+                        onClick={() => setChartTimeframe('monthlyTrend')}
+                        className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                          chartTimeframe === 'monthlyTrend'
+                            ? 'bg-accent text-white shadow-sm font-bold'
+                            : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
+                        }`}
+                      >
+                        12-Month Trend
+                      </button>
+                    </div>
+                    <DateRangePicker
+                      startDate={customStartDate}
+                      endDate={customEndDate}
+                      datePreset={customPresetKey}
+                      onSelectRange={handleSelectCustomRange}
+                    />
                   </div>
-
-                  <DateRangePicker
-                    startDate={customStartDate}
-                    endDate={customEndDate}
-                    datePreset={customPresetKey}
-                    onSelectRange={handleSelectCustomRange}
-                  />
-                </div>
-              }
-            />
-          )}
-
-          {showWeeklySpendingHeatmap && <WeeklySpendingHeatmap />}
-        </div>
-
-        {/* Right Column (1 Span): AI Health + Top Expenses + Category Analytics + Monthly Budgets + Recurring Bills */}
-        <div className="space-y-6">
-          
-
-          {/* 2. Top Expenses Donut Widget */}
-          {showPieChart && <PieChart data={categoryData} title={`Top Expenses (${currentMonthLabel})`} />}
-
-          {/* 2. Category Expense Analytics Bar (Persistently toggled) */}
-          {showCategoryAnalytics && <CategoryAnalyticsWidget />}
-
-          </div>
-      </div>
+                }
+              />
+            )
+          }] : []),
+          ...(showWeeklySpendingHeatmap ? [{
+            id: 'spendingHeatmap',
+            defaultLayout: { w: 2, h: 3, x: 0, y: 8 },
+            component: <WeeklySpendingHeatmap />
+          }] : []),
+          ...(showPieChart ? [{
+            id: 'pieChart',
+            defaultLayout: { w: 1, h: 7, x: 2, y: 0 },
+            component: <PieChart data={categoryData} title={`Top Expenses (${currentMonthLabel})`} />
+          }] : []),
+          ...(showCategoryAnalytics ? [{
+            id: 'categoryAnalytics',
+            defaultLayout: { w: 1, h: 4, x: 2, y: 3 },
+            component: <CategoryAnalyticsWidget />
+          }] : [])
+        ]} 
+      />
 
       <AddTransactionModal isOpen={isAddTxOpen} onClose={() => setIsAddTxOpen(false)} />
     </div>

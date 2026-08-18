@@ -30,6 +30,7 @@ export interface AppSettings {
   showWeeklySpendingHeatmap?: boolean;
 
   hiddenAccounts?: Record<string, boolean>;
+  dashboardLayouts?: Record<string, any>;
   removeZeroTransactionEntries: boolean;
   automaticallyPayUpcoming: boolean;
   use24HourFormat: string;
@@ -65,6 +66,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   showMonthlyBudgets: true,
   showWeeklySpendingHeatmap: true,
   hiddenAccounts: {},
+  dashboardLayouts: {},
   removeZeroTransactionEntries: false,
   automaticallyPayUpcoming: true,
   use24HourFormat: 'system',

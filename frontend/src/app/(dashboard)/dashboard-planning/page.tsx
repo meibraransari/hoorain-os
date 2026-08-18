@@ -45,6 +45,7 @@ import {
 import { formatCurrency, renderCategoryIcon } from '@/lib/utils';
 import { usePrivacy } from '@/components/providers/PrivacyProvider';
 import { useSettings, AppSettings } from '@/components/providers/SettingsProvider';
+import { DraggableDashboard, DashboardWidget } from '@/components/ui/DraggableDashboard';
 import Link from 'next/link';
 import { format } from 'date-fns';
 
@@ -484,72 +485,84 @@ export default function PlanningDashboardPage() {
         </div>
       </div>
 
-      {/* Integrated Masonry Dashboard Grid */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 items-start">
-        {/* Left Column (2 Spans): Executive P&L + Credit Utilization + Cash Flow Analysis + Quick Transfer + Recent Transactions */}
-        <div className="lg:col-span-2 space-y-6">
-          {showGoalVelocityTracker && <GoalVelocityTracker />}
-          {/* Credit Utilization & Debt Safety Gauge Widget */}
-          {showCreditUtilization && <CreditUtilizationWidget />}
-
-          </div>
-
-        {/* Right Column (1 Span): AI Health + Top Expenses + Category Analytics + Monthly Budgets + Recurring Bills */}
-        <div className="space-y-6">
-          {/* 2. Overdue & Upcoming Bills Widget */}
-          {showRecurringBills && <RecurringBillsWidget />}
-
-          {/* 3. Monthly Budgets Overview */}
-          {showMonthlyBudgets && <CollapsibleCard
-            title="Monthly Budgets"
-            action={
-              <Link href="/budgets" className="text-xs font-semibold text-accent hover:underline">
-                Manage Budgets
-              </Link>
-            }
-          >
-            {budgetLoading ? (
-              <div className="space-y-3">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="h-24 rounded-xl skeleton" />
-                ))}
-              </div>
-            ) : budgets.length === 0 ? (
-              <div className="p-8 text-center text-text-muted text-sm space-y-2">
-                <p>No active monthly budgets set up.</p>
-                <Link href="/budgets" className="text-xs font-semibold text-accent hover:underline inline-block">
-                  + Create Monthly Budget
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {budgets.slice(0, 3).map((b: any) => (
-                  <BudgetCard key={b.id} budget={b} />
-                ))}
-              </div>
-            )}
-          </CollapsibleCard>}
-
-          {/* 4. Financial Objectives Widget */}
-          {showObjectives && (
-            <CollapsibleCard
-              title="Financial Goals & Objectives"
-              action={
-                <Link href="/goals" className="text-xs font-semibold text-accent hover:underline">
-                  Manage Goals
-                </Link>
-              }
-            >
-              <div className="p-4 text-center text-text-muted text-sm space-y-2">
-                <p>Financial Objectives widget is active.</p>
-                <Link href="/goals" className="text-xs font-semibold text-accent hover:underline inline-block">
-                  + View Financial Goals
-                </Link>
-              </div>
-            </CollapsibleCard>
-          )}
-        </div>
-      </div>
+      
+      {/* Draggable Dashboard Layout */}
+      <DraggableDashboard 
+        pageKey="planningDashboard" 
+        widgets={[
+          ...(showGoalVelocityTracker ? [{
+            id: 'goalVelocityTracker',
+            defaultLayout: { w: 2, h: 4, x: 0, y: 0 },
+            component: <GoalVelocityTracker />
+          }] : []),
+          ...(showCreditUtilization ? [{
+            id: 'creditUtilPlanning',
+            defaultLayout: { w: 2, h: 2, x: 0, y: 4 },
+            component: <CreditUtilizationWidget />
+          }] : []),
+          ...(showRecurringBills ? [{
+            id: 'recurringBills',
+            defaultLayout: { w: 1, h: 3, x: 2, y: 0 },
+            component: <RecurringBillsWidget />
+          }] : []),
+          ...(showMonthlyBudgets ? [{
+            id: 'monthlyBudgets',
+            defaultLayout: { w: 1, h: 4, x: 2, y: 3 },
+            component: (
+              <CollapsibleCard
+                title="Monthly Budgets"
+                action={
+                  <Link href="/budgets" className="text-xs font-semibold text-accent hover:underline">
+                    Manage Budgets
+                  </Link>
+                }
+              >
+                {budgetLoading ? (
+                  <div className="space-y-3">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="h-24 rounded-xl skeleton" />
+                    ))}
+                  </div>
+                ) : budgets.length === 0 ? (
+                  <div className="p-8 text-center text-text-muted text-sm space-y-2">
+                    <p>No active monthly budgets set up.</p>
+                    <Link href="/budgets" className="text-xs font-semibold text-accent hover:underline inline-block">
+                      + Create Monthly Budget
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {budgets.slice(0, 3).map((b: any) => (
+                      <BudgetCard key={b.id} budget={b} />
+                    ))}
+                  </div>
+                )}
+              </CollapsibleCard>
+            )
+          }] : []),
+          ...(showObjectives ? [{
+            id: 'financialObjectives',
+            defaultLayout: { w: 1, h: 2, x: 2, y: 7 },
+            component: (
+              <CollapsibleCard
+                title="Financial Goals & Objectives"
+                action={
+                  <Link href="/goals" className="text-xs font-semibold text-accent hover:underline">
+                    Manage Goals
+                  </Link>
+                }
+              >
+                <div className="p-4 text-center text-text-muted text-sm space-y-2">
+                  <p>Financial Objectives widget is active.</p>
+                  <Link href="/goals" className="text-xs font-semibold text-accent hover:underline inline-block">
+                    + View Financial Goals
+                  </Link>
+                </div>
+              </CollapsibleCard>
+            )
+          }] : [])
+        ]} 
+      />
 
       <AddTransactionModal isOpen={isAddTxOpen} onClose={() => setIsAddTxOpen(false)} />
     </div>

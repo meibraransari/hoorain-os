@@ -45,6 +45,7 @@ import {
 import { formatCurrency, renderCategoryIcon } from '@/lib/utils';
 import { usePrivacy } from '@/components/providers/PrivacyProvider';
 import { useSettings, AppSettings } from '@/components/providers/SettingsProvider';
+import { DraggableDashboard, DashboardWidget } from '@/components/ui/DraggableDashboard';
 import Link from 'next/link';
 import { format } from 'date-fns';
 
@@ -592,193 +593,218 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Net Worth Card */}
-        {showNetWorth && (
-          <CollapsibleCard
-            title={
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold uppercase text-text-muted">Net Worth</span>
-              </div>
-            }
-            action={
-              <div className="p-2 bg-accent/10 text-accent rounded-xl">
-                <Wallet size={18} />
-              </div>
-            }
-          >
-            <div>
-              <div className={`text-2xl font-bold ${netWorth >= 0 ? 'text-text-primary' : 'text-expense'}`}>
-                {formatPrivateCurrency(netWorth)}
-              </div>
-              {showCreditDebt && (
-                <div className="flex items-center gap-3 text-xs mt-2 pt-2 border-t border-border">
-                  <span className="text-income font-medium flex items-center gap-0.5">
-                    <ArrowUpRight size={13} /> Assets: {formatPrivateCurrency(totalAssets)}
-                  </span>
-                  <span className="text-expense font-medium flex items-center gap-0.5">
-                    <ArrowDownRight size={13} /> Debt: {formatPrivateCurrency(totalLiabilities)}
-                  </span>
-                </div>
-              )}
-            </div>
-            {totalLiabilities > 0 && (
-              <Link
-                href="/accounts"
-                className="flex items-center gap-1 text-[11px] text-accent hover:underline pt-2 block"
+      
+      {/* Draggable Dashboard Layout */}
+      <DraggableDashboard 
+        pageKey="mainOverview" 
+        widgets={[
+          ...(showNetWorth ? [{
+            id: 'netWorth',
+            defaultLayout: { w: 1, h: 2, x: 0, y: 0 },
+            component: (
+              <CollapsibleCard
+                title={
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold uppercase text-text-muted">Net Worth</span>
+                  </div>
+                }
+                action={
+                  <div className="p-2 bg-accent/10 text-accent rounded-xl">
+                    <Wallet size={18} />
+                  </div>
+                }
               >
-                <AlertCircle size={12} />
-                <span>Edit account initial balances to adjust Net Worth</span>
-              </Link>
-            )}
-          </CollapsibleCard>
-        )}
-
-        {showIncomeCard && <StatCard
-          title={`Income (${currentMonthLabel})`}
-          value={formatPrivateCurrency(monthlyIncome)}
-          subtitle={`Yearly ${currentYear}: ${formatPrivateCurrency(yearlyIncome)}`}
-          icon={<TrendingUp size={20} className="text-income" />}
-          trend="This Month"
-          trendType="up"
-          isLoading={txLoading}
-        />}
-        {showExpenseCard && <StatCard
-          title={`Expenses (${currentMonthLabel})`}
-          value={formatPrivateCurrency(monthlyExpense)}
-          subtitle={`Yearly ${currentYear}: ${formatPrivateCurrency(yearlyExpense)}`}
-          icon={<TrendingDown size={20} className="text-expense" />}
-          trend="This Month"
-          trendType="down"
-          isLoading={txLoading}
-        />}
-        {showSavingsRateCard && <StatCard
-          title="Savings Rate"
-          value={formatPrivateNumber(savingsRate, '%')}
-          subtitle={`Yearly Net: ${formatPrivateCurrency(yearlyIncome - yearlyExpense)}`}
-          icon={<Target size={20} className="text-accent" />}
-          isLoading={txLoading}
-        />}
-      </div>
-
-      {/* Integrated Masonry Dashboard Grid */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 items-start">
-        {/* Left Column (2 Spans): Executive P&L + Credit Utilization + Cash Flow Analysis + Quick Transfer + Recent Transactions */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* 3. Recent Transactions */}
-          {showRecentTransactions && <CollapsibleCard
-            title={`Recent Transactions (${currentMonthLabel})`}
-            action={
-              <Link href="/transactions" className="text-xs font-semibold text-accent hover:underline">
-                View All
-              </Link>
-            }
-          >
-            {txLoading ? (
-              <div className="space-y-3">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="h-14 rounded-xl skeleton" />
-                ))}
-              </div>
-            ) : transactions.length === 0 ? (
-              <div className="p-8 text-center text-text-muted text-sm">
-                No transactions recorded yet. Click "Add Transaction" or import your database backup.
-              </div>
-            ) : (
-              <div className="overflow-x-auto mt-2 pb-1">
-                <table className="w-full text-left text-sm whitespace-nowrap">
-                  <thead className="bg-bg-secondary text-text-muted border-b border-border">
-                    <tr>
-                      <th className="px-4 py-3 font-semibold uppercase tracking-wider text-xs">Date</th>
-                      <th className="px-4 py-3 font-semibold uppercase tracking-wider text-xs">Description</th>
-                      <th className="px-4 py-3 font-semibold uppercase tracking-wider text-xs">Category</th>
-                      <th className="px-4 py-3 font-semibold uppercase tracking-wider text-xs">Account</th>
-                      <th className="px-4 py-3 font-semibold uppercase tracking-wider text-xs text-right">Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/50">
-                    {transactions.slice(0, 7).map((tx: any) => {
-                      const rawAmount = typeof tx.amount === 'number' ? tx.amount : parseFloat(tx.amount) || 0;
-                      const isTransfer = tx.isTransfer || tx.type === 'transfer';
-                      const isIncome = !isTransfer && (tx.type === 'income' || tx.income === 1);
-                      const categoryName = typeof tx.category === 'string' ? tx.category : tx.category?.name || (isTransfer ? 'Transfer' : 'General');
-                      const accountName = typeof tx.account === 'string' ? tx.account : tx.account?.name || 'Account';
-                      const primaryTitle = tx.title || categoryName || 'Transaction';
-                      const formattedDate = tx.date ? format(new Date(tx.date), 'EEEE, MMMM d, yyyy') : 'Unknown Date';
-                      
-                      const iconVal = typeof tx.category === 'object' ? tx.category?.icon : undefined;
-                      const categoryIcon = renderCategoryIcon(iconVal, categoryName);
-                      
-                      return (
-                        <tr key={tx.id} className="hover:bg-bg-hover transition-colors group">
-                          <td className="px-4 py-3 text-text-secondary font-medium">{formattedDate}</td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-3">
-                              <div
-                                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-sm text-base ${
-                                  isTransfer
-                                    ? 'bg-transfer/20 text-transfer border border-violet-500/20'
-                                    : isIncome
-                                    ? 'bg-income/20 text-income border border-income/20'
-                                    : 'bg-expense/20 text-expense border border-expense/20'
-                                }`}
-                              >
-                                {isTransfer ? '🔄' : categoryIcon}
-                              </div>
-                              <div className="flex flex-col">
-                                <span className="font-bold text-text-primary group-hover:text-accent-light transition-colors">
-                                  {primaryTitle}
-                                </span>
-                                {tx.notes && (
-                                  <span className="text-[11px] text-text-muted truncate max-w-[200px] mt-0.5">{tx.notes}</span>
-                                )}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-bg-secondary border border-border text-xs font-semibold text-text-secondary">
-                              {categoryName}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-text-secondary">
-                            <span className="font-semibold">{accountName}</span>
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <span
-                              className={`font-extrabold text-[15px] tracking-tight ${
-                                isTransfer
-                                  ? 'text-info'
-                                  : isIncome
-                                  ? 'text-success'
-                                  : 'text-text-primary'
-                              }`}
-                            >
-                              {isTransfer ? '' : isIncome ? '+' : '-'}{formatPrivateCurrency(Math.abs(rawAmount))}
-                            </span>
-                          </td>
+                <div>
+                  <div className={`text-2xl font-bold ${netWorth >= 0 ? 'text-text-primary' : 'text-expense'}`}>
+                    {formatPrivateCurrency(netWorth)}
+                  </div>
+                  {showCreditDebt && (
+                    <div className="flex items-center gap-3 text-xs mt-2 pt-2 border-t border-border">
+                      <span className="text-income font-medium flex items-center gap-0.5">
+                        <ArrowUpRight size={13} /> Assets: {formatPrivateCurrency(totalAssets)}
+                      </span>
+                      <span className="text-expense font-medium flex items-center gap-0.5">
+                        <ArrowDownRight size={13} /> Debt: {formatPrivateCurrency(totalLiabilities)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                {totalLiabilities > 0 && (
+                  <Link
+                    href="/accounts"
+                    className="flex items-center gap-1 text-[11px] text-accent hover:underline pt-2 block"
+                  >
+                    <AlertCircle size={12} />
+                    <span>Edit account initial balances to adjust Net Worth</span>
+                  </Link>
+                )}
+              </CollapsibleCard>
+            )
+          }] : []),
+          ...(showIncomeCard ? [{
+            id: 'income',
+            defaultLayout: { w: 1, h: 2, x: 1, y: 0 },
+            component: (
+              <StatCard
+                title={`Income (${currentMonthLabel})`}
+                value={formatPrivateCurrency(monthlyIncome)}
+                subtitle={`Yearly ${currentYear}: ${formatPrivateCurrency(yearlyIncome)}`}
+                icon={<TrendingUp size={20} className="text-income" />}
+                trend="This Month"
+                trendType="up"
+                isLoading={txLoading}
+              />
+            )
+          }] : []),
+          ...(showExpenseCard ? [{
+            id: 'expense',
+            defaultLayout: { w: 1, h: 2, x: 2, y: 0 },
+            component: (
+              <StatCard
+                title={`Expenses (${currentMonthLabel})`}
+                value={formatPrivateCurrency(monthlyExpense)}
+                subtitle={`Yearly ${currentYear}: ${formatPrivateCurrency(yearlyExpense)}`}
+                icon={<TrendingDown size={20} className="text-expense" />}
+                trend="This Month"
+                trendType="down"
+                isLoading={txLoading}
+              />
+            )
+          }] : []),
+          ...(showSavingsRateCard ? [{
+            id: 'savingsRate',
+            defaultLayout: { w: 1, h: 2, x: 0, y: 2 },
+            component: (
+              <StatCard
+                title="Savings Rate"
+                value={formatPrivateNumber(savingsRate, '%')}
+                subtitle={`Yearly Net: ${formatPrivateCurrency(yearlyIncome - yearlyExpense)}`}
+                icon={<Target size={20} className="text-accent" />}
+                isLoading={txLoading}
+              />
+            )
+          }] : []),
+          ...(showRecentTransactions ? [{
+            id: 'recentTx',
+            defaultLayout: { w: 2, h: 4, x: 0, y: 4 },
+            component: (
+              <CollapsibleCard
+                title={`Recent Transactions (${currentMonthLabel})`}
+                action={
+                  <Link href="/transactions" className="text-xs font-semibold text-accent hover:underline">
+                    View All
+                  </Link>
+                }
+              >
+                {txLoading ? (
+                  <div className="space-y-3">
+                    {[...Array(5)].map((_, i) => (
+                      <div key={i} className="h-14 rounded-xl skeleton" />
+                    ))}
+                  </div>
+                ) : transactions.length === 0 ? (
+                  <div className="p-8 text-center text-text-muted text-sm">
+                    No transactions recorded yet. Click "Add Transaction" or import your database backup.
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto mt-2 pb-1">
+                    <table className="w-full text-left text-sm whitespace-nowrap">
+                      <thead className="bg-bg-secondary text-text-muted border-b border-border">
+                        <tr>
+                          <th className="px-4 py-3 font-semibold uppercase tracking-wider text-xs">Date</th>
+                          <th className="px-4 py-3 font-semibold uppercase tracking-wider text-xs">Description</th>
+                          <th className="px-4 py-3 font-semibold uppercase tracking-wider text-xs">Category</th>
+                          <th className="px-4 py-3 font-semibold uppercase tracking-wider text-xs">Account</th>
+                          <th className="px-4 py-3 font-semibold uppercase tracking-wider text-xs text-right">Amount</th>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </CollapsibleCard>}
-        </div>
-
-        {/* Right Column (1 Span): AI Health + Top Expenses + Category Analytics + Monthly Budgets + Recurring Bills */}
-        <div className="space-y-6">
-          {/* 1. AI Financial Health Score Widget */}
-          {showHealthScore && <FinancialHealthWidget />}
-
-          {/* 2. Financial Runway Widget */}
-          {showSavingsRateRunway && <SavingsRateRunwayWidget />}
-
-          {/* 3. Quick Fund Transfer */}
-          {showQuickTransfer && <QuickTransferWidget />}
-        </div>
-      </div>
+                      </thead>
+                      <tbody className="divide-y divide-border/50">
+                        {transactions.slice(0, 7).map((tx: any) => {
+                          const rawAmount = typeof tx.amount === 'number' ? tx.amount : parseFloat(tx.amount) || 0;
+                          const isTransfer = tx.isTransfer || tx.type === 'transfer';
+                          const isIncome = !isTransfer && (tx.type === 'income' || tx.income === 1);
+                          const categoryName = typeof tx.category === 'string' ? tx.category : tx.category?.name || (isTransfer ? 'Transfer' : 'General');
+                          const accountName = typeof tx.account === 'string' ? tx.account : tx.account?.name || 'Account';
+                          const primaryTitle = tx.title || categoryName || 'Transaction';
+                          const formattedDate = tx.date ? format(new Date(tx.date), 'EEEE, MMMM d, yyyy') : 'Unknown Date';
+                          
+                          const iconVal = typeof tx.category === 'object' ? tx.category?.icon : undefined;
+                          const categoryIcon = renderCategoryIcon(iconVal, categoryName);
+                          
+                          return (
+                            <tr key={tx.id} className="hover:bg-bg-hover transition-colors group">
+                              <td className="px-4 py-3 text-text-secondary font-medium">{formattedDate}</td>
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-3">
+                                  <div
+                                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-sm text-base ${
+                                      isTransfer
+                                        ? 'bg-transfer/20 text-transfer border border-violet-500/20'
+                                        : isIncome
+                                        ? 'bg-income/20 text-income border border-income/20'
+                                        : 'bg-expense/20 text-expense border border-expense/20'
+                                    }`}
+                                  >
+                                    {isTransfer ? '🔄' : categoryIcon}
+                                  </div>
+                                  <div className="flex flex-col">
+                                    <span className="font-bold text-text-primary group-hover:text-accent-light transition-colors">
+                                      {primaryTitle}
+                                    </span>
+                                    {tx.notes && (
+                                      <span className="text-[11px] text-text-muted truncate max-w-[200px] mt-0.5">{tx.notes}</span>
+                                    )}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-bg-secondary border border-border text-xs font-semibold text-text-secondary">
+                                  {categoryName}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-text-secondary">
+                                <span className="font-semibold">{accountName}</span>
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <span
+                                  className={`font-extrabold text-[15px] tracking-tight ${
+                                    isTransfer
+                                      ? 'text-info'
+                                      : isIncome
+                                      ? 'text-success'
+                                      : 'text-text-primary'
+                                  }`}
+                                >
+                                  {isTransfer ? '' : isIncome ? '+' : '-'}{formatPrivateCurrency(Math.abs(rawAmount))}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CollapsibleCard>
+            )
+          }] : []),
+          ...(showHealthScore ? [{
+            id: 'health',
+            defaultLayout: { w: 1, h: 2, x: 2, y: 2 },
+            component: <FinancialHealthWidget />
+          }] : []),
+          ...(showSavingsRateRunway ? [{
+            id: 'runway',
+            defaultLayout: { w: 1, h: 2, x: 2, y: 4 },
+            component: <SavingsRateRunwayWidget />
+          }] : []),
+          ...(showQuickTransfer ? [{
+            id: 'transfer',
+            defaultLayout: { w: 1, h: 2, x: 2, y: 6 },
+            component: <QuickTransferWidget />
+          }] : [])
+        ]} 
+      />
 
       <AddTransactionModal isOpen={isAddTxOpen} onClose={() => setIsAddTxOpen(false)} />
     </div>

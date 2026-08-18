@@ -20,12 +20,12 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: 'dark',
+  theme: 'ocean',
   setTheme: () => {},
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('dark');
+  const [theme, setThemeState] = useState<Theme>('ocean');
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as Theme;
@@ -33,7 +33,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       applyTheme(savedTheme);
       setThemeState(savedTheme);
     } else {
-      applyTheme('dark');
+      applyTheme('ocean');
     }
   }, []);
 
