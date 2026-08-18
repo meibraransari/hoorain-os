@@ -56,6 +56,11 @@ export default function DashboardPage() {
     showCreditDebt = true,
     showQuickTransfer = true,
     showHealthScore = true,
+    showIncomeCard = true,
+    showExpenseCard = true,
+    showSavingsRateCard = true,
+    showRecentTransactions = true,
+    showSavingsRateRunway = true,
     hiddenAccounts = {},
     removeZeroTransactionEntries = false,
   } = settings || {};
@@ -430,6 +435,12 @@ export default function DashboardPage() {
                   {[
                     { key: 'showNetWorth', label: 'Net Worth KPI Card', active: showNetWorth, icon: Wallet },
                     { key: 'showQuickTransfer', label: 'Quick Fund Transfer Tool', active: showQuickTransfer, icon: Sparkles },
+                    { key: 'showIncomeCard', label: 'Income KPI Card', active: showIncomeCard, icon: TrendingUp },
+                    { key: 'showExpenseCard', label: 'Expenses KPI Card', active: showExpenseCard, icon: TrendingDown },
+                    { key: 'showSavingsRateCard', label: 'Savings Rate KPI Card', active: showSavingsRateCard, icon: Target },
+                    { key: 'showRecentTransactions', label: 'Recent Transactions Widget', active: showRecentTransactions, icon: LayoutGrid },
+                    { key: 'showSavingsRateRunway', label: 'Financial Runway Widget', active: showSavingsRateRunway, icon: Activity },
+                    { key: 'showHealthScore', label: 'AI Financial Health Score', active: showHealthScore, icon: BrainCircuit },
                   ].map((item) => {
                     const IconComp = item.icon;
                     return (
@@ -624,7 +635,7 @@ export default function DashboardPage() {
           </CollapsibleCard>
         )}
 
-        <StatCard
+        {showIncomeCard && <StatCard
           title={`Income (${currentMonthLabel})`}
           value={formatPrivateCurrency(monthlyIncome)}
           subtitle={`Yearly ${currentYear}: ${formatPrivateCurrency(yearlyIncome)}`}
@@ -632,8 +643,8 @@ export default function DashboardPage() {
           trend="This Month"
           trendType="up"
           isLoading={txLoading}
-        />
-        <StatCard
+        />}
+        {showExpenseCard && <StatCard
           title={`Expenses (${currentMonthLabel})`}
           value={formatPrivateCurrency(monthlyExpense)}
           subtitle={`Yearly ${currentYear}: ${formatPrivateCurrency(yearlyExpense)}`}
@@ -641,14 +652,14 @@ export default function DashboardPage() {
           trend="This Month"
           trendType="down"
           isLoading={txLoading}
-        />
-        <StatCard
+        />}
+        {showSavingsRateCard && <StatCard
           title="Savings Rate"
           value={formatPrivateNumber(savingsRate, '%')}
           subtitle={`Yearly Net: ${formatPrivateCurrency(yearlyIncome - yearlyExpense)}`}
           icon={<Target size={20} className="text-accent" />}
           isLoading={txLoading}
-        />
+        />}
       </div>
 
       {/* Integrated Masonry Dashboard Grid */}
@@ -656,7 +667,7 @@ export default function DashboardPage() {
         {/* Left Column (2 Spans): Executive P&L + Credit Utilization + Cash Flow Analysis + Quick Transfer + Recent Transactions */}
         <div className="lg:col-span-2 space-y-6">
           {/* 3. Recent Transactions */}
-          <CollapsibleCard
+          {showRecentTransactions && <CollapsibleCard
             title={`Recent Transactions (${currentMonthLabel})`}
             action={
               <Link href="/transactions" className="text-xs font-semibold text-accent hover:underline">
@@ -753,7 +764,7 @@ export default function DashboardPage() {
                 </table>
               </div>
             )}
-          </CollapsibleCard>
+          </CollapsibleCard>}
         </div>
 
         {/* Right Column (1 Span): AI Health + Top Expenses + Category Analytics + Monthly Budgets + Recurring Bills */}
@@ -762,7 +773,7 @@ export default function DashboardPage() {
           {showHealthScore && <FinancialHealthWidget />}
 
           {/* 2. Financial Runway Widget */}
-          <SavingsRateRunwayWidget />
+          {showSavingsRateRunway && <SavingsRateRunwayWidget />}
 
           {/* 3. Quick Fund Transfer */}
           {showQuickTransfer && <QuickTransferWidget />}

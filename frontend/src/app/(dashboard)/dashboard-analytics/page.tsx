@@ -63,6 +63,7 @@ export default function AnalyticsDashboardPage() {
     showHealthScore = true,
     showProfitLoss = true,
     showCreditUtilization = true,
+    showWeeklySpendingHeatmap = true,
     hiddenAccounts = {},
     removeZeroTransactionEntries = false,
   } = settings || {};
@@ -439,6 +440,8 @@ export default function AnalyticsDashboardPage() {
                     { key: 'showSpendingGraph', label: 'Cash Flow Analysis Chart', active: showSpendingGraph, icon: TrendingUp },
                     { key: 'showPieChart', label: 'Top Expenses Donut Chart', active: showPieChart, icon: PieChartIcon },
                     { key: 'showCategoryAnalytics', label: 'Category Expense Progress', active: showCategoryAnalytics, icon: PieChartIcon },
+                    { key: 'showCreditUtilization', label: 'Credit Utilization & Debt Safety Gauge', active: showCreditUtilization, icon: ShieldAlert },
+                    { key: 'showWeeklySpendingHeatmap', label: 'Weekly Spending Velocity', active: showWeeklySpendingHeatmap, icon: Activity },
                   ].map((item) => {
                     const IconComp = item.icon;
                     return (
@@ -539,7 +542,7 @@ export default function AnalyticsDashboardPage() {
             />
           )}
 
-          <WeeklySpendingHeatmap />
+          {showWeeklySpendingHeatmap && <WeeklySpendingHeatmap />}
         </div>
 
         {/* Right Column (1 Span): AI Health + Top Expenses + Category Analytics + Monthly Budgets + Recurring Bills */}

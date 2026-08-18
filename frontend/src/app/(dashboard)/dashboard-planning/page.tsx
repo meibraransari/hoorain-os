@@ -57,6 +57,8 @@ export default function PlanningDashboardPage() {
     showSpendingGraph = true,
     showPieChart = true,
     showObjectives = false,
+    showGoalVelocityTracker = true,
+    showMonthlyBudgets = true,
     showQuickTransfer = true,
     showCategoryAnalytics = true,
     showRecurringBills = true,
@@ -437,6 +439,9 @@ export default function PlanningDashboardPage() {
                   {[
                     { key: 'showCreditUtilization', label: 'Credit Utilization & Debt Safety Gauge', active: showCreditUtilization, icon: ShieldAlert },
                     { key: 'showRecurringBills', label: 'Overdue & Upcoming Bills Widget', active: showRecurringBills, icon: CalendarClock },
+                    { key: 'showGoalVelocityTracker', label: 'Goal Velocity Tracker', active: showGoalVelocityTracker, icon: Target },
+                    { key: 'showMonthlyBudgets', label: 'Monthly Budgets Overview', active: showMonthlyBudgets, icon: Wallet },
+                    { key: 'showObjectives', label: 'Financial Goals & Objectives', active: showObjectives, icon: Target },
                   ].map((item) => {
                     const IconComp = item.icon;
                     return (
@@ -483,7 +488,7 @@ export default function PlanningDashboardPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 items-start">
         {/* Left Column (2 Spans): Executive P&L + Credit Utilization + Cash Flow Analysis + Quick Transfer + Recent Transactions */}
         <div className="lg:col-span-2 space-y-6">
-          <GoalVelocityTracker />
+          {showGoalVelocityTracker && <GoalVelocityTracker />}
           {/* Credit Utilization & Debt Safety Gauge Widget */}
           {showCreditUtilization && <CreditUtilizationWidget />}
 
@@ -495,7 +500,7 @@ export default function PlanningDashboardPage() {
           {showRecurringBills && <RecurringBillsWidget />}
 
           {/* 3. Monthly Budgets Overview */}
-          <CollapsibleCard
+          {showMonthlyBudgets && <CollapsibleCard
             title="Monthly Budgets"
             action={
               <Link href="/budgets" className="text-xs font-semibold text-accent hover:underline">
@@ -523,7 +528,7 @@ export default function PlanningDashboardPage() {
                 ))}
               </div>
             )}
-          </CollapsibleCard>
+          </CollapsibleCard>}
 
           {/* 4. Financial Objectives Widget */}
           {showObjectives && (

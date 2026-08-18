@@ -18,6 +18,17 @@ export interface AppSettings {
   showHealthScore?: boolean;
   showProfitLoss?: boolean;
   showCreditUtilization?: boolean;
+  
+  // Newly added generic widget toggles
+  showIncomeCard?: boolean;
+  showExpenseCard?: boolean;
+  showSavingsRateCard?: boolean;
+  showRecentTransactions?: boolean;
+  showSavingsRateRunway?: boolean;
+  showGoalVelocityTracker?: boolean;
+  showMonthlyBudgets?: boolean;
+  showWeeklySpendingHeatmap?: boolean;
+
   hiddenAccounts?: Record<string, boolean>;
   removeZeroTransactionEntries: boolean;
   automaticallyPayUpcoming: boolean;
@@ -38,13 +49,21 @@ const DEFAULT_SETTINGS: AppSettings = {
   showCreditDebt: true,
   showSpendingGraph: true,
   showPieChart: true,
-  showObjectives: false,
+  showObjectives: true,
   showQuickTransfer: true,
   showCategoryAnalytics: true,
   showRecurringBills: true,
   showHealthScore: true,
   showProfitLoss: true,
   showCreditUtilization: true,
+  showIncomeCard: true,
+  showExpenseCard: true,
+  showSavingsRateCard: true,
+  showRecentTransactions: true,
+  showSavingsRateRunway: true,
+  showGoalVelocityTracker: true,
+  showMonthlyBudgets: true,
+  showWeeklySpendingHeatmap: true,
   hiddenAccounts: {},
   removeZeroTransactionEntries: false,
   automaticallyPayUpcoming: true,
