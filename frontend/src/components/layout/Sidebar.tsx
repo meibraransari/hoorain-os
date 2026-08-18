@@ -149,7 +149,7 @@ export function Sidebar() {
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
               transition={{ duration: 0.15 }}
               className={cn(
-                "absolute bottom-full mb-3 rounded-2xl border border-border/80 bg-bg-card/95 backdrop-blur-2xl shadow-2xl z-50 p-3.5 space-y-3",
+                "absolute bottom-full mb-3 rounded-2xl border border-border bg-bg-card shadow-2xl z-50 p-3.5 space-y-3",
                 sidebarCollapsed ? "left-2 w-64" : "left-3 right-3"
               )}
             >

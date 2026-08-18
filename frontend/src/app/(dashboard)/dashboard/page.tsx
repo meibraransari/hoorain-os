@@ -420,7 +420,7 @@ export default function DashboardPage() {
 
             {/* Popover Dropdown (Auto-closes when clicked anywhere outside or selecting) */}
             {isAddWidgetOpen && (
-              <div className="absolute right-0 mt-2 w-80 rounded-2xl border border-border/80 bg-bg-card/95 backdrop-blur-xl p-4 shadow-2xl z-50 animate-fade-in space-y-4 max-h-[80vh] overflow-y-auto">
+              <div className="absolute right-0 mt-2 w-80 rounded-2xl border border-border bg-bg-card p-4 shadow-2xl z-50 animate-fade-in space-y-4 max-h-[80vh] overflow-y-auto">
                 <div className="flex items-center justify-between border-b border-border/80 pb-2.5">
                   <span className="text-xs font-bold uppercase tracking-wider text-text-primary flex items-center gap-1.5">
                     <Sparkles size={14} className="text-accent" />
