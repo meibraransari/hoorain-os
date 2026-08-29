@@ -4,16 +4,16 @@ services:
     container_name: hoorain-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-financeos}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-financeos_secret_2024}
-      POSTGRES_DB: ${POSTGRES_DB:-financeos}
+      POSTGRES_USER: ${POSTGRES_USER:-hoorainos}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hoorainos_secret_2024}
+      POSTGRES_DB: ${POSTGRES_DB:-hoorainos}
     volumes:
       - ${DATA_FOLDER:-./data}/postgres:/var/lib/postgresql/data
       - ${BACKUP_PATH:-./backups}:/var/lib/postgresql/backups
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-financeos}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hoorainos}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -24,13 +24,13 @@ services:
     image: redis:7-alpine
     container_name: hoorain-redis
     restart: unless-stopped
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_secret_2024}
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-hoorainos_redis_2024}
     volumes:
       - ${DATA_FOLDER:-./data}/redis:/data
     ports:
       - "${REDIS_PORT:-6379}:6379"
     healthcheck:
-      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:-redis_secret_2024}", "ping"]
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:-hoorainos_redis_2024}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -52,26 +52,27 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: 3001
-      DATABASE_HOST: postgres
-      DATABASE_PORT: 5432
-      DATABASE_USER: ${POSTGRES_USER:-financeos}
-      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-financeos_secret_2024}
-      DATABASE_NAME: ${POSTGRES_DB:-financeos}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_secret_2024}
+      DATABASE_HOST: ${DATABASE_HOST:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_USER: ${POSTGRES_USER:-hoorainos}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-hoorainos_secret_2024}
+      DATABASE_NAME: ${POSTGRES_DB:-hoorainos}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-hoorainos_redis_2024}
       JWT_SECRET: ${JWT_SECRET:-change_this_jwt_secret_in_production}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change_this_refresh_secret}
       JWT_EXPIRY: ${JWT_EXPIRY:-15m}
       JWT_REFRESH_EXPIRY: ${JWT_REFRESH_EXPIRY:-30d}
-      UPLOAD_PATH: /app/uploads
+      UPLOAD_PATH: ${UPLOAD_PATH:-/app/uploads}
       MAX_UPLOAD_SIZE: ${MAX_UPLOAD_SIZE:-50mb}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
     volumes:
       - ${DATA_FOLDER:-./data}/uploads:/app/uploads
       - ${BACKUP_PATH:-./backups}:/app/backups
       - ./imports:/app/imports
     ports:
-      - "3001:3001"
+      - "${BACKEND_PORT:-3001}:3001"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3001/api/v1/health"]
       interval: 10s
@@ -92,10 +93,11 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api}
-      BACKEND_URL: http://backend:3001
-      HOSTNAME: 0.0.0.0
+      BACKEND_URL: http://${BACKEND_HOST:-backend}:3001
+      HOSTNAME: ${FRONTEND_HOSTNAME:-0.0.0.0}
+      PORT: 3000
     ports:
-      - "3000:3000"
+      - "${FRONTEND_PORT:-3000}:3000"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000"]
       interval: 15s
