@@ -56,6 +56,15 @@ When you launch **Hoorain** for the first time via `docker compose up -d`, an in
 
 > ⚠️ **Security Tip:** After logging in for the first time at `http://127.0.0.1:8080`, navigate to **Profile** or **Settings** to update your admin password.
 
+
+---
+
+## 📚 Features Guide
+
+For a comprehensive overview of the available features and capabilities, please refer to [docs/FEATURES.md](docs/FEATURES.md).
+
+---
+
 ### Creating Additional Admin Users
 You can create new users or secondary administrator accounts via the API:
 
