@@ -57,3 +57,11 @@
   - `HoorainOS-postgres`: PostgreSQL 17 database engine.
   - `HoorainOS-redis`: Redis 7 session & cache engine.
   - `HoorainOS-nginx`: Nginx reverse proxy router.
+- **Decoupled Dynamic Port Bindings**: Configure public host-facing ports (`APP_PORT`, `FRONTEND_PORT`, `BACKEND_PORT`, etc.) in `.env` independently of internal container ports to avoid conflicts on host servers.
+
+### 9. 🎛️ Drag-and-Drop Customizable Dashboards
+- **Interactive Layout Grid**: Drag, drop, and resize cards/widgets manually using `react-grid-layout` across the three dashboard layouts (Overview, Analytics, Planning).
+- **Persistent Layouts**: Custom layouts are persisted dynamically via the backend settings API so your tailored layout is loaded automatically.
+- **Page-Specific Customizer Widget**: Click "+ Add Widget" to show or hide individual dashboard cards dynamically per page.
+- **Smart Minimize / Maximize Height Auto-Adjust**: Clicking the minimize chevron physically shrinks the grid card's container row height (to 1 or 3 rows) to save space, and maximizing it expands it automatically back to its previous or default readable height (e.g., 7 rows for Pie Charts) without manual dragging.
+

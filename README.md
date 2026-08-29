@@ -12,6 +12,15 @@ _Track everything. Own your data. Never pay a subscription._
 
 ---
 
+## 📸 Screenshots
+
+| | | |
+|---|---|---|
+| ![Dashboard Overview](assets/dashboard_overview.png) | ![Cashflow Analytics](assets/cashflow_analytics.png) | ![AI Financial Health](assets/ai_financial_health.png) |
+| ![Custom Reports](assets/custom_reports.png) | ![Accounts Management](assets/accounts_management.png) | ![Appearance & Theme Settings](assets/settings_appearance.png) |
+
+---
+
 ## 🚀 Quick Start
 
 Get **Hoorain OS** running locally in just a few commands:
@@ -132,21 +141,26 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for full SSL + Cloudflare setup.
 
 | Variable | Default | Required | Description |
 |---|---|---|---|
-| `APP_PORT` | `8080` | No | External port for Nginx |
+| `APP_PORT` | `8080` | No | External HTTP port for Nginx |
+| `APP_PORT_SSL` | `443` | No | External HTTPS port for Nginx (Prod only) |
+| `FRONTEND_PORT` | `3000` | No | External host port mapped to Frontend (Next.js) |
+| `BACKEND_PORT` | `3001` | No | External host port mapped to Backend (NestJS) |
+| `POSTGRES_PORT` | `5432` | No | External host port mapped to PostgreSQL |
+| `REDIS_PORT` | `6379` | No | External host port mapped to Redis |
 | `NODE_ENV` | `production` | No | `production` or `development` |
-| `POSTGRES_USER` | `HoorainOS` | No | Database username |
+| `POSTGRES_USER` | `hoorainos` | No | Database username |
 | `POSTGRES_PASSWORD` | — | **Yes** | Database password (change!) |
-| `POSTGRES_DB` | `HoorainOS` | No | Database name |
-| `POSTGRES_PORT` | `5432` | No | Dev-only exposed port |
+| `POSTGRES_DB` | `hoorainos` | No | Database name |
 | `REDIS_PASSWORD` | — | **Yes** | Redis password (change!) |
-| `REDIS_PORT` | `6379` | No | Dev-only exposed port |
+| `DATABASE_HOST` | `postgres` | No | Internal Docker DNS host for Postgres database |
+| `REDIS_HOST` | `redis` | No | Internal Docker DNS host for Redis cache |
+| `BACKEND_HOST` | `backend` | No | Internal Docker DNS host for Backend container |
 | `JWT_SECRET` | — | **Yes** | Access token secret (64+ chars) |
 | `JWT_REFRESH_SECRET` | — | **Yes** | Refresh token secret (64+ chars) |
 | `JWT_EXPIRY` | `15m` | No | Access token lifetime |
 | `JWT_REFRESH_EXPIRY` | `30d` | No | Refresh token lifetime |
 | `DATA_FOLDER` | `./data` | No | Persistent storage root |
 | `BACKUP_PATH` | `./backups` | No | Backup output directory |
-| `MAX_UPLOAD_SIZE` | `50mb` | No | Max file upload size |
 | `MAX_UPLOAD_SIZE` | `50mb` | No | Max file upload size |
 | `BACKUP_RETAIN_DAYS` | `30` | No | Days to keep old backups |
 | `DOMAIN` | — | Prod | Your domain name for SSL |
