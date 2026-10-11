@@ -21,6 +21,7 @@ export function AddAccountModal({ isOpen, onClose, accountToEdit }: AddAccountMo
   const [initialBalance, setInitialBalance] = useState('0');
   const [creditLimit, setCreditLimit] = useState('0');
   const [color, setColor] = useState('#3f51b5');
+  const [includeInNetWorth, setIncludeInNetWorth] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -48,12 +49,14 @@ export function AddAccountModal({ isOpen, onClose, accountToEdit }: AddAccountMo
       setInitialBalance(accountToEdit.initialBalance?.toString() || '0');
       setCreditLimit(accountToEdit.creditLimit?.toString() || '0');
       setColor(accountToEdit.color || '#3f51b5');
+      setIncludeInNetWorth(accountToEdit.includeInNetWorth !== false);
     } else {
       setName('');
       setType(accountTypes[0]?.code || 'checking');
       setInitialBalance('0');
       setCreditLimit('0');
       setColor('#3f51b5');
+      setIncludeInNetWorth(true);
     }
   }, [accountToEdit, isOpen, accountTypes]);
 
@@ -77,6 +80,7 @@ export function AddAccountModal({ isOpen, onClose, accountToEdit }: AddAccountMo
           initialBalance: parseFloat(initialBalance) || 0,
           creditLimit: parseFloat(creditLimit) || 0,
           color,
+          includeInNetWorth,
         });
       } else {
         await createAccount({
@@ -86,6 +90,7 @@ export function AddAccountModal({ isOpen, onClose, accountToEdit }: AddAccountMo
           initialBalance: parseFloat(initialBalance) || 0,
           creditLimit: parseFloat(creditLimit) || 0,
           color,
+          includeInNetWorth,
         });
       }
       onClose();
@@ -157,6 +162,25 @@ export function AddAccountModal({ isOpen, onClose, accountToEdit }: AddAccountMo
               className="w-full rounded-lg border border-border bg-bg-hover px-4 py-2.5 text-text-primary focus:border-accent focus:outline-none"
             />
             <p className="text-[11px] text-text-muted mt-1">Set opening balance to calibrate Net Worth calculations.</p>
+          </div>
+
+          {/* Include in Net Worth Toggle */}
+          <div className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-bg-hover cursor-pointer" onClick={() => setIncludeInNetWorth(!includeInNetWorth)}>
+            <div className="pr-3">
+              <label className="text-sm font-semibold text-text-primary block cursor-pointer">
+                Include in Net Worth
+              </label>
+              <p className="text-[11px] text-text-muted mt-0.5">
+                When enabled, this account’s balance is included in the Dashboard Net Worth calculation.
+              </p>
+            </div>
+            <input
+              type="checkbox"
+              checked={includeInNetWorth}
+              onChange={(e) => setIncludeInNetWorth(e.target.checked)}
+              onClick={(e) => e.stopPropagation()}
+              className="w-5 h-5 rounded text-accent focus:ring-accent bg-bg-card border-border cursor-pointer shrink-0"
+            />
           </div>
 
           <div>

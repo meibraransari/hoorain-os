@@ -43,9 +43,16 @@ export function AccountCard({ account }: AccountCardProps) {
           >
             {getIcon()}
           </div>
-          <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-bg-secondary text-text-secondary uppercase tracking-wider">
-            {account.type || 'Account'}
-          </span>
+          <div className="flex flex-col items-end gap-1">
+            <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-bg-secondary text-text-secondary uppercase tracking-wider">
+              {account.type || 'Account'}
+            </span>
+            {account.includeInNetWorth === false && (
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-500 border border-amber-500/25 tracking-tight" title="This account is excluded from Dashboard Net Worth">
+                Excluded from Net Worth
+              </span>
+            )}
+          </div>
         </div>
         
         <div className="mt-4 flex items-end justify-between gap-2">

@@ -59,6 +59,13 @@ export default function AccountsPage() {
     : accounts.filter((acc: any) => acc.type === selectedType || acc.type?.toLowerCase() === selectedType.toLowerCase());
 
   const totalBalance = filteredAccounts.reduce((acc: number, curr: any) => acc + (parseFloat(curr.currentBalance) || 0), 0);
+  const netWorthBalance = filteredAccounts
+    .filter((acc: any) => acc.includeInNetWorth !== false)
+    .reduce((acc: number, curr: any) => acc + (parseFloat(curr.currentBalance) || 0), 0);
+  const excludedBalance = filteredAccounts
+    .filter((acc: any) => acc.includeInNetWorth === false)
+    .reduce((acc: number, curr: any) => acc + (parseFloat(curr.currentBalance) || 0), 0);
+  const excludedCount = filteredAccounts.filter((acc: any) => acc.includeInNetWorth === false).length;
 
   return (
     <div className="space-y-6">
@@ -186,14 +193,38 @@ export default function AccountsPage() {
         {/* Main Content Area */}
         <div className="lg:col-span-3 space-y-6">
           {/* Total Balance Stat Card */}
-          <div className="card bg-gradient-to-r from-bg-card to-bg-hover border border-border p-6 rounded-xl flex items-center justify-between">
+          <div className="card bg-gradient-to-r from-bg-card to-bg-hover border border-border p-6 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <span className="text-xs font-semibold uppercase text-text-muted">
-                {selectedType === 'all' ? 'Total Accounts Balance' : `Filtered Balance (${selectedType})`}
-              </span>
-              <div className="text-3xl font-bold text-text-primary mt-1">{formatPrivateCurrency(totalBalance)}</div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold uppercase text-text-muted">
+                  {selectedType === 'all' ? 'Total Accounts Balance' : `Filtered Balance (${selectedType})`}
+                </span>
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-bg-secondary text-text-secondary border border-border">
+                  {filteredAccounts.length} {filteredAccounts.length === 1 ? 'Account' : 'Accounts'}
+                </span>
+              </div>
+              <div className="text-3xl font-bold text-text-primary mt-1">
+                {formatPrivateCurrency(totalBalance)}
+              </div>
+
+              {/* Net Worth vs Excluded Breakdown Pills */}
+              {selectedType === 'all' && (
+                <div className="flex flex-wrap items-center gap-2.5 mt-3 text-xs">
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-accent/10 border border-accent/20 text-accent font-medium">
+                    <span>Net Worth:</span>
+                    <strong className="font-bold">{formatPrivateCurrency(netWorthBalance)}</strong>
+                  </div>
+                  {excludedCount > 0 && (
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500 font-medium">
+                      <span>Excluded from Net Worth:</span>
+                      <strong className="font-bold">{formatPrivateCurrency(excludedBalance)}</strong>
+                      <span className="text-text-muted">({excludedCount} {excludedCount === 1 ? 'account' : 'accounts'})</span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-            <div className="p-3 bg-accent/10 text-accent rounded-xl">
+            <div className="p-3 bg-accent/10 text-accent rounded-xl shrink-0 self-start md:self-auto">
               <Wallet size={28} />
             </div>
           </div>
