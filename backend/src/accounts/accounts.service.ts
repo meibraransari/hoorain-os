@@ -26,7 +26,10 @@ export class AccountsService {
             WHEN type = 'expense' THEN -amount 
             ELSE 0 
           END
-        ) as sum FROM transactions WHERE account_id = $1 AND (exclude_from_balance IS NOT TRUE OR exclude_from_balance IS NULL)`,
+        ) as sum FROM transactions 
+        WHERE account_id = $1 
+          AND (is_pending IS NOT TRUE OR is_pending IS NULL)
+          AND (exclude_from_balance IS NOT TRUE OR exclude_from_balance IS NULL)`,
         [acc.id],
       );
 
@@ -50,7 +53,10 @@ export class AccountsService {
           WHEN type = 'expense' THEN -amount 
           ELSE 0 
         END
-      ) as sum FROM transactions WHERE account_id = $1 AND (exclude_from_balance IS NOT TRUE OR exclude_from_balance IS NULL)`,
+      ) as sum FROM transactions 
+      WHERE account_id = $1 
+        AND (is_pending IS NOT TRUE OR is_pending IS NULL)
+        AND (exclude_from_balance IS NOT TRUE OR exclude_from_balance IS NULL)`,
       [account.id],
     );
 

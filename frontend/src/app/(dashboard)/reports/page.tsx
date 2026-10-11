@@ -262,6 +262,9 @@ function ReportsContent() {
       const isIncome = !isTransfer && (tx.type === 'income' || tx.income === 1);
       const txType = isTransfer ? 'transfer' : isIncome ? 'income' : 'expense';
 
+      // Exclude pending / unpaid transactions
+      if (tx.isPending || tx.paid === 0 || tx.excludeFromBalance) return false;
+
       // 1. Type Filter
       if (appliedTypeFilter && txType !== appliedTypeFilter) return false;
 

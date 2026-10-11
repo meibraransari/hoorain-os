@@ -143,7 +143,25 @@ export class ImportService {
   }
 
   async reconcileUserBalances(manager: EntityManager, userId: string) {
-    // Balances are fully computed and maintained automatically by importAccounts opening balances + PostgreSQL triggers
+    const accounts = await manager.getRepository(Account).find({ where: { userId } });
+    for (const acc of accounts) {
+      const [{ sum }] = await manager.query(
+        `SELECT SUM(
+          CASE 
+            WHEN type = 'income' THEN amount 
+            WHEN type = 'expense' THEN -amount 
+            ELSE 0 
+          END
+        ) as sum FROM transactions 
+        WHERE account_id = $1 
+          AND (is_pending IS NOT TRUE OR is_pending IS NULL)
+          AND (exclude_from_balance IS NOT TRUE OR exclude_from_balance IS NULL)`,
+        [acc.id],
+      );
+      const txSum = parseFloat(sum || '0');
+      const correctBalance = parseFloat((acc.initialBalance as any) || '0') + txSum;
+      await manager.update(Account, { id: acc.id }, { currentBalance: correctBalance });
+    }
   }
 
   async processCashewFile(buffer: Buffer, userId: string, filename: string) {
@@ -390,11 +408,7 @@ export class ImportService {
         }
       }
 
-      let initialBalance = 0;
-      const n = w.name.toLowerCase();
-      if (n.includes('icici')) initialBalance = 1210000.0;
-      else if (n.includes('saving')) initialBalance = 70000.0;
-      else if (n.includes('hdfc')) initialBalance = 5000.0;
+      const initialBalance = 0;
 
       return repo.create({
         id,

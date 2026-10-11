@@ -42,7 +42,9 @@ export class ReportsService {
       .where('transaction.userId = :userId', { userId })
       .andWhere('transaction.type IN (:...types)', {
         types: [TransactionType.INCOME, TransactionType.EXPENSE],
-      });
+      })
+      .andWhere('(transaction.isPending IS NOT TRUE OR transaction.isPending IS NULL)')
+      .andWhere('(transaction.isTransfer IS NOT TRUE OR transaction.isTransfer IS NULL)');
 
     this.applyDateRange(qb, query);
     qb.groupBy('transaction.type');
@@ -67,7 +69,9 @@ export class ReportsService {
       .addSelect('COALESCE(SUM(transaction.amount), 0)', 'total')
       .addSelect('COUNT(transaction.id)', 'count')
       .where('transaction.userId = :userId', { userId })
-      .andWhere('transaction.type = :type', { type: TransactionType.EXPENSE });
+      .andWhere('transaction.type = :type', { type: TransactionType.EXPENSE })
+      .andWhere('(transaction.isPending IS NOT TRUE OR transaction.isPending IS NULL)')
+      .andWhere('(transaction.isTransfer IS NOT TRUE OR transaction.isTransfer IS NULL)');
 
     this.applyDateRange(qb, query);
     qb.groupBy('transaction.categoryId');
@@ -96,7 +100,8 @@ export class ReportsService {
         start: currentMonthStart.toISOString(),
         end: currentMonthEnd.toISOString(),
       })
-      .andWhere('transaction.isTransfer = false')
+      .andWhere('(transaction.isTransfer IS NOT TRUE OR transaction.isTransfer IS NULL)')
+      .andWhere('(transaction.isPending IS NOT TRUE OR transaction.isPending IS NULL)')
       .getMany();
 
     let grossRevenue = 0;
@@ -114,7 +119,8 @@ export class ReportsService {
         start: prevMonthStart.toISOString(),
         end: prevMonthEnd.toISOString(),
       })
-      .andWhere('transaction.isTransfer = false')
+      .andWhere('(transaction.isTransfer IS NOT TRUE OR transaction.isTransfer IS NULL)')
+      .andWhere('(transaction.isPending IS NOT TRUE OR transaction.isPending IS NULL)')
       .getMany();
 
     let prevRevenue = 0;

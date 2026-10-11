@@ -38,6 +38,9 @@ async function bootstrap() {
       });
     }
 
+    console.log(`Resetting previous financial data for admin user...`);
+    await importService.resetUserData(admin.id);
+
     console.log(`Processing Cashew export file: ${filePath}`);
     const fileBuffer = fs.readFileSync(filePath);
     const result = await importService.processCashewFile(fileBuffer, admin.id, path.basename(filePath));

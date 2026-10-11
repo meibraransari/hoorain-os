@@ -30,7 +30,10 @@ export class InsightsService {
             WHEN type = 'expense' THEN -amount 
             ELSE 0 
           END
-        ) as sum FROM transactions WHERE account_id = $1 AND (exclude_from_balance IS NOT TRUE OR exclude_from_balance IS NULL)`,
+        ) as sum FROM transactions 
+        WHERE account_id = $1 
+          AND (is_pending IS NOT TRUE OR is_pending IS NULL)
+          AND (exclude_from_balance IS NOT TRUE OR exclude_from_balance IS NULL)`,
         [acc.id],
       );
       const txSum = parseFloat(sum || '0');
@@ -111,7 +114,7 @@ export class InsightsService {
     const prevCatExpenses: Record<string, number> = {};
 
     transactions.forEach((tx) => {
-      if (tx.isTransfer || tx.excludeFromBalance || !tx.date) return;
+      if (tx.isPending || (tx as any).paid === 0 || tx.isTransfer || tx.excludeFromBalance || !tx.date) return;
       const d = new Date(tx.date);
       if (isNaN(d.getTime())) return;
       const mKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;

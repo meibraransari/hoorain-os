@@ -33,7 +33,7 @@ export class TransactionsService implements OnModuleInit {
         RETURNS TRIGGER AS $$
         BEGIN
           IF TG_OP = 'INSERT' THEN
-            IF NEW.exclude_from_balance IS TRUE THEN
+            IF NEW.is_pending IS TRUE OR NEW.exclude_from_balance IS TRUE THEN
               RETURN COALESCE(NEW, OLD);
             END IF;
             IF NEW.type = 'income' THEN
@@ -42,7 +42,7 @@ export class TransactionsService implements OnModuleInit {
               UPDATE accounts SET current_balance = current_balance - NEW.amount WHERE id = NEW.account_id;
             END IF;
           ELSIF TG_OP = 'DELETE' THEN
-            IF OLD.exclude_from_balance IS TRUE THEN
+            IF OLD.is_pending IS TRUE OR OLD.exclude_from_balance IS TRUE THEN
               RETURN COALESCE(NEW, OLD);
             END IF;
             IF OLD.type = 'income' THEN
@@ -51,14 +51,14 @@ export class TransactionsService implements OnModuleInit {
               UPDATE accounts SET current_balance = current_balance + OLD.amount WHERE id = OLD.account_id;
             END IF;
           ELSIF TG_OP = 'UPDATE' THEN
-            IF OLD.exclude_from_balance IS NOT TRUE THEN
+            IF OLD.is_pending IS NOT TRUE AND (OLD.exclude_from_balance IS NOT TRUE OR OLD.exclude_from_balance IS NULL) THEN
               IF OLD.type = 'income' THEN
                 UPDATE accounts SET current_balance = current_balance - OLD.amount WHERE id = OLD.account_id;
               ELSIF OLD.type = 'expense' THEN
                 UPDATE accounts SET current_balance = current_balance + OLD.amount WHERE id = OLD.account_id;
               END IF;
             END IF;
-            IF NEW.exclude_from_balance IS NOT TRUE THEN
+            IF NEW.is_pending IS NOT TRUE AND (NEW.exclude_from_balance IS NOT TRUE OR NEW.exclude_from_balance IS NULL) THEN
               IF NEW.type = 'income' THEN
                 UPDATE accounts SET current_balance = current_balance + NEW.amount WHERE id = NEW.account_id;
               ELSIF NEW.type = 'expense' THEN
@@ -127,11 +127,11 @@ export class TransactionsService implements OnModuleInit {
       const summaryQb = this.transactionRepo
         .createQueryBuilder('transaction')
         .select(
-          "SUM(CASE WHEN transaction.type = 'income' AND (transaction.isTransfer IS NOT TRUE OR transaction.isTransfer IS NULL) THEN transaction.amount ELSE 0 END)",
+          "SUM(CASE WHEN transaction.type = 'income' AND (transaction.isTransfer IS NOT TRUE OR transaction.isTransfer IS NULL) AND (transaction.isPending IS NOT TRUE OR transaction.isPending IS NULL) THEN transaction.amount ELSE 0 END)",
           'income'
         )
         .addSelect(
-          "SUM(CASE WHEN transaction.type = 'expense' AND (transaction.isTransfer IS NOT TRUE OR transaction.isTransfer IS NULL) THEN transaction.amount ELSE 0 END)",
+          "SUM(CASE WHEN transaction.type = 'expense' AND (transaction.isTransfer IS NOT TRUE OR transaction.isTransfer IS NULL) AND (transaction.isPending IS NOT TRUE OR transaction.isPending IS NULL) THEN transaction.amount ELSE 0 END)",
           'expense'
         )
         .where('transaction.userId = :userId', { userId });

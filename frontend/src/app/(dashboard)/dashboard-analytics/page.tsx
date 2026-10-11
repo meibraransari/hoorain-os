@@ -151,7 +151,7 @@ export default function AnalyticsDashboardPage() {
   const monthlyIncome = useMemo(() => {
     return transactions
       .filter((tx: any) => {
-        if (tx.isTransfer || tx.excludeFromBalance || !tx.date) return false;
+        if (tx.isPending || tx.paid === 0 || tx.isTransfer || tx.excludeFromBalance || !tx.date) return false;
         const dKey = getLocalDateKey(tx.date);
         return dKey === currentMonthKey && (tx.type === 'income' || tx.income === 1);
       })
@@ -162,7 +162,7 @@ export default function AnalyticsDashboardPage() {
   const monthlyExpense = useMemo(() => {
     return transactions
       .filter((tx: any) => {
-        if (tx.isTransfer || tx.excludeFromBalance || !tx.date) return false;
+        if (tx.isPending || tx.paid === 0 || tx.isTransfer || tx.excludeFromBalance || !tx.date) return false;
         const dKey = getLocalDateKey(tx.date);
         return dKey === currentMonthKey && (tx.type === 'expense' || tx.income === 0);
       })
@@ -173,7 +173,7 @@ export default function AnalyticsDashboardPage() {
   const yearlyIncome = useMemo(() => {
     return transactions
       .filter((tx: any) => {
-        if (tx.isTransfer || tx.excludeFromBalance || !tx.date) return false;
+        if (tx.isPending || tx.paid === 0 || tx.isTransfer || tx.excludeFromBalance || !tx.date) return false;
         const yr = getLocalYear(tx.date);
         return yr === currentYear && (tx.type === 'income' || tx.income === 1);
       })
@@ -184,7 +184,7 @@ export default function AnalyticsDashboardPage() {
   const yearlyExpense = useMemo(() => {
     return transactions
       .filter((tx: any) => {
-        if (tx.isTransfer || tx.excludeFromBalance || !tx.date) return false;
+        if (tx.isPending || tx.paid === 0 || tx.isTransfer || tx.excludeFromBalance || !tx.date) return false;
         const yr = getLocalYear(tx.date);
         return yr === currentYear && (tx.type === 'expense' || tx.income === 0);
       })
@@ -225,7 +225,7 @@ export default function AnalyticsDashboardPage() {
       }
 
       transactions.forEach((tx: any) => {
-        if (tx.isTransfer || tx.excludeFromBalance || !tx.date) return;
+        if (tx.isPending || tx.paid === 0 || tx.isTransfer || tx.excludeFromBalance || !tx.date) return;
         const dKey = getLocalDateKey(tx.date);
         if (dKey === currentMonthKey) {
           const day = new Date(tx.date).getDate();
@@ -254,7 +254,7 @@ export default function AnalyticsDashboardPage() {
       });
 
       transactions.forEach((tx: any) => {
-        if (tx.isTransfer || tx.excludeFromBalance || !tx.date) return;
+        if (tx.isPending || tx.paid === 0 || tx.isTransfer || tx.excludeFromBalance || !tx.date) return;
         const yr = getLocalYear(tx.date);
         if (yr === currentYear) {
           const d = new Date(tx.date);

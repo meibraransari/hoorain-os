@@ -152,7 +152,7 @@ export default function PlanningDashboardPage() {
   const monthlyIncome = useMemo(() => {
     return transactions
       .filter((tx: any) => {
-        if (tx.isTransfer || tx.excludeFromBalance || !tx.date) return false;
+        if (tx.isPending || tx.paid === 0 || tx.isTransfer || tx.excludeFromBalance || !tx.date) return false;
         const dKey = getLocalDateKey(tx.date);
         return dKey === currentMonthKey && (tx.type === 'income' || tx.income === 1);
       })
@@ -163,7 +163,7 @@ export default function PlanningDashboardPage() {
   const monthlyExpense = useMemo(() => {
     return transactions
       .filter((tx: any) => {
-        if (tx.isTransfer || tx.excludeFromBalance || !tx.date) return false;
+        if (tx.isPending || tx.paid === 0 || tx.isTransfer || tx.excludeFromBalance || !tx.date) return false;
         const dKey = getLocalDateKey(tx.date);
         return dKey === currentMonthKey && (tx.type === 'expense' || tx.income === 0);
       })
@@ -174,7 +174,7 @@ export default function PlanningDashboardPage() {
   const yearlyIncome = useMemo(() => {
     return transactions
       .filter((tx: any) => {
-        if (tx.isTransfer || tx.excludeFromBalance || !tx.date) return false;
+        if (tx.isPending || tx.paid === 0 || tx.isTransfer || tx.excludeFromBalance || !tx.date) return false;
         const yr = getLocalYear(tx.date);
         return yr === currentYear && (tx.type === 'income' || tx.income === 1);
       })
@@ -185,7 +185,7 @@ export default function PlanningDashboardPage() {
   const yearlyExpense = useMemo(() => {
     return transactions
       .filter((tx: any) => {
-        if (tx.isTransfer || tx.excludeFromBalance || !tx.date) return false;
+        if (tx.isPending || tx.paid === 0 || tx.isTransfer || tx.excludeFromBalance || !tx.date) return false;
         const yr = getLocalYear(tx.date);
         return yr === currentYear && (tx.type === 'expense' || tx.income === 0);
       })
@@ -226,7 +226,7 @@ export default function PlanningDashboardPage() {
       }
 
       transactions.forEach((tx: any) => {
-        if (tx.isTransfer || tx.excludeFromBalance || !tx.date) return;
+        if (tx.isPending || tx.paid === 0 || tx.isTransfer || tx.excludeFromBalance || !tx.date) return;
         const dKey = getLocalDateKey(tx.date);
         if (dKey === currentMonthKey) {
           const day = new Date(tx.date).getDate();
@@ -255,7 +255,7 @@ export default function PlanningDashboardPage() {
       });
 
       transactions.forEach((tx: any) => {
-        if (tx.isTransfer || tx.excludeFromBalance || !tx.date) return;
+        if (tx.isPending || tx.paid === 0 || tx.isTransfer || tx.excludeFromBalance || !tx.date) return;
         const yr = getLocalYear(tx.date);
         if (yr === currentYear) {
           const d = new Date(tx.date);
@@ -295,7 +295,7 @@ export default function PlanningDashboardPage() {
         }
 
         transactions.forEach((tx: any) => {
-          if (tx.isTransfer || tx.excludeFromBalance || !tx.date) return;
+          if (tx.isPending || tx.paid === 0 || tx.isTransfer || tx.excludeFromBalance || !tx.date) return;
           const tMs = new Date(tx.date).getTime();
           if (tMs >= startMs && tMs <= endMs) {
             const iso = new Date(tx.date).toISOString().substring(0, 10);
@@ -317,7 +317,7 @@ export default function PlanningDashboardPage() {
         const monthMap: Record<string, { label: string; income: number; expense: number }> = {};
 
         transactions.forEach((tx: any) => {
-          if (tx.isTransfer || tx.excludeFromBalance || !tx.date) return;
+          if (tx.isPending || tx.paid === 0 || tx.isTransfer || tx.excludeFromBalance || !tx.date) return;
           const tMs = new Date(tx.date).getTime();
           if ((startMs === 0 || tMs >= startMs) && tMs <= endMs) {
             const d = new Date(tx.date);
@@ -344,7 +344,7 @@ export default function PlanningDashboardPage() {
   // Compute Top Expenses Category Breakdown Data
   const categoryData = useMemo(() => {
     const currentMonthExpenses = transactions.filter((tx: any) => {
-      if (tx.isTransfer || !tx.date) return false;
+      if (tx.isPending || tx.paid === 0 || tx.isTransfer || !tx.date) return false;
       const d = new Date(tx.date).toISOString().substring(0, 7);
       return d === currentMonthKey && (tx.type === 'expense' || tx.income === 0);
     });
